@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<!-- VERSION: v112 | 2026-06-28 | FEATURE: Production Components Module - Phase 1 -->
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المنجم - نظام إدارة المستودع الذكي</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      color: #1e293b;
+    }
+
+    /* ═══════════════════════════════════════════���═══════════ */
+    /* PRODUCTION COMPONENTS STYLES */
+    /* ═══════════════════════════════════════════════════════ */
+    
+    .components-container {
+      padding: 20px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin: 20px;
+    }
+
+    .components-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 12px;
+    }
+
+    .component-tab {
+      padding: 12px 24px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: #64748b;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .component-tab:hover {
+      color: #1e40af;
+      border-bottom-color: #1e40af;
+    }
+
+    .component-tab.active {
+      color: #1e40af;
+      border-bottom-color: #1e40af;
+      background: rgba(30, 64, 175, 0.05);
+    }
+
+    .component-tab-content {
+      display: none;
+    }
+
+    .component-tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* COMPONENTS TABLE STYLES */
+    /* ═══════════════════════════════════════════════════════ */
+
+    .components-table-wrapper {
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    .components-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .components-table thead {
+      background: linear-gradient(135deg, #1e40af 0%, #0f2a5a 100%);
+      color: #fff;
+    }
+
+    .components-table th {
+      padding: 16px 12px;
+      text-align: right;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: none;
+    }
+
+    .components-table td {
+      padding: 14px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: middle;
+    }
+
+    .components-table tbody tr {
+      transition: all 0.2s;
+    }
+
+    .components-table tbody tr:hover {
+      background: rgba(30, 64, 175, 0.04);
+    }
+
+    .component-type-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .component-type-rm {
+      background: rgba(239, 68, 68, 0.12);
+      color: #b42318;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .component-type-pkg {
+      background: rgba(59, 130, 246, 0.12);
+      color: #1e40af;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .component-type-wip {
+      background: rgba(251, 146, 60, 0.12);
+      color: #7c2d12;
+      border: 1px solid rgba(251, 146, 60, 0.3);
+    }
+
+    .component-type-extra {
+      background: rgba(16, 185, 129, 0.12);
+      color: #065f46;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .quantity-warning {
+      color: #dc2626;
+      font-weight: 800;
+    }
+
+    .quantity-ok {
+      color: #059669;
+      font-weight: 800;
+    }
+
+    .action-btn {
+      padding: 8px 12px;
+      margin: 0 4px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .action-btn-edit {
+      background: rgba(59, 130, 246, 0.12);
+      color: #1e40af;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .action-btn-edit:hover {
+      background: #1e40af;
+      color: #fff;
+    }
+
+    .action-btn-delete {
+      background: rgba(239, 68, 68, 0.12);
+      color: #b42318;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .action-btn-delete:hover {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* TOOLBAR STYLES */
+    /* ═══════════════════════════════════════════════════════ */
+
+    .components-toolbar {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-start;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 20px 0;
+      padding: 16px;
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+      border-left: 3px solid #10b981;
+      border-radius: 10px;
+    }
+
+    .toolbar-btn {
+      padding: 11px 16px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .toolbar-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    }
+
+    .toolbar-btn-secondary {
+      background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+    }
+
+    .toolbar-btn-secondary:hover {
+      box-shadow: 0 6px 16px rgba(30, 64, 175, 0.4);
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* MODAL STYLES */
+    /* ═══════════════════════════════════════════════════════ */
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .modal-header h2 {
+      font-size: 20px;
+      font-weight: 900;
+      color: #1e40af;
+      margin: 0;
+    }
+
+    .modal-close {
+      margin-left: auto;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      color: #1e40af;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      color: #1e40af;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: inherit;
+      background: #f8fafc;
+      color: #1e293b;
+      transition: all 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #1e40af;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      justify-content: flex-end;
+    }
+
+    .form-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.3s;
+    }
+
+    .form-btn-submit {
+      background: linear-gradient(135deg, #1e40af 0%, #0f2a5a 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+    }
+
+    .form-btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(30, 64, 175, 0.4);
+    }
+
+    .form-btn-cancel {
+      background: #e2e8f0;
+      color: #64748b;
+    }
+
+    .form-btn-cancel:hover {
+      background: #cbd5e1;
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* ALERT STYLES */
+    /* ═══════════════════════════════════════════════════════ */
+
+    .alert {
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-success {
+      background: rgba(22, 163, 74, 0.12);
+      color: #15803d;
+      border: 1px solid rgba(22, 163, 74, 0.3);
+      border-left: 3px solid #22c55e;
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.12);
+      color: #b42318;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-left: 3px solid #ef4444;
+    }
+
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.12);
+      color: #b45309;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-left: 3px solid #f59e0b;
+    }
+
+    /* ═══════════════════════════════════════════════════════ */
+    /* EMPTY STATE */
+    /* ═══════════════════════════════════════════════════════ */
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+      border-radius: 12px;
+      border: 2px dashed #d1fae5;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state-text {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 16px;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/tabler-icons.min.css">
+</head>
+<body data-theme="light">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PRODUCTION COMPONENTS MODULE -->
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<div class="components-container" id="productionComponentsModule" style="display:none;">
+  
+  <!-- ALERTS -->
+  <div class="alert alert-success" id="successAlert"></div>
+  <div class="alert alert-error" id="errorAlert"></div>
+  <div class="alert alert-warning" id="warningAlert"></div>
+
+  <!-- TABS -->
+  <div class="components-tabs">
+    <button class="component-tab active" onclick="switchComponentTab('components')">
+      🧪 المكونات
+    </button>
+    <button class="component-tab" onclick="switchComponentTab('recipes')">
+      📋 الوصفات
+    </button>
+    <button class="component-tab" onclick="switchComponentTab('orders')">
+      📦 أوامر الإنتاج
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- TAB 1: COMPONENTS -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <div class="component-tab-content active" id="componentsTab">
+    
+    <div class="components-toolbar">
+      <button class="toolbar-btn" onclick="openAddComponentModal()">
+        ➕ إضافة مكون جديد
+      </button>
+      <button class="toolbar-btn toolbar-btn-secondary" onclick="exportComponentsToExcel()">
+        📥 تنزيل Excel
+      </button>
+      <button class="toolbar-btn toolbar-btn-secondary" onclick="printComponents()">
+        🖨️ طباعة
+      </button>
+    </div>
+
+    <div class="components-table-wrapper">
+      <table class="components-table" id="componentsTable">
+        <thead>
+          <tr>
+            <th>رقم المكون</th>
+            <th>النوع</th>
+            <th>الاسم</th>
+            <th>الكمية</th>
+            <th>الوحدة</th>
+            <th>تاريخ الصلاحية</th>
+            <th>المورد</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="componentsTableBody">
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 40px;">
+              <div class="empty-state">
+                <div class="empty-state-icon">📦</div>
+                <div class="empty-state-text">لا توجد مكونات حتى الآن</div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- TAB 2: RECIPES -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <div class="component-tab-content" id="recipesTab">
+    
+    <div class="components-toolbar">
+      <button class="toolbar-btn" onclick="openAddRecipeModal()">
+        ➕ إضافة وصفة جديدة
+      </button>
+      <button class="toolbar-btn toolbar-btn-secondary" onclick="exportRecipesToExcel()">
+        📥 تنزيل Excel
+      </button>
+      <button class="toolbar-btn toolbar-btn-secondary" onclick="printRecipes()">
+        🖨️ طباعة
+      </button>
+    </div>
+
+    <div class="components-table-wrapper">
+      <table class="components-table" id="recipesTable">
+        <thead>
+          <tr>
+            <th>رقم الوصفة</th>
+            <th>الصنف النهائي</th>
+            <th>عدد المكونات</th>
+            <th>الحالة</th>
+            <th>آخر استخدام</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="recipesTableBody">
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 40px;">
+              <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <div class="empty-state-text">لا توجد وصفات حتى الآن</div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- TAB 3: PRODUCTION ORDERS -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+
+  <div class="component-tab-content" id="ordersTab">
+    
+    <div class="components-toolbar">
+      <button class="toolbar-btn" onclick="openAddOrderModal()">
+        ➕ إنشاء أمر إنتاج جديد
+      </button>
+      <button class="toolbar-btn toolbar-btn-secondary" onclick="exportOrdersToExcel()">
+        📥 تنزيل Excel
+      </button>
+      <button class="toolbar-btn toolbar-btn-secondary" onclick="printOrders()">
+        🖨️ طباعة
+      </button>
+    </div>
+
+    <div class="components-table-wrapper">
+      <table class="components-table" id="ordersTable">
+        <thead>
+          <tr>
+            <th>رقم الأمر</th>
+            <th>الصنف النهائي</th>
+            <th>الحالة</th>
+            <th>المكونات</th>
+            <th>الناقص</th>
+            <th>تاريخ الإنشاء</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="ordersTableBody">
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 40px;">
+              <div class="empty-state">
+                <div class="empty-state-icon">📦</div>
+                <div class="empty-state-text">لا توجد أوامر إنتاج حتى الآن</div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- MODALS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<!-- ADD/EDIT COMPONENT MODAL -->
+<div class="modal" id="componentModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="componentModalTitle">إضافة مكون جديد</h2>
+      <button class="modal-close" onclick="closeComponentModal()">&times;</button>
+    </div>
+    
+    <form id="componentForm" onsubmit="saveComponent(event)">
+      
+      <div class="form-group">
+        <label>رقم المكون *</label>
+        <input type="text" id="componentId" placeholder="مثال: RM-0001" required>
+      </div>
+
+      <div class="form-group">
+        <label>النوع *</label>
+        <select id="componentType" required>
+          <option value="">اختر النوع</option>
+          <option value="RM">مواد خام (RM)</option>
+          <option value="PKG">مواد تعبئة (PKG)</option>
+          <option value="WIP">مواد نصف مصنعة (WIP)</option>
+          <option value="EXTRA">مكونات إضافية</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>اسم المكون *</label>
+        <input type="text" id="componentName" placeholder="مثال: دقيق أبيض" required>
+      </div>
+
+      <div class="form-group">
+        <label>الكمية *</label>
+        <input type="number" id="componentQuantity" placeholder="0" min="0" required>
+      </div>
+
+      <div class="form-group">
+        <label>الوحدة *</label>
+        <select id="componentUnit" required>
+          <option value="">اختر الوحدة</option>
+          <option value="كيس">كيس</option>
+          <option value="قطعة">قطعة</option>
+          <option value="صندوق">صندوق</option>
+          <option value="لتر">لتر</option>
+          <option value="كجم">كجم</option>
+          <option value="غرام">غرام</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>تاريخ الصلاحية (اختياري)</label>
+        <input type="date" id="componentExpiry">
+      </div>
+
+      <div class="form-group">
+        <label>المورد</label>
+        <input type="text" id="componentSupplier" placeholder="اسم المورد">
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="form-btn form-btn-cancel" onclick="closeComponentModal()">
+          إلغاء
+        </button>
+        <button type="submit" class="form-btn form-btn-submit">
+          حفظ المكون
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ADD/EDIT RECIPE MODAL -->
+<div class="modal" id="recipeModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="recipeModalTitle">إضافة وصفة جديدة</h2>
+      <button class="modal-close" onclick="closeRecipeModal()">&times;</button>
+    </div>
+    
+    <form id="recipeForm" onsubmit="saveRecipe(event)">
+      
+      <div class="form-group">
+        <label>رقم الوصفة *</label>
+        <input type="text" id="recipeId" placeholder="مثال: RECIPE-FG-0008" required>
+      </div>
+
+      <div class="form-group">
+        <label>الصنف النهائي (FG) *</label>
+        <input type="text" id="recipeFG" placeholder="مثال: FG-0008" required>
+      </div>
+
+      <div class="form-group">
+        <label>المكونات *</label>
+        <div id="recipeComponentsList" style="margin-bottom: 12px;"></div>
+        <button type="button" class="toolbar-btn" onclick="addComponentToRecipe()" style="width: 100%; margin-bottom: 12px;">
+          ➕ إضافة مكون
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label>ملاحظات</label>
+        <textarea id="recipeNotes" placeholder="أي ملاحظات عن الوصفة" rows="3"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="form-btn form-btn-cancel" onclick="closeRecipeModal()">
+          إلغاء
+        </button>
+        <button type="submit" class="form-btn form-btn-submit">
+          حفظ الوصفة
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ADD/EDIT PRODUCTION ORDER MODAL -->
+<div class="modal" id="orderModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="orderModalTitle">إنشاء أمر إنتاج جديد</h2>
+      <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+    </div>
+    
+    <form id="orderForm" onsubmit="saveProductionOrder(event)">
+      
+      <div class="form-group">
+        <label>رقم الأمر *</label>
+        <input type="text" id="orderId" placeholder="مثال: PO-001" required>
+      </div>
+
+      <div class="form-group">
+        <label>الوصفة *</label>
+        <select id="orderRecipe" required onchange="loadRecipeComponents()">
+          <option value="">اختر الوصفة</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>الكمية المطلوبة *</label>
+        <input type="number" id="orderQuantity" placeholder="0" min="1" required>
+      </div>
+
+      <div id="orderComponentsStatus" style="margin: 16px 0; padding: 14px; background: #f8fafc; border-radius: 10px; display: none;">
+        <strong style="color: #1e40af;">حالة المكونات:</strong>
+        <div id="componentsStatus" style="margin-top: 12px;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>ملاحظات الإنتاج</label>
+        <textarea id="orderNotes" placeholder="ملاحظات عن الإنتاج" rows="3"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="form-btn form-btn-cancel" onclick="closeOrderModal()">
+          إلغاء
+        </button>
+        <button type="submit" class="form-btn form-btn-submit">
+          إنشاء الأمر
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT CODE -->
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA STRUCTURES
+// ═══════════════════════════════════════════════════════════════
+
+let components = [];
+let productRecipes = [];
+let productionOrders = [];
+let productionLog = [];
+
+// ═══════════════════════════════════════════════════════════════
+// INITIALIZATION
+// ═══════════════════════════════════════════════════════════════
+
+function initProductionComponents() {
+  loadDataFromStorage();
+  renderComponentsTable();
+  renderRecipesTable();
+  renderOrdersTable();
+  populateRecipeSelect();
+}
+
+function loadDataFromStorage() {
+  components = JSON.parse(localStorage.getItem('components')) || [];
+  productRecipes = JSON.parse(localStorage.getItem('productRecipes')) || [];
+  productionOrders = JSON.parse(localStorage.getItem('productionOrders')) || [];
+  productionLog = JSON.parse(localStorage.getItem('productionLog')) || [];
+}
+
+function saveToStorage() {
+  localStorage.setItem('components', JSON.stringify(components));
+  localStorage.setItem('productRecipes', JSON.stringify(productRecipes));
+  localStorage.setItem('productionOrders', JSON.stringify(productionOrders));
+  localStorage.setItem('productionLog', JSON.stringify(productionLog));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════════
+
+function switchComponentTab(tabName) {
+  // Hide all tabs
+  document.querySelectorAll('.component-tab-content').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  
+  // Remove active class from all buttons
+  document.querySelectorAll('.component-tab').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Show selected tab
+  document.getElementById(tabName + 'Tab').classList.add('active');
+  
+  // Add active class to clicked button
+  event.target.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ALERT FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function showAlert(message, type = 'success') {
+  const alertId = type + 'Alert';
+  const alert = document.getElementById(alertId);
+  alert.textContent = message;
+  alert.classList.add('show');
+  
+  setTimeout(() => {
+    alert.classList.remove('show');
+  }, 4000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMPONENT FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function openAddComponentModal() {
+  document.getElementById('componentForm').reset();
+  document.getElementById('componentModalTitle').textContent = 'إضافة مكون جديد';
+  document.getElementById('componentModal').classList.add('show');
+}
+
+function closeComponentModal() {
+  document.getElementById('componentModal').classList.remove('show');
+}
+
+function saveComponent(event) {
+  event.preventDefault();
+  
+  const component = {
+    componentId: document.getElementById('componentId').value,
+    type: document.getElementById('componentType').value,
+    name: document.getElementById('componentName').value,
+    quantity: parseInt(document.getElementById('componentQuantity').value),
+    unit: document.getElementById('componentUnit').value,
+    expiryDate: document.getElementById('componentExpiry').value,
+    supplier: document.getElementById('componentSupplier').value,
+    createdAt: new Date().toISOString()
+  };
+  
+  // Check if component already exists
+  const existingIndex = components.findIndex(c => c.componentId === component.componentId);
+  
+  if (existingIndex > -1) {
+    components[existingIndex] = component;
+    showAlert('تم تحديث المكون بنجاح', 'success');
+  } else {
+    components.push(component);
+    showAlert('تم إضافة المكون بنجاح', 'success');
+  }
+  
+  saveToStorage();
+  renderComponentsTable();
+  populateRecipeSelect();
+  closeComponentModal();
+}
+
+function deleteComponent(componentId) {
+  if (confirm('هل تريد حذف هذا المكون؟')) {
+    components = components.filter(c => c.componentId !== componentId);
+    saveToStorage();
+    renderComponentsTable();
+    showAlert('تم حذف المكون بنجاح', 'success');
+  }
+}
+
+function renderComponentsTable() {
+  const tbody = document.getElementById('componentsTableBody');
+  
+  if (components.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align: center; padding: 40px;">
+          <div class="empty-state">
+            <div class="empty-state-icon">📦</div>
+            <div class="empty-state-text">لا توجد مكونات حتى الآن</div>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  tbody.innerHTML = components.map(comp => `
+    <tr>
+      <td><strong>${comp.componentId}</strong></td>
+      <td>
+        <span class="component-type-badge component-type-${comp.type.toLowerCase()}">
+          ${getComponentTypeName(comp.type)}
+        </span>
+      </td>
+      <td>${comp.name}</td>
+      <td>
+        <span class="${comp.quantity <= 0 ? 'quantity-warning' : 'quantity-ok'}">
+          ${comp.quantity}
+        </span>
+      </td>
+      <td>${comp.unit}</td>
+      <td>${comp.expiryDate ? new Date(comp.expiryDate).toLocaleDateString('ar-EG') : '-'}</td>
+      <td>${comp.supplier || '-'}</td>
+      <td>
+        <button class="action-btn action-btn-edit" onclick="editComponent('${comp.componentId}')">
+          تعديل
+        </button>
+        <button class="action-btn action-btn-delete" onclick="deleteComponent('${comp.componentId}')">
+          حذف
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function getComponentTypeName(type) {
+  const typeNames = {
+    'RM': 'مواد خام',
+    'PKG': 'تعبئة',
+    'WIP': 'نصف مصنع',
+    'EXTRA': 'إضافي'
+  };
+  return typeNames[type] || type;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RECIPE FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function openAddRecipeModal() {
+  document.getElementById('recipeForm').reset();
+  document.getElementById('recipeModalTitle').textContent = 'إضافة وصفة جديدة';
+  document.getElementById('recipeComponentsList').innerHTML = '';
+  document.getElementById('recipeModal').classList.add('show');
+  addComponentToRecipe();
+}
+
+function closeRecipeModal() {
+  document.getElementById('recipeModal').classList.remove('show');
+}
+
+function addComponentToRecipe() {
+  const list = document.getElementById('recipeComponentsList');
+  const index = list.children.length;
+  
+  const html = `
+    <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-end;" id="recipeComp-${index}">
+      <div style="flex: 1;">
+        <select class="recipeCompId" required>
+          <option value="">اختر مكون</option>
+          ${components.map(c => `<option value="${c.componentId}">${c.componentId} - ${c.name}</option>`).join('')}
+        </select>
+      </div>
+      <div style="flex: 0.5;">
+        <input type="number" class="recipeCompQty" placeholder="الكمية" min="1" required style="width: 100%; padding: 11px 14px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 13px;">
+      </div>
+      <button type="button" class="action-btn action-btn-delete" onclick="removeRecipeComponent(${index})" style="flex-shrink: 0;">
+        ✕
+      </button>
+    </div>
+  `;
+  
+  list.insertAdjacentHTML('beforeend', html);
+}
+
+function removeRecipeComponent(index) {
+  const element = document.getElementById(`recipeComp-${index}`);
+  if (element) element.remove();
+}
+
+function saveRecipe(event) {
+  event.preventDefault();
+  
+  const componentSelects = document.querySelectorAll('.recipeCompId');
+  const recipeComponents = [];
+  
+  componentSelects.forEach((select, index) => {
+    const compId = select.value;
+    const qty = document.querySelectorAll('.recipeCompQty')[index].value;
+    
+    if (compId && qty) {
+      const comp = components.find(c => c.componentId === compId);
+      recipeComponents.push({
+        componentId: compId,
+        requiredQty: parseInt(qty),
+        unit: comp.unit
+      });
+    }
+  });
+  
+  if (recipeComponents.length === 0) {
+    showAlert('يجب إضافة مكون واحد على الأقل', 'error');
+    return;
+  }
+  
+  const recipe = {
+    recipeId: document.getElementById('recipeId').value,
+    finishedGoodId: document.getElementById('recipeFG').value,
+    components: recipeComponents,
+    notes: document.getElementById('recipeNotes').value,
+    status: 'active',
+    createdAt: new Date().toISOString()
+  };
+  
+  const existingIndex = productRecipes.findIndex(r => r.recipeId === recipe.recipeId);
+  
+  if (existingIndex > -1) {
+    productRecipes[existingIndex] = recipe;
+    showAlert('تم تحديث الوصفة بنجاح', 'success');
+  } else {
+    productRecipes.push(recipe);
+    showAlert('تم إضافة الوصفة بنجاح', 'success');
+  }
+  
+  saveToStorage();
+  renderRecipesTable();
+  populateRecipeSelect();
+  closeRecipeModal();
+}
+
+function renderRecipesTable() {
+  const tbody = document.getElementById('recipesTableBody');
+  
+  if (productRecipes.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 40px;">
+          <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <div class="empty-state-text">لا توجد وصفات حتى الآن</div>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  tbody.innerHTML = productRecipes.map(recipe => `
+    <tr>
+      <td><strong>${recipe.recipeId}</strong></td>
+      <td>${recipe.finishedGoodId}</td>
+      <td>${recipe.components.length} مكونات</td>
+      <td>
+        <span class="component-type-badge component-type-rm" style="background: rgba(22, 163, 74, 0.12); color: #15803d; border-color: rgba(22, 163, 74, 0.3);">
+          ${recipe.status === 'active' ? 'نشطة' : 'معطلة'}
+        </span>
+      </td>
+      <td>${recipe.lastUsed ? new Date(recipe.lastUsed).toLocaleDateString('ar-EG') : '-'}</td>
+      <td>
+        <button class="action-btn action-btn-edit" onclick="viewRecipeDetails('${recipe.recipeId}')">
+          عرض
+        </button>
+        <button class="action-btn action-btn-delete" onclick="deleteRecipe('${recipe.recipeId}')">
+          حذف
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function deleteRecipe(recipeId) {
+  if (confirm('هل تريد حذف هذه الوصفة؟')) {
+    productRecipes = productRecipes.filter(r => r.recipeId !== recipeId);
+    saveToStorage();
+    renderRecipesTable();
+    showAlert('تم حذف الوصفة بنجاح', 'success');
+  }
+}
+
+function populateRecipeSelect() {
+  const select = document.getElementById('orderRecipe');
+  if (!select) return;
+  
+  select.innerHTML = '<option value="">اختر الوصفة</option>';
+  productRecipes.forEach(recipe => {
+    select.innerHTML += `<option value="${recipe.recipeId}">${recipe.recipeId} - ${recipe.finishedGoodId}</option>`;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PRODUCTION ORDER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function openAddOrderModal() {
+  document.getElementById('orderForm').reset();
+  document.getElementById('orderModalTitle').textContent = 'إنشاء أمر إنتاج جديد';
+  document.getElementById('orderModal').classList.add('show');
+  populateRecipeSelect();
+}
+
+function closeOrderModal() {
+  document.getElementById('orderModal').classList.remove('show');
+}
+
+function loadRecipeComponents() {
+  const recipeId = document.getElementById('orderRecipe').value;
+  const recipe = productRecipes.find(r => r.recipeId === recipeId);
+  
+  const statusDiv = document.getElementById('orderComponentsStatus');
+  const statusContent = document.getElementById('componentsStatus');
+  
+  if (!recipe) {
+    statusDiv.style.display = 'none';
+    return;
+  }
+  
+  // Check availability
+  let allAvailable = true;
+  let statusHTML = '<ul style="margin: 0; padding-right: 20px;">';
+  
+  recipe.components.forEach(recipeComp => {
+    const component = components.find(c => c.componentId === recipeComp.componentId);
+    const available = component && component.quantity >= recipeComp.requiredQty;
+    
+    if (!available) allAvailable = false;
+    
+    const status = available ? '✅' : '❌';
+    const qty = component ? component.quantity : 0;
+    statusHTML += `<li style="margin: 4px 0; color: ${available ? '#059669' : '#dc2626'};"><strong>${status}</strong> ${recipeComp.componentId}: ${qty}/${recipeComp.requiredQty}</li>`;
+  });
+  
+  statusHTML += '</ul>';
+  statusContent.innerHTML = statusHTML;
+  statusDiv.style.display = 'block';
+  
+  if (!allAvailable) {
+    statusDiv.style.borderLeft = '3px solid #dc2626';
+  } else {
+    statusDiv.style.borderLeft = '3px solid #22c55e';
+  }
+}
+
+function saveProductionOrder(event) {
+  event.preventDefault();
+  
+  const recipeId = document.getElementById('orderRecipe').value;
+  const recipe = productRecipes.find(r => r.recipeId === recipeId);
+  
+  if (!recipe) {
+    showAlert('يجب اختيار وصفة', 'error');
+    return;
+  }
+  
+  // Check if all components available
+  let missingComponents = [];
+  recipe.components.forEach(recipeComp => {
+    const component = components.find(c => c.componentId === recipeComp.componentId);
+    if (!component || component.quantity < recipeComp.requiredQty) {
+      missingComponents.push(recipeComp.componentId);
+    }
+  });
+  
+  if (missingComponents.length > 0) {
+    showAlert(`المكونات الناقصة: ${missingComponents.join(', ')}. لا يمكن إنشاء الأمر!`, 'error');
+    return;
+  }
+  
+  const order = {
+    orderId: document.getElementById('orderId').value,
+    recipeId: recipeId,
+    finishedGoodId: recipe.finishedGoodId,
+    quantity: parseInt(document.getElementById('orderQuantity').value),
+    usedComponents: recipe.components,
+    missingComponents: [],
+    notes: document.getElementById('orderNotes').value,
+    status: 'OPEN',
+    createdAt: new Date().toISOString()
+  };
+  
+  // Deduct components from inventory
+  recipe.components.forEach(recipeComp => {
+    const component = components.find(c => c.componentId === recipeComp.componentId);
+    if (component) {
+      component.quantity -= recipeComp.requiredQty;
+    }
+  });
+  
+  productionOrders.push(order);
+  logProductionActivity(order);
+  
+  saveToStorage();
+  renderComponentsTable();
+  renderOrdersTable();
+  showAlert('تم إنشاء أمر الإنتاج بنجاح', 'success');
+  closeOrderModal();
+}
+
+function renderOrdersTable() {
+  const tbody = document.getElementById('ordersTableBody');
+  
+  if (productionOrders.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 40px;">
+          <div class="empty-state">
+            <div class="empty-state-icon">📦</div>
+            <div class="empty-state-text">لا توجد أوامر إنتاج حتى الآن</div>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  tbody.innerHTML = productionOrders.map(order => {
+    const statusColor = order.status === 'OPEN' ? '#3b82f6' : '#059669';
+    const statusBg = order.status === 'OPEN' ? 'rgba(59, 130, 246, 0.12)' : 'rgba(22, 163, 74, 0.12)';
+    const statusBorder = order.status === 'OPEN' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(22, 163, 74, 0.3)';
+    
+    return `
+      <tr>
+        <td><strong>${order.orderId}</strong></td>
+        <td>${order.finishedGoodId}</td>
+        <td>
+          <span class="component-type-badge" style="background: ${statusBg}; color: ${statusColor}; border-color: ${statusBorder};">
+            ${order.status === 'OPEN' ? 'مفتوح' : 'مغلق'}
+          </span>
+        </td>
+        <td>${order.usedComponents.length} مكونات</td>
+        <td>
+          ${order.missingComponents.length > 0 ? 
+            `<span style="color: #dc2626; font-weight: 700;">❌ ${order.missingComponents.length}</span>` : 
+            `<span style="color: #059669; font-weight: 700;">✅ كامل</span>`
+          }
+        </td>
+        <td>${new Date(order.createdAt).toLocaleDateString('ar-EG')}</td>
+        <td>
+          <button class="action-btn action-btn-edit" onclick="viewOrderDetails('${order.orderId}')">
+            عرض
+          </button>
+          ${order.status === 'OPEN' ? 
+            `<button class="action-btn action-btn-delete" onclick="closeProductionOrder('${order.orderId}')">
+              إغلاق
+            </button>` : ''
+          }
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function closeProductionOrder(orderId) {
+  const order = productionOrders.find(o => o.orderId === orderId);
+  
+  if (order.missingComponents.length > 0) {
+    showAlert('❌ لا يمكن إغلاق الأمر - مكونات ناقصة!', 'error');
+    return;
+  }
+  
+  order.status = 'CLOSED';
+  order.closedAt = new Date().toISOString();
+  
+  saveToStorage();
+  renderOrdersTable();
+  showAlert('✅ تم إغلاق أمر الإنتاج بنجاح', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LOGGING FUNCTION
+// ═══════════════════════════════════════════════════════════════
+
+function logProductionActivity(order) {
+  const log = {
+    orderId: order.orderId,
+    action: 'CREATE_ORDER',
+    timestamp: new Date().toISOString(),
+    details: {
+      recipe: order.recipeId,
+      components: order.usedComponents,
+      quantity: order.quantity
+    }
+  };
+  productionLog.push(log);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORT FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function exportComponentsToExcel() {
+  let csv = 'رقم المكون,النوع,الاسم,الكمية,الوحدة,تاريخ الصلاحية,المورد\n';
+  
+  components.forEach(comp => {
+    csv += `${comp.componentId},${comp.type},${comp.name},${comp.quantity},${comp.unit},${comp.expiryDate || '-'},${comp.supplier || '-'}\n`;
+  });
+  
+  downloadCSV(csv, 'components.csv');
+}
+
+function exportRecipesToExcel() {
+  let csv = 'رقم الوصفة,الصنف النهائي,المكونات,الحالة\n';
+  
+  productRecipes.forEach(recipe => {
+    const compsList = recipe.components.map(c => `${c.componentId}:${c.requiredQty}`).join(';');
+    csv += `${recipe.recipeId},${recipe.finishedGoodId},"${compsList}",${recipe.status}\n`;
+  });
+  
+  downloadCSV(csv, 'recipes.csv');
+}
+
+function exportOrdersToExcel() {
+  let csv = 'رقم الأمر,الصنف النهائي,الحالة,الكمية,تاريخ الإنشاء\n';
+  
+  productionOrders.forEach(order => {
+    csv += `${order.orderId},${order.finishedGoodId},${order.status},${order.quantity},${new Date(order.createdAt).toLocaleDateString('ar-EG')}\n`;
+  });
+  
+  downloadCSV(csv, 'production_orders.csv');
+}
+
+function downloadCSV(csv, filename) {
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PRINT FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function printComponents() {
+  const win = window.open('', '', 'height=500,width=800');
+  
+  let html = '<h2>تقرير المكونات</h2>';
+  html += '<table border="1" cellpadding="10"><tr><th>رقم المكون</th><th>النوع</th><th>الاسم</th><th>الكمية</th><th>الوحدة</th><th>تاريخ الصلاحية</th></tr>';
+  
+  components.forEach(comp => {
+    html += `<tr><td>${comp.componentId}</td><td>${comp.type}</td><td>${comp.name}</td><td>${comp.quantity}</td><td>${comp.unit}</td><td>${comp.expiryDate || '-'}</td></tr>`;
+  });
+  
+  html += '</table>';
+  win.document.write(html);
+  win.print();
+}
+
+function printRecipes() {
+  const win = window.open('', '', 'height=500,width=800');
+  
+  let html = '<h2>تقرير الوصفات</h2>';
+  html += '<table border="1" cellpadding="10"><tr><th>رقم الوصفة</th><th>الصنف النهائي</th><th>المكونات</th><th>الحالة</th></tr>';
+  
+  productRecipes.forEach(recipe => {
+    const compsList = recipe.components.map(c => `${c.componentId} (${c.requiredQty})`).join(', ');
+    html += `<tr><td>${recipe.recipeId}</td><td>${recipe.finishedGoodId}</td><td>${compsList}</td><td>${recipe.status}</td></tr>`;
+  });
+  
+  html += '</table>';
+  win.document.write(html);
+  win.print();
+}
+
+function printOrders() {
+  const win = window.open('', '', 'height=500,width=800');
+  
+  let html = '<h2>تقرير أوامر الإنتاج</h2>';
+  html += '<table border="1" cellpadding="10"><tr><th>رقم الأمر</th><th>الصنف النهائي</th><th>الحالة</th><th>الكمية</th><th>تاريخ الإنشاء</th></tr>';
+  
+  productionOrders.forEach(order => {
+    html += `<tr><td>${order.orderId}</td><td>${order.finishedGoodId}</td><td>${order.status}</td><td>${order.quantity}</td><td>${new Date(order.createdAt).toLocaleDateString('ar-EG')}</td></tr>`;
+  });
+  
+  html += '</table>';
+  win.document.write(html);
+  win.print();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DETAIL VIEW FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+function editComponent(componentId) {
+  const component = components.find(c => c.componentId === componentId);
+  if (!component) return;
+  
+  document.getElementById('componentId').value = component.componentId;
+  document.getElementById('componentType').value = component.type;
+  document.getElementById('componentName').value = component.name;
+  document.getElementById('componentQuantity').value = component.quantity;
+  document.getElementById('componentUnit').value = component.unit;
+  document.getElementById('componentExpiry').value = component.expiryDate || '';
+  document.getElementById('componentSupplier').value = component.supplier || '';
+  
+  document.getElementById('componentModalTitle').textContent = 'تعديل المكون';
+  document.getElementById('componentModal').classList.add('show');
+}
+
+function viewRecipeDetails(recipeId) {
+  const recipe = productRecipes.find(r => r.recipeId === recipeId);
+  if (!recipe) return;
+  
+  showAlert(`الوصفة: ${recipe.recipeId} - المكونات: ${recipe.components.length}`, 'success');
+}
+
+function viewOrderDetails(orderId) {
+  const order = productionOrders.find(o => o.orderId === orderId);
+  if (!order) return;
+  
+  showAlert(`الأمر: ${order.orderId} - الحالة: ${order.status === 'OPEN' ? 'مفتوح' : 'مغلق'}`, 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INITIALIZATION ON PAGE LOAD
+// ═══════════════════════════════��═══════════════════════════════
+
+document.addEventListener('DOMContentLoaded', function() {
+  if (document.getElementById('productionComponentsModule')) {
+    initProductionComponents();
+  }
+});
+
+// Global function to show the module
+function showProductionComponentsModule() {
+  document.getElementById('productionComponentsModule').style.display = 'block';
+  initProductionComponents();
+}
+</script>
+
+</body>
+</html>
