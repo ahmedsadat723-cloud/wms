@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<!-- VERSION: pallet_visualizer_v3 | 2026-07-07 | ملف تصميم الطبلية المستقل الكامل — مطابق لوحدة p3d المدمجة في WMS v189: طبلية 100×120 بالوضع الطولي + وضع الراك A/B/C × 7 مواقع بالحدود والملصقات + إعادة الضبط الهندسي من الاتجاهات الأربعة -->
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عارض الطبلية ثلاثي الأبعاد — المنجم</title>
+<style id="p3dStyles">
+.p3d-wrap{display:flex;flex-direction:column;gap:10px;min-height:620px}
+.p3d-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.p3d-badge{background:var(--bg2,#fff);border:1px solid var(--line,#e6ded2);border-radius:999px;padding:6px 14px;font-size:12.5px;color:var(--muted,#8a7f72)}
+.p3d-badge b{color:var(--text,#3a3129)}
+.p3d-body{display:flex;gap:12px;min-height:480px}
+.p3d-side{width:280px;min-width:240px;overflow-y:auto;max-height:560px;padding-inline-end:4px}
+.p3d-side-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.p3d-side-head h3{font-size:15px;margin:0}
+.p3d-add{background:#e8622c;color:#fff;border:none;border-radius:11px;padding:8px 15px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 8px rgba(232,98,44,.35)}
+.p3d-card{background:var(--bg2,#fff);border:2px solid transparent;border-radius:13px;padding:11px;margin-bottom:9px;cursor:pointer;box-shadow:0 1px 4px rgba(60,45,30,.08)}
+.p3d-card.on{border-color:#e8622c}
+.p3d-card .r1{display:flex;align-items:center;gap:8px}
+.p3d-card .th{width:40px;height:40px;border-radius:9px;flex:none;background:linear-gradient(145deg,#efe7da,#e2d6c3);border:1px solid var(--line,#e6ded2);display:flex;align-items:center;justify-content:center;font-size:17px}
+.p3d-card h4{font-size:13.5px;flex:1;margin:0}
+.p3d-tag{font-size:10px;padding:3px 8px;border-radius:999px;color:#fff;flex:none}
+.p3d-tag.raw{background:#a34040}.p3d-tag.final{background:#3f6fa3}.p3d-tag.dry{background:#9a7c3f}
+.p3d-card .mt{font-size:11.5px;color:var(--muted,#8a7f72);margin-top:6px;line-height:1.7}
+.p3d-card .mt b{color:var(--text,#3a3129)}
+.p3d-card .ac{display:none;gap:7px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--line,#e6ded2)}
+.p3d-card.on .ac{display:flex}
+.p3d-card .ac button{flex:1;background:var(--bg2,#fff);border:1px solid var(--line,#e6ded2);border-radius:9px;padding:6px 0;font-size:12px;cursor:pointer;color:var(--text,#3a3129)}
+.p3d-stage{flex:1;position:relative;min-width:0;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#f5efe6,#ece4d6);border:1px solid var(--line,#e6ded2)}
+.p3d-stage canvas{position:absolute;inset:0;display:block;cursor:grab}
+.p3d-stage canvas:active{cursor:grabbing}
+.p3d-bot{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line,#e6ded2);border-radius:14px;background:var(--bg2,rgba(255,255,255,.6))}
+.p3d-ctrl{display:flex;flex-direction:column;gap:4px;align-items:center}
+.p3d-ctrl label{font-size:11px;color:var(--muted,#8a7f72)}
+.p3d-step{display:flex;align-items:center;background:var(--bg2,#fff);border:1px solid var(--line,#e6ded2);border-radius:10px;overflow:hidden}
+.p3d-step button{width:32px;height:32px;border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--text,#3a3129)}
+.p3d-step span{min-width:34px;text-align:center;font-weight:700}
+.p3d-total{display:flex;flex-direction:column;align-items:center;gap:2px}
+.p3d-total label{font-size:11px;color:var(--muted,#8a7f72)}
+.p3d-total b{font-size:22px;color:#e8622c;line-height:1}
+.p3d-spacer{flex:1}
+.p3d-views{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.p3d-views .vl{font-size:11.5px;color:var(--muted,#8a7f72)}
+.p3d-views button{background:var(--bg2,#fff);border:1px solid var(--line,#e6ded2);border-radius:10px;padding:7px 13px;font-size:12.5px;cursor:pointer;color:var(--text,#3a3129)}
+.p3d-views button.on{border-color:var(--text,#3a3129);font-weight:700}
+.p3d-views .rs{color:#e8622c}
+#p3dOverlay{position:fixed;inset:0;background:rgba(40,30,20,.45);display:none;align-items:center;justify-content:center;z-index:2000}
+#p3dOverlay.show{display:flex}
+.p3d-modal{background:var(--bg2,#fff);color:var(--text,#3a3129);border-radius:16px;width:min(400px,92vw);padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.p3d-modal h3{margin:0 0 14px;font-size:15.5px}
+.p3d-modal .f{margin-bottom:11px}
+.p3d-modal label{display:block;font-size:11.5px;color:var(--muted,#8a7f72);margin-bottom:4px}
+.p3d-modal input,.p3d-modal select{width:100%;padding:8px 11px;border:1px solid var(--line,#e6ded2);border-radius:9px;font-size:13.5px;font-family:inherit;background:var(--bg,#fdfbf7);color:var(--text,#3a3129)}
+.p3d-modal .bs{display:flex;gap:9px;margin-top:15px}
+.p3d-modal .bs button{flex:1;padding:9px 0;border-radius:10px;font-size:13.5px;cursor:pointer;border:1px solid var(--line,#e6ded2);background:var(--bg2,#fff);color:var(--text,#3a3129)}
+.p3d-modal .bs .sv{background:#e8622c;color:#fff;border:none;font-weight:700}
+.p3d-mode{display:flex;gap:0;border:1px solid var(--line,#e6ded2);border-radius:11px;overflow:hidden;background:var(--bg2,#fff)}
+.p3d-mode button{border:none;background:transparent;padding:8px 15px;font-size:12.5px;cursor:pointer;color:var(--muted,#8a7f72)}
+.p3d-mode button.on{background:#e8622c;color:#fff;font-weight:700}
+.p3d-lvl{display:flex;background:var(--bg2,#fff);border:1px solid var(--line,#e6ded2);border-radius:10px;overflow:hidden}
+.p3d-lvl button{width:34px;height:32px;border:none;background:transparent;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted,#8a7f72)}
+.p3d-lvl button.on{background:#3f6fa3;color:#fff}
+@media (max-width:760px){.p3d-body{flex-direction:column}.p3d-side{width:100%;max-height:240px}}
+</style>
+<style>
+body{margin:0;padding:14px;background:#f2ece3;color:#3a3129;font-family:"Segoe UI",Tahoma,Arial,sans-serif;min-height:100vh;box-sizing:border-box}
+.p3d-stage{min-height:520px}
+h1{font-size:17px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+</style>
+</head>
+<body>
+<h1>📦 عارض الطبلية ثلاثي الأبعاد — مصنع المنجم</h1>
+<div class="p3d-wrap">
+  <div class="p3d-top">
+    <span class="p3d-badge">اسحب للدوران · عجلة الماوس للتقريب</span>
+    <div class="p3d-mode">
+      <button id="p3dModeFree" class="on" onclick="p3d.setMode('free',this)">🧱 طبلية حرة</button>
+      <button id="p3dModeRack" onclick="p3d.setMode('rack',this)">🏗️ داخل الراك</button>
+    </div>
+    <span class="p3d-badge">🟧 طبلية <b>100 × 120 سم</b> · وضع <b>طولي</b> (الطول بالعمق) · قابلة للدوران بالكامل</span>
+  </div>
+  <div class="p3d-body">
+    <div class="p3d-side">
+      <div class="p3d-side-head">
+        <h3>المنتجات</h3>
+        <button class="p3d-add" onclick="p3d.openAdd()">＋ إضافة</button>
+      </div>
+      <div id="p3dCards"></div>
+    </div>
+    <div class="p3d-stage" id="p3dStage"><canvas id="p3dCanvas"></canvas></div>
+  </div>
+  <div class="p3d-bot">
+    <div class="p3d-ctrl"><label>عدد الرصات</label>
+      <div class="p3d-step"><button onclick="p3d.stepLayers(1)">＋</button><span id="p3dVL">10</span><button onclick="p3d.stepLayers(-1)">－</button></div>
+    </div>
+    <div class="p3d-ctrl"><label>كراتين في الرصة</label>
+      <div class="p3d-step"><button onclick="p3d.stepPer(1)">＋</button><span id="p3dVP">8</span><button onclick="p3d.stepPer(-1)">－</button></div>
+    </div>
+    <div class="p3d-total"><label>إجمالي الكراتين</label><b id="p3dVT">80</b></div>
+    <div class="p3d-ctrl p3d-rackonly" style="display:none"><label>الموقع (1–7)</label>
+      <div class="p3d-step"><button onclick="p3d.stepPos(1)">＋</button><span id="p3dVPos">4</span><button onclick="p3d.stepPos(-1)">－</button></div>
+    </div>
+    <div class="p3d-ctrl p3d-rackonly" style="display:none"><label>المستوى</label>
+      <div class="p3d-lvl"><button onclick="p3d.setLvl('C',this)">C</button><button onclick="p3d.setLvl('B',this)">B</button><button class="on" onclick="p3d.setLvl('A',this)">A</button></div>
+    </div>
+    <div class="p3d-spacer"></div>
+    <div class="p3d-views"><span class="vl">زوايا العرض</span>
+      <button class="rs" onclick="p3d.setView('reset',this)">⟳ إعادة ضبط</button>
+      <button onclick="p3d.setView('top',this)">من الأعلى</button>
+      <button onclick="p3d.setView('right',this)">يمين</button>
+      <button onclick="p3d.setView('left',this)">يسار</button>
+      <button onclick="p3d.setView('back',this)">خلفي</button>
+      <button class="on" onclick="p3d.setView('front',this)">أمامي</button>
+    </div>
+  </div>
+</div>
+
+<div id="p3dOverlay">
+  <div class="p3d-modal">
+    <h3 id="p3dMT">إضافة منتج</h3>
+    <div class="f"><label>اسم المنتج</label><input id="p3dMN" placeholder="مثال: لحم غنم مفروم"></div>
+    <div class="f"><label>القسم</label>
+      <select id="p3dMS"><option value="raw">مواد خام</option><option value="final">مواد نهائية</option><option value="dry">مواد جافة</option></select>
+    </div>
+    <div class="f"><label>كراتين في الرصة (1–10)</label><input id="p3dMP" type="number" min="1" max="10" value="8"></div>
+    <div class="f"><label>عدد الرصات (1–14)</label><input id="p3dML" type="number" min="1" max="14" value="10"></div>
+    <div class="bs"><button onclick="p3d.closeModal()">إلغاء</button><button class="sv" onclick="p3d.saveModal()">حفظ</button></div>
+  </div>
+</div>
+<script>
+/* ===== P3D ENGINE — معزول بالكامل، لا يلمس INVENTORY/BATCHES ===== */
+(function(){
+"use strict";
+const K='P3D_PRODUCTS_V1';
+const SECTIONS={raw:{label:'مواد خام',cls:'raw',ink:'#8f3535'},
+                final:{label:'مواد نهائية',cls:'final',ink:'#35548f'},
+                dry:{label:'مواد جافة',cls:'dry',ink:'#7a5c22'}};
+const GRIDMAP={1:[1,1],2:[2,1],3:[3,1],4:[2,2],5:[5,1],6:[3,2],7:[4,2],8:[4,2],9:[3,3],10:[5,2]};
+let PRODUCTS=[
+  {id:1,name:'لحم غنم مفروم',section:'raw',per:8,layers:10},
+  {id:2,name:'ناجت دجاج',section:'final',per:9,layers:10},
+  {id:3,name:'برجر لحم',section:'final',per:10,layers:10},
+  {id:4,name:'كبة مقلية',section:'final',per:6,layers:10},
+];
+try{const s=localStorage.getItem(K);if(s){const p=JSON.parse(s);if(Array.isArray(p)&&p.length)PRODUCTS=p;}}catch(e){}
+let ACTIVE=PRODUCTS[0].id, editId=null, booted=false, three=null;
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(PRODUCTS))}catch(e){}};
+const cur=()=>PRODUCTS.find(p=>p.id===ACTIVE)||PRODUCTS[0];
+const $=id=>document.getElementById(id);
+
+/* ---------- الشريط الجانبي ---------- */
+function gridText(per){const g=GRIDMAP[per];return g?g[0]+'×'+g[1]:'-'}
+function renderCards(){
+  const el=$('p3dCards'); if(!el)return;
+  el.innerHTML=PRODUCTS.map(p=>{
+    const s=SECTIONS[p.section];
+    return '<div class="p3d-card '+(p.id===ACTIVE?'on':'')+'" onclick="p3d.pick('+p.id+')">'+
+      '<div class="r1"><div class="th">📦</div><h4>'+p.name+'</h4><span class="p3d-tag '+s.cls+'">'+s.label+'</span></div>'+
+      '<div class="mt">كرتون/رصة: <b>'+p.per+'</b> · شبكة: <b>'+gridText(p.per)+'</b><br>عدد الرصات: <b>'+p.layers+'</b> · إجمالي: <b>'+(p.per*p.layers)+' كرتون</b></div>'+
+      '<div class="ac"><button onclick="event.stopPropagation();p3d.openEdit('+p.id+')">✏️ تعديل</button>'+
+      '<button onclick="event.stopPropagation();p3d.del('+p.id+')">🗑️ حذف</button></div></div>';
+  }).join('');
+  const p=cur();
+  $('p3dVL').textContent=p.layers; $('p3dVP').textContent=p.per; $('p3dVT').textContent=p.per*p.layers;
+}
+
+/* ---------- المحرك ---------- */
+function loadThree(cb){
+  if(window.THREE){cb();return;}
+  const s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  s.onload=cb;
+  s.onerror=function(){ if(typeof showToast==='function') showToast('⚠️ تعذّر تحميل محرك 3D — تحقق من الإنترنت','error'); };
+  document.head.appendChild(s);
+}
+function setupThree(){
+  const T=window.THREE;
+  const canvas=$('p3dCanvas');
+  const renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=T.PCFSoftShadowMap;
+  const scene=new T.Scene();
+  scene.background=new T.Color(0xf2ece3);
+  scene.fog=new T.Fog(0xf2ece3,16,48);
+  const camera=new T.PerspectiveCamera(42,1,.1,100);
+  scene.add(new T.HemisphereLight(0xfff6e8,0xd8cbb8,.85));
+  const sun=new T.DirectionalLight(0xffffff,.9);
+  sun.position.set(4,7,3); sun.castShadow=true;
+  sun.shadow.mapSize.set(2048,2048);
+  sun.shadow.camera.left=-10;sun.shadow.camera.right=10;sun.shadow.camera.top=14;sun.shadow.camera.bottom=-2;
+  scene.add(sun);
+  // الأرضية
+  (function(){
+    const cv=document.createElement('canvas');cv.width=cv.height=512;
+    const g=cv.getContext('2d');
+    g.fillStyle='#efe8dc';g.fillRect(0,0,512,512);
+    g.strokeStyle='rgba(150,135,115,.28)';g.lineWidth=1;
+    for(let i=0;i<=8;i++){const q=i*64;g.beginPath();g.moveTo(q,0);g.lineTo(q,512);g.stroke();g.beginPath();g.moveTo(0,q);g.lineTo(512,q);g.stroke();}
+    const tex=new T.CanvasTexture(cv);tex.wrapS=tex.wrapT=T.RepeatWrapping;tex.repeat.set(22,22);
+    const floor=new T.Mesh(new T.CircleGeometry(28,64),new T.MeshLambertMaterial({map:tex}));
+    floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+  })();
+  const rig=new T.Group(); scene.add(rig);
+
+  /* الوضع الطولي: العرض 1.0م على X (الوجه الأمامي الضيق) · الطول 1.2م بالعمق Z */
+  const PAL_W=1.0, PAL_D=1.2, PAL_H=0.145, cH=0.30, GAP=0.03;
+  /* الراك: 7 مواقع × 3 مستويات — حدود الموقع = عرض الطبلية + خلوص */
+  const SLOT_W=PAL_W+0.18, SLOT_D=PAL_D+0.12, POSTS=0.09, N_POS=7;
+  const RACK_LEN=N_POS*SLOT_W+(N_POS+1)*POSTS;
+  let MODE='free', RLVL='A', RPOS=4;
+  let rackGroup=null;
+
+  function makePalletBase(){
+    const g=new T.Group();
+    const wood=new T.MeshStandardMaterial({color:0xb98a54,roughness:.85});
+    const wood2=new T.MeshStandardMaterial({color:0xa87a48,roughness:.9});
+    const nTop=7, bw=PAL_W/nTop*0.82;   // الألواح العلوية بامتداد العمق
+    for(let i=0;i<nTop;i++){
+      const b=new T.Mesh(new T.BoxGeometry(bw,0.022,PAL_D),wood);
+      b.position.set(-PAL_W/2+bw/2+i*(PAL_W/nTop)+(PAL_W/nTop-bw)/2,PAL_H-0.011,0);
+      b.castShadow=b.receiveShadow=true;g.add(b);
+    }
+    for(const x of [-PAL_W/2+0.07,0,PAL_W/2-0.07])
+      for(const z of [-PAL_D/2+0.07,0,PAL_D/2-0.07]){
+        const c=new T.Mesh(new T.BoxGeometry(0.13,0.09,0.13),wood2);
+        c.position.set(x,PAL_H-0.022-0.045,z);c.castShadow=true;g.add(c);
+      }
+    for(const z of [-PAL_D/2+0.07,0,PAL_D/2-0.07]){
+      const b=new T.Mesh(new T.BoxGeometry(PAL_W,0.022,0.14),wood);
+      b.position.set(0,0.011,z);b.castShadow=b.receiveShadow=true;g.add(b);
+    }
+    return g;
+  }
+
+  /* الطباعة المباشرة على الكرتون */
+  const texCache={};
+  function cardboardBase(g,w,h,tone){
+    g.fillStyle=tone;g.fillRect(0,0,w,h);
+    g.globalAlpha=.05;
+    for(let i=0;i<40;i++){g.fillStyle=i%2?'#000':'#fff';g.fillRect(Math.random()*w,Math.random()*h,Math.random()*60,2);}
+    g.globalAlpha=1;
+    g.fillStyle='rgba(60,40,20,.45)';g.fillRect(0,h-10,w,10);       /* خط الرصّ */
+    g.fillStyle='rgba(255,255,255,.25)';g.fillRect(0,0,w,4);
+    g.fillStyle='rgba(60,40,20,.18)';g.fillRect(0,0,5,h);g.fillRect(w-5,0,5,h);
+  }
+  function frontTexture(p){
+    const key='F'+p.id+p.name+p.section;
+    if(texCache[key])return texCache[key];
+    const s=SECTIONS[p.section];
+    const cv=document.createElement('canvas');cv.width=512;cv.height=384;
+    const g=cv.getContext('2d');
+    cardboardBase(g,512,384,'#c9a877');
+    g.fillStyle=s.ink;g.fillRect(36,70,440,150);
+    g.fillStyle='rgba(0,0,0,.12)';g.fillRect(36,206,440,14);
+    g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.direction='rtl';
+    g.font='bold 62px "Segoe UI",Tahoma,Arial';
+    g.fillText(p.name,256,138,400);
+    g.fillRect(116,182,280,6);
+    g.font='bold 30px "Segoe UI",Tahoma,Arial';
+    g.fillStyle='rgba(70,45,20,.85)';g.textAlign='right';g.fillText(s.label,486,38,200);
+    g.textAlign='left';g.font='34px Arial';g.fillStyle='rgba(70,45,20,.6)';g.fillText('☂ ⇧ ⚠',30,340);
+    const t=new T.CanvasTexture(cv);t.anisotropy=4;texCache[key]=t;return t;
+  }
+  function topTexture(){
+    if(texCache.TOP)return texCache.TOP;
+    const cv=document.createElement('canvas');cv.width=512;cv.height=448;
+    const g=cv.getContext('2d');
+    cardboardBase(g,512,448,'#cfae7d');
+    g.fillStyle='rgba(60,40,20,.4)';g.fillRect(0,220,512,6);
+    g.fillStyle='rgba(190,170,140,.9)';g.fillRect(216,0,80,448);
+    g.fillStyle='rgba(60,40,20,.15)';g.fillRect(216,0,5,448);g.fillRect(291,0,5,448);
+    const t=new T.CanvasTexture(cv);texCache.TOP=t;return t;
+  }
+  function sideTexture(p){
+    const key='S'+p.id+p.section;
+    if(texCache[key])return texCache[key];
+    const s=SECTIONS[p.section];
+    const cv=document.createElement('canvas');cv.width=448;cv.height=384;
+    const g=cv.getContext('2d');
+    cardboardBase(g,448,384,'#c4a271');
+    g.fillStyle=s.ink;g.fillRect(30,130,388,110);
+    g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.direction='rtl';
+    g.font='bold 44px "Segoe UI",Tahoma,Arial';
+    g.fillText(p.name,224,185,340);
+    const t=new T.CanvasTexture(cv);texCache[key]=t;return t;
+  }
+
+  /* ===== الراك بالحدود ===== */
+  function slotLabelSprite(txt){
+    const cv=document.createElement('canvas');cv.width=128;cv.height=64;
+    const g=cv.getContext('2d');
+    g.fillStyle='#f7c948';g.beginPath();
+    if(g.roundRect)g.roundRect(4,4,120,56,10);else g.rect(4,4,120,56);
+    g.fill();
+    g.strokeStyle='rgba(90,60,10,.55)';g.lineWidth=3;g.stroke();
+    g.fillStyle='#5a3c0a';g.font='bold 36px Tahoma,Arial';g.textAlign='center';g.textBaseline='middle';
+    g.fillText(txt,64,34);
+    const sp=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(cv),depthTest:true}));
+    sp.scale.set(0.46,0.23,1);
+    return sp;
+  }
+  function slotBoundary(w,d,color){
+    /* إطار حدود: 4 قضبان رفيعة مسطحة تشكل مستطيلاً */
+    const g=new T.Group();
+    const m=new T.MeshBasicMaterial({color:color,transparent:true,opacity:0.9});
+    const t=0.025, h=0.008;
+    const mk=(bw,bd,x,z)=>{const b=new T.Mesh(new T.BoxGeometry(bw,h,bd),m);b.position.set(x,h/2,z);g.add(b);};
+    mk(w,t,0,-d/2); mk(w,t,0,d/2); mk(t,d,-w/2,0); mk(t,d,w/2,0);
+    /* علامات أركان */
+    const cm=new T.MeshBasicMaterial({color:color});
+    [[-w/2,-d/2],[w/2,-d/2],[-w/2,d/2],[w/2,d/2]].forEach(([x,z])=>{
+      const c=new T.Mesh(new T.BoxGeometry(0.07,h*2,0.07),cm);c.position.set(x,h,z);g.add(c);
+    });
+    return g;
+  }
+  function levelHeights(layers){
+    const loadH=PAL_H+layers*cH;
+    const step=loadH+0.35;
+    return {A:0, B:step, C:step*2, beamTop:step*2+loadH+0.25, loadH, step};
+  }
+  function buildRack(){
+    if(rackGroup){rig.remove(rackGroup);rackGroup.traverse(o=>{if(o.geometry)o.geometry.dispose()});rackGroup=null;}
+    if(MODE!=='rack')return;
+    rackGroup=new T.Group();
+    const p=cur();
+    const LH=levelHeights(p.layers);
+    const steel=new T.MeshStandardMaterial({color:0x3b5b7a,roughness:.55,metalness:.35});
+    const orange=new T.MeshStandardMaterial({color:0xd97a2b,roughness:.5,metalness:.3});
+    const x0=-RACK_LEN/2;
+    const PT=0.12; /* سماكة القائم */
+    /* قوائم رأسية أمامية وخلفية عند حدود كل موقع + قواعد + تقويات */
+    for(let i=0;i<=N_POS;i++){
+      const x=x0+POSTS/2+i*(SLOT_W+POSTS);
+      for(const z of [-SLOT_D/2, SLOT_D/2]){
+        const post=new T.Mesh(new T.BoxGeometry(PT,LH.beamTop,PT),steel);
+        post.position.set(x,LH.beamTop/2,z);post.castShadow=true;rackGroup.add(post);
+        /* قاعدة أرضية */
+        const base=new T.Mesh(new T.BoxGeometry(PT*2.2,0.04,PT*2.2),steel);
+        base.position.set(x,0.02,z);base.receiveShadow=true;rackGroup.add(base);
+      }
+      /* روابط عرضية أفقية بين القائمين الأمامي والخلفي عند كل مستوى وعند القمة */
+      for(const y of [LH.B-0.055, LH.C-0.055, LH.beamTop-0.08]){
+        const brace=new T.Mesh(new T.BoxGeometry(0.06,0.06,SLOT_D),steel);
+        brace.position.set(x,y,0);rackGroup.add(brace);
+      }
+      /* شدّ قطري (X) على جانبي القائمين — يعطي صلابة بصرية من منظور اليمين/اليسار */
+      for(const seg of [[0.06,LH.B-0.12],[LH.B,LH.C-0.12]]){
+        const h=seg[1]-seg[0];
+        const diagLen=Math.sqrt(h*h+SLOT_D*SLOT_D);
+        for(const dir of [1,-1]){
+          const d1=new T.Mesh(new T.BoxGeometry(0.045,diagLen,0.045),steel);
+          d1.position.set(x,(seg[0]+seg[1])/2,0);
+          d1.rotation.x=dir*Math.atan2(SLOT_D,h);
+          rackGroup.add(d1);
+        }
+      }
+    }
+    /* كمرات برتقالية أمامية/خلفية لكل مستوى B وC (A أرضي) */
+    for(const lvl of ['B','C']){
+      for(const z of [-SLOT_D/2, SLOT_D/2]){
+        const beam=new T.Mesh(new T.BoxGeometry(RACK_LEN,0.11,0.06),orange);
+        beam.position.set(0,LH[lvl]-0.055,z);beam.castShadow=true;rackGroup.add(beam);
+      }
+      /* سطح تحميل خفيف لكل موقع */
+      for(let i=0;i<N_POS;i++){
+        const cx=x0+POSTS+i*(SLOT_W+POSTS)+SLOT_W/2;
+        const deck=new T.Mesh(new T.BoxGeometry(SLOT_W-0.06,0.03,SLOT_D-0.05),new T.MeshStandardMaterial({color:0x8fa3b5,roughness:.8}));
+        deck.position.set(cx,LH[lvl]-0.015,0);deck.receiveShadow=true;rackGroup.add(deck);
+      }
+    }
+    /* حدود المواقع + ملصقات — لكل مستوى وموقع */
+    for(const lvl of ['A','B','C']){
+      for(let i=0;i<N_POS;i++){
+        const cx=x0+POSTS+i*(SLOT_W+POSTS)+SLOT_W/2;
+        const isSel=(lvl===RLVL && (i+1)===RPOS);
+        const bd=slotBoundary(SLOT_W-0.08, SLOT_D-0.06, isSel?0x2e9e5b:0xf0b429);
+        bd.position.set(cx,LH[lvl]+(lvl==='A'?0.001:0.032),0);
+        rackGroup.add(bd);
+        const sp=slotLabelSprite(lvl+(i+1));
+        sp.position.set(cx,LH[lvl]+0.22,SLOT_D/2+0.09);
+        rackGroup.add(sp);
+      }
+    }
+    rig.add(rackGroup);
+  }
+  function slotCenter(lvl,pos){
+    const LH=levelHeights(cur().layers);
+    const x0=-RACK_LEN/2;
+    return {x:x0+POSTS+(pos-1)*(SLOT_W+POSTS)+SLOT_W/2, y:LH[lvl]+(lvl==='A'?0:0.03)};
+  }
+
+  let palletGroup=null;
+  function buildPallet(){
+    if(palletGroup){rig.remove(palletGroup);palletGroup.traverse(o=>{if(o.geometry)o.geometry.dispose()});}
+    palletGroup=new T.Group();
+    palletGroup.add(makePalletBase());
+    const p=cur();
+    const grid=GRIDMAP[p.per]||[2,2];
+    /* الوضع الطولي: الأعمدة (الرقم الأكبر بالشبكة) بامتداد العمق Z · الصفوف على الوجه X */
+    const colsZ=grid[0], rowsX=grid[1];
+    const usableW=PAL_W-0.04, usableD=PAL_D-0.04;
+    const cw=(usableW-(rowsX-1)*GAP)/rowsX;   /* عرض الكرتون على الوجه */
+    const cd=(usableD-(colsZ-1)*GAP)/colsZ;   /* عمق الكرتون */
+    const matTop=new T.MeshStandardMaterial({map:topTexture(),roughness:.8});
+    const matFront=new T.MeshStandardMaterial({map:frontTexture(p),roughness:.8});
+    const matSide=new T.MeshStandardMaterial({map:sideTexture(p),roughness:.8});
+    const matBottom=new T.MeshStandardMaterial({color:0xa5824f,roughness:.9});
+    const geo=new T.BoxGeometry(cw,cH,cd);
+    const mats=[matSide,matSide,matTop,matBottom,matFront,matFront];
+    for(let ly=0;ly<p.layers;ly++){
+      let placed=0;
+      for(let z=0;z<colsZ;z++){
+        for(let x=0;x<rowsX;x++){
+          if(placed>=p.per)break;
+          const m=new T.Mesh(geo,mats);
+          m.castShadow=m.receiveShadow=true;
+          m.position.set(-usableW/2+cw/2+x*(cw+GAP),PAL_H+cH/2+ly*cH,-usableD/2+cd/2+z*(cd+GAP));
+          palletGroup.add(m);placed++;
+        }
+      }
+    }
+    if(MODE==='rack'){
+      const c=slotCenter(RLVL,RPOS);
+      palletGroup.position.set(c.x,c.y,0);
+    } else {
+      palletGroup.position.set(0,0,0);
+    }
+    rig.add(palletGroup);
+    buildRack();
+  }
+
+  function setMode(m){
+    MODE=m;
+    buildPallet();
+    setView('reset');
+  }
+  function setSlot(lvl,pos){ RLVL=lvl; RPOS=Math.min(N_POS,Math.max(1,pos)); if(MODE==='rack')buildPallet(); }
+  function getSlot(){ return {lvl:RLVL,pos:RPOS}; }
+
+  /* تحكم مداري */
+  let theta=0.55,phi=1.18,dist=6.2,tTheta=theta,tPhi=phi,tDist=dist;
+  let target=new T.Vector3(0,1.35,0);
+  function applyCam(){
+    phi+=(tPhi-phi)*.12;theta+=(tTheta-theta)*.12;dist+=(tDist-dist)*.12;
+    const sp=Math.sin(phi);
+    camera.position.set(dist*sp*Math.sin(theta),dist*Math.cos(phi)+target.y,dist*sp*Math.cos(theta));
+    camera.lookAt(target);
+  }
+  let drag=false,px=0,py=0;
+  canvas.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;canvas.setPointerCapture(e.pointerId)});
+  canvas.addEventListener('pointermove',e=>{if(!drag)return;
+    tTheta-=(e.clientX-px)*.006;
+    tPhi=Math.min(1.52,Math.max(.15,tPhi+(e.clientY-py)*.005));
+    px=e.clientX;py=e.clientY;});
+  canvas.addEventListener('pointerup',()=>drag=false);
+  canvas.addEventListener('wheel',e=>{e.preventDefault();tDist=Math.min(26,Math.max(3,tDist+e.deltaY*.004));},{passive:false});
+  function viewsFor(){
+    if(MODE==='rack'){
+      const LH=levelHeights(cur().layers);
+      const midY=LH.beamTop*0.48;
+      const dFB=Math.max(12, RACK_LEN*1.35);            /* أمامي/خلفي: يؤطّر طول الراك */
+      const dLR=Math.max(9, LH.beamTop*1.15);           /* يمين/يسار: يؤطّر الارتفاع */
+      const dTop=Math.max(14, RACK_LEN*1.5);
+      return {front:{t:0,p:1.32,d:dFB,y:midY},back:{t:Math.PI,p:1.32,d:dFB,y:midY},
+              right:{t:Math.PI/2,p:1.28,d:dLR,y:midY},left:{t:-Math.PI/2,p:1.28,d:dLR,y:midY},
+              top:{t:0,p:0.14,d:dTop,y:0},reset:{t:0.35,p:1.22,d:dFB*0.85,y:midY}};
+    }
+    return {front:{t:0,p:1.25,d:6.2,y:1.35},back:{t:Math.PI,p:1.25,d:6.2,y:1.35},
+            right:{t:Math.PI/2,p:1.25,d:6.2,y:1.35},left:{t:-Math.PI/2,p:1.25,d:6.2,y:1.35},
+            top:{t:0,p:0.18,d:7.5,y:0.6},reset:{t:0.55,p:1.18,d:6.2,y:1.35}};
+  }
+  function setView(name){const v=viewsFor()[name];if(!v)return;tTheta=v.t;tPhi=v.p;tDist=v.d;target.setY(v.y);}
+
+  function resize(){
+    const st=$('p3dStage'); if(!st)return;
+    const w=st.clientWidth||800,h=st.clientHeight||520;
+    renderer.setSize(w,h,false);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    camera.aspect=w/h;camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize',resize);
+  (function loop(){requestAnimationFrame(loop);applyCam();renderer.render(scene,camera);})();
+  return {buildPallet,setView,resize,setMode,setSlot,getSlot};
+}
+
+/* ---------- الواجهة العامة (window.p3d) ---------- */
+const api={};
+api.init=function(){
+  renderCards();
+  if(booted){ if(three){three.resize();three.buildPallet();} return; }
+  booted=true;
+  loadThree(function(){ three=setupThree(); three.resize(); three.buildPallet(); });
+};
+api.pick=function(id){ACTIVE=id;renderCards();if(three)three.buildPallet();};
+api.stepLayers=function(d){const p=cur();p.layers=Math.min(14,Math.max(1,p.layers+d));save();renderCards();if(three)three.buildPallet();};
+api.stepPer=function(d){const p=cur();p.per=Math.min(10,Math.max(1,p.per+d));save();renderCards();if(three)three.buildPallet();};
+api.del=function(id){
+  if(PRODUCTS.length===1){if(typeof showToast==='function')showToast('⚠️ لا يمكن حذف آخر منتج','warn');return;}
+  if(!confirm('حذف المنتج؟'))return;
+  PRODUCTS=PRODUCTS.filter(p=>p.id!==id);
+  if(ACTIVE===id)ACTIVE=PRODUCTS[0].id;
+  save();renderCards();if(three)three.buildPallet();
+};
+api.openAdd=function(){editId=null;$('p3dMT').textContent='إضافة منتج';$('p3dMN').value='';$('p3dMS').value='raw';$('p3dMP').value=8;$('p3dML').value=10;$('p3dOverlay').classList.add('show');};
+api.openEdit=function(id){const p=PRODUCTS.find(x=>x.id===id);if(!p)return;editId=id;$('p3dMT').textContent='تعديل منتج';$('p3dMN').value=p.name;$('p3dMS').value=p.section;$('p3dMP').value=p.per;$('p3dML').value=p.layers;$('p3dOverlay').classList.add('show');};
+api.closeModal=function(){$('p3dOverlay').classList.remove('show');};
+api.saveModal=function(){
+  const name=$('p3dMN').value.trim();
+  if(!name){if(typeof showToast==='function')showToast('⚠️ اكتب اسم المنتج','warn');return;}
+  const per=Math.min(10,Math.max(1,+$('p3dMP').value||1));
+  const layers=Math.min(14,Math.max(1,+$('p3dML').value||1));
+  if(editId){const p=PRODUCTS.find(x=>x.id===editId);Object.assign(p,{name,section:$('p3dMS').value,per,layers});}
+  else{const id=Date.now();PRODUCTS.push({id,name,section:$('p3dMS').value,per,layers});ACTIVE=id;}
+  save();api.closeModal();renderCards();if(three)three.buildPallet();
+};
+api.setMode=function(m,btn){
+  document.querySelectorAll('.p3d-mode button').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  document.querySelectorAll('.p3d-rackonly').forEach(el=>{el.style.display=(m==='rack')?'flex':'none';});
+  if(three)three.setMode(m);
+};
+api.stepPos=function(d){
+  if(!three)return;
+  const s=three.getSlot();
+  three.setSlot(s.lvl,s.pos+d);
+  const el=$('p3dVPos'); if(el)el.textContent=three.getSlot().pos;
+};
+api.setLvl=function(lvl,btn){
+  document.querySelectorAll('.p3d-lvl button').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  if(three){const s=three.getSlot();three.setSlot(lvl,s.pos);}
+};
+api.setView=function(name,btn){
+  if(three)three.setView(name);
+  document.querySelectorAll('.p3d-views button').forEach(b=>b.classList.remove('on'));
+  if(btn&&name!=='reset')btn.classList.add('on');
+};
+document.addEventListener('click',function(e){if(e.target&&e.target.id==='p3dOverlay')api.closeModal();});
+window.p3d=api;
+window.p3dInit=api.init;
+})();
+</script>
+<script>window.addEventListener('DOMContentLoaded',function(){window.p3dInit();});</script>
+</body>
+</html>
