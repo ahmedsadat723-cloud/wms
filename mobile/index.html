@@ -42,7 +42,7 @@
   .lang-btn{width:auto;padding:5px 9px;font-size:11px;font-weight:700;background:transparent;color:#94a3b8;border-radius:7px}
   .lang-btn.active-lang{background:#e8622c;color:#fff}
   .scan-frame{position:relative;overflow:hidden;border-radius:10px}
-  .scan-guide{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:62%;aspect-ratio:1/1;box-shadow:0 0 0 9999px rgba(0,0,0,.55);border-radius:12px;pointer-events:none}
+  .scan-guide{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:85%;aspect-ratio:2.2/1;box-shadow:0 0 0 9999px rgba(0,0,0,.55);border-radius:12px;pointer-events:none}
   .scan-guide::before,.scan-guide::after,.scan-guide i::before,.scan-guide i::after{content:'';position:absolute;width:26px;height:26px;border:3px solid #e8622c}
   .scan-guide::before{top:-3px;right:-3px;border-bottom:none;border-left:none;border-radius:0 8px 0 0}
   .scan-guide::after{bottom:-3px;right:-3px;border-top:none;border-left:none;border-radius:0 0 8px 0}
@@ -826,11 +826,9 @@ let scanStream = null, scanRAF = null, scanCanvas = null;
 // عشان يقرا كود صغير بعيد زي الـ GS1 DataMatrix المربع؛ المربع اللي المستخدم بيحاذي عليه بقى فعليًا هو المنطقة
 // اللي بتتحلل، فتقريب الكود جواه هو اللي بيحدد النجاح — مش شكل المربع نفسه.
 const SCAN_TIMEOUT_MS = 12000; // لو 12 ثانية فاتت من غير قراءة ناجحة، بنوقف ونديله رفض واضح بدل ما نسيبه ينتظر بلا نهاية بصمت
+const SCAN_OUT_W = 640; // عرض ثابت للكانفاس اللي بنكبّر عليه القصّة قبل فك الترميز
 function runScanLoop(video){
   if(!scanCanvas) scanCanvas = document.createElement('canvas');
-  const OUT_SIZE = 480;
-  scanCanvas.width = OUT_SIZE;
-  scanCanvas.height = OUT_SIZE;
   const ctx = scanCanvas.getContext('2d', { willReadFrequently: true });
   const startedAt = performance.now();
   function tick(){
@@ -843,7 +841,12 @@ function runScanLoop(video){
     if(video.videoWidth && video.readyState >= 2){
       try{
         const r = getGuideCropRect(video);
-        ctx.drawImage(video, r.x, r.y, r.w, r.h, 0, 0, OUT_SIZE, OUT_SIZE);
+        // لازم نحافظ على نسبة أبعاد منطقة القص وإحنا بنكبّرها — تربيع/تمطيط الصورة بيكسر نسب عرض الخطوط
+        // في الباركود الخطي (1D) وبيمنع فك الترميز حتى لو الكود واضح تمامًا
+        const outH = Math.round(SCAN_OUT_W * (r.h / r.w));
+        scanCanvas.width = SCAN_OUT_W;
+        scanCanvas.height = outH;
+        ctx.drawImage(video, r.x, r.y, r.w, r.h, 0, 0, SCAN_OUT_W, outH);
         const luminance = new ZXing.HTMLCanvasElementLuminanceSource(scanCanvas);
         const bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminance));
         const result = gs1CodeReader.decodeBitmap(bitmap);
@@ -851,7 +854,10 @@ function runScanLoop(video){
         onBarcodeDecoded(result.getText());
         return;
       }catch(err){
-        // NotFoundException متوقعة كل فريم مفيهوش كود قابل للقراءة جوه المربع — بنكمل المحاولة
+        // NotFoundException/ChecksumException/FormatException متوقعة كل فريم مفيهوش كود قابل للقراءة جوه المربع.
+        // أي حاجة تانية معناها باگ حقيقي في كود القص/الفك، فلازم تتلوگ عشان ما تتخبّاش زي ما حصل قبل كده
+        const expected = err && (err.name === 'NotFoundException' || err.name === 'ChecksumException' || err.name === 'FormatException');
+        if(!expected) console.error('scan loop unexpected error', err);
       }
     }
     scanRAF = requestAnimationFrame(tick);
