@@ -41,6 +41,17 @@
   #langSwitcher{position:fixed;top:8px;left:8px;z-index:30;display:flex;gap:4px;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:4px}
   .lang-btn{width:auto;padding:5px 9px;font-size:11px;font-weight:700;background:transparent;color:#94a3b8;border-radius:7px}
   .lang-btn.active-lang{background:#e8622c;color:#fff}
+  .scan-frame{position:relative;overflow:hidden;border-radius:10px}
+  .scan-guide{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:62%;aspect-ratio:1/1;box-shadow:0 0 0 9999px rgba(0,0,0,.55);border-radius:12px;pointer-events:none}
+  .scan-guide::before,.scan-guide::after,.scan-guide i::before,.scan-guide i::after{content:'';position:absolute;width:26px;height:26px;border:3px solid #e8622c}
+  .scan-guide::before{top:-3px;right:-3px;border-bottom:none;border-left:none;border-radius:0 8px 0 0}
+  .scan-guide::after{bottom:-3px;right:-3px;border-top:none;border-left:none;border-radius:0 0 8px 0}
+  .scan-guide i{position:absolute;inset:0}
+  .scan-guide i::before{top:-3px;left:-3px;border-bottom:none;border-right:none;border-radius:8px 0 0 0}
+  .scan-guide i::after{bottom:-3px;left:-3px;border-top:none;border-right:none;border-radius:0 0 0 8px}
+  .zoom-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .zoom-row span{font-size:16px}
+  .zoom-row input[type=range]{width:auto;flex:1;padding:0;accent-color:#e8622c}
 </style>
 </head>
 <body>
@@ -96,8 +107,13 @@
 
     <div class="card">
       <label data-i18n="step1_barcode_label">1️⃣ امسح باركود الكرتونة (تاريخ إنتاج/انتهاء/وزن/باتش تلقائي)</label>
-      <div id="barcodeVideoWrap" class="hidden" style="margin-top:8px">
-        <video id="barcodeVideo" style="width:100%;border-radius:10px;background:#000" muted playsinline></video>
+      <div id="barcodeVideoWrap" class="hidden scan-frame" style="margin-top:8px">
+        <video id="barcodeVideo" style="width:100%;display:block;background:#000" muted playsinline></video>
+        <div class="scan-guide"><i></i></div>
+      </div>
+      <div id="zoomRow" class="zoom-row hidden">
+        <span>🔍</span>
+        <input id="zoomSlider" type="range" min="1" max="1" step="0.1" value="1" oninput="onZoomChange(this.value)">
       </div>
       <div style="display:flex;gap:8px;margin-top:8px">
         <button id="barcodeStartBtn" class="btn-secondary" data-i18n="start_scan_btn" onclick="startBarcodeScan()">📷 ابدأ المسح</button>
@@ -803,11 +819,14 @@ async function startBarcodeScan(){
           scanControls = null;
           document.getElementById('barcodeVideoWrap').classList.add('hidden');
           document.getElementById('barcodeStartBtn').classList.remove('hidden');
+          document.getElementById('zoomRow').classList.add('hidden');
+          zoomTrack = null;
           onBarcodeDecoded(result.getText());
         }
         // err هنا NotFoundException عادية لكل فريم مفيهوش كود — متوقعة ومش خطأ حقيقي، بنتجاهلها ونكمل المحاولة
       }
     );
+    setupZoomControl();
   }catch(e){
     statusEl.textContent = t('err_scan_failed');
     console.warn('barcode scan failed', e);
@@ -819,7 +838,40 @@ function skipBarcodeScan(){
   if(scanControls){ try{ scanControls.stop(); }catch(e){} scanControls = null; }
   document.getElementById('barcodeVideoWrap').classList.add('hidden');
   document.getElementById('barcodeStartBtn').classList.remove('hidden');
+  document.getElementById('zoomRow').classList.add('hidden');
+  zoomTrack = null;
   document.getElementById('barcodeStatus').textContent = t('scan_skipped');
+}
+// بعض الكاميرات (خصوصًا أندرويد كروم) بتدعم زوم حقيقي عبر MediaStreamTrack.applyConstraints — ده اللي بيكبّر الباركود فعليًا
+// جوه البكسلات اللي بتتقرا (مش زوم شكلي بالـ CSS اللي بيكبّر العرض بس مش الدقة الفعلية)، مهم جدًا للأكواد الصغيرة زي الـ GS1 DataMatrix المربع.
+// ZXing نفسه (@zxing/library) مالوش API للزوم/الفلاش، فبنمسك الـ MediaStream مباشرة من عنصر الفيديو بعد ما ZXing يشغّله عليه
+let zoomTrack = null;
+function setupZoomControl(){
+  const row = document.getElementById('zoomRow');
+  const slider = document.getElementById('zoomSlider');
+  zoomTrack = null;
+  try{
+    const stream = document.getElementById('barcodeVideo').srcObject;
+    const track = stream && stream.getVideoTracks && stream.getVideoTracks()[0];
+    const caps = track && track.getCapabilities ? track.getCapabilities() : null;
+    if(!track || !caps || !caps.zoom){ row.classList.add('hidden'); return; }
+    zoomTrack = track;
+    const settings = track.getSettings ? track.getSettings() : {};
+    slider.min = caps.zoom.min;
+    slider.max = caps.zoom.max;
+    slider.step = caps.zoom.step || 0.1;
+    const start = Math.min(caps.zoom.max, Math.max(caps.zoom.min, settings.zoom || caps.zoom.min + (caps.zoom.max - caps.zoom.min) * 0.35));
+    slider.value = start;
+    row.classList.remove('hidden');
+    track.applyConstraints({ advanced: [{ zoom: start }] }).catch(function(){});
+  }catch(e){
+    console.warn('zoom capability check failed', e);
+    row.classList.add('hidden');
+  }
+}
+function onZoomChange(value){
+  if(!zoomTrack) return;
+  zoomTrack.applyConstraints({ advanced: [{ zoom: parseFloat(value) }] }).catch(function(){});
 }
 function onBarcodeDecoded(text){
   const parsed = parseGS1Barcode(text);
