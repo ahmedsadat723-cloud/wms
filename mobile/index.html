@@ -143,8 +143,18 @@
       <input id="fCode" data-i18n-ph="ph_code" placeholder="مثال: FG-0001" autocomplete="off">
       <label id="batchLabelWrap" data-i18n="label_batch">رقم الباتش (إجباري)</label>
       <input id="fBatch" data-i18n-ph="ph_batch" placeholder="من الباركود أو مكتوب على الاستيكر" autocomplete="off">
+      <label data-i18n="label_line_shift">أو احسبه تلقائي: خط الإنتاج والوردية (لمنتجات المصنع الداخلية)</label>
+      <select id="fLineShift" onchange="computeBatchFromLineShift()">
+        <option value="" data-i18n="opt_line_shift_none">-- اختياري --</option>
+        <option value="A1" data-i18n="opt_A1">خط A - صباحي</option>
+        <option value="A2" data-i18n="opt_A2">خط A - مسائي</option>
+        <option value="B1" data-i18n="opt_B1">خط B - صباحي</option>
+        <option value="B2" data-i18n="opt_B2">خط B - مسائي</option>
+        <option value="C1" data-i18n="opt_C1">خط C - صباحي</option>
+        <option value="C2" data-i18n="opt_C2">خط C - مسائي</option>
+      </select>
       <label data-i18n="label_prod_date">تاريخ الإنتاج</label>
-      <input id="fProd" type="date" autocomplete="off">
+      <input id="fProd" type="date" autocomplete="off" oninput="computeBatchFromLineShift()">
       <label data-i18n="label_exp_date">تاريخ الصلاحية</label>
       <input id="fExp" type="date" autocomplete="off">
       <label data-i18n="label_qty">عدد الكراتين</label>
@@ -260,6 +270,8 @@ const LANG = {
     label_code: 'كود داخلي (اختياري)', ph_code: 'مثال: FG-0001',
     label_batch: 'رقم الباتش (إجباري)', label_batch_optional: 'رقم الباتش (اختياري — مش كل مواد التعبئة عليها باتش)', ph_batch: 'من الباركود أو مكتوب على الاستيكر',
     label_prod_date: 'تاريخ الإنتاج', label_exp_date: 'تاريخ الصلاحية',
+    label_line_shift: 'أو احسبه تلقائي: خط الإنتاج والوردية (لمنتجات المصنع الداخلية)', opt_line_shift_none: '-- اختياري --',
+    opt_A1: 'خط A - صباحي', opt_A2: 'خط A - مسائي', opt_B1: 'خط B - صباحي', opt_B2: 'خط B - مسائي', opt_C1: 'خط C - صباحي', opt_C2: 'خط C - مسائي',
     label_qty: 'عدد الكراتين', label_unit_weight: 'وزن الكرتونة الواحدة (اختياري)', label_weight: 'الوزن الإجمالي = عدد الكراتين × وزن الكرتونة (كجم، ممكن تعدّله يدوي)', unit_kg: 'كيلوجرام', unit_g: 'جرام',
     label_storage_type: 'نوع التخزين',
     opt_dry: '🏭 جاف', opt_frozen: '❄️ مجمد', opt_final: '🛍️ منتج نهائي',
@@ -318,6 +330,8 @@ const LANG = {
     label_code: 'Internal code (optional)', ph_code: 'e.g. FG-0001',
     label_batch: 'Batch number (required)', label_batch_optional: 'Batch number (optional — not all packaging materials have one)', ph_batch: 'From the barcode or written on the sticker',
     label_prod_date: 'Production date', label_exp_date: 'Expiry date',
+    label_line_shift: 'Or auto-calculate: production line & shift (in-house products)', opt_line_shift_none: '-- optional --',
+    opt_A1: 'Line A - morning', opt_A2: 'Line A - evening', opt_B1: 'Line B - morning', opt_B2: 'Line B - evening', opt_C1: 'Line C - morning', opt_C2: 'Line C - evening',
     label_qty: 'Number of cartons', label_unit_weight: 'Weight per carton (optional)', label_weight: 'Total weight = cartons × carton weight (kg, editable)', unit_kg: 'Kilogram', unit_g: 'Gram',
     label_storage_type: 'Storage type',
     opt_dry: '🏭 Dry', opt_frozen: '❄️ Frozen', opt_final: '🛍️ Final product',
@@ -376,6 +390,8 @@ const LANG = {
     label_code: 'اندرونی کوڈ (اختیاری)', ph_code: 'مثال: FG-0001',
     label_batch: 'بیچ نمبر (لازمی)', label_batch_optional: 'بیچ نمبر (اختیاری — تمام پیکنگ میٹریل پر بیچ نمبر نہیں ہوتا)', ph_batch: 'بارکوڈ سے یا اسٹیکر پر لکھا ہوا',
     label_prod_date: 'تاریخ پیداوار', label_exp_date: 'تاریخ میعاد ختم',
+    label_line_shift: 'یا خودکار حساب کریں: پیداواری لائن اور شفٹ (اندرونی مصنوعات کے لیے)', opt_line_shift_none: '-- اختیاری --',
+    opt_A1: 'لائن A - صبح', opt_A2: 'لائن A - شام', opt_B1: 'لائن B - صبح', opt_B2: 'لائن B - شام', opt_C1: 'لائن C - صبح', opt_C2: 'لائن C - شام',
     label_qty: 'کارٹنوں کی تعداد', label_unit_weight: 'ایک کارٹن کا وزن (اختیاری)', label_weight: 'کل وزن = کارٹن × ایک کارٹن کا وزن (کلوگرام، تبدیل کر سکتے ہیں)', unit_kg: 'کلوگرام', unit_g: 'گرام',
     label_storage_type: 'ذخیرہ کی قسم',
     opt_dry: '🏭 خشک', opt_frozen: '❄️ منجمد', opt_final: '🛍️ حتمی پروڈکٹ',
@@ -1056,6 +1072,18 @@ function normalizeDate(raw){
     return yr+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
   }
   return '';
+}
+
+// ✅ رقم الباتش الداخلي بيتبني بمعادلة ثابتة (شهر+يوم الإنتاج / خط الإنتاج + رمز الوردية)، مش لازم نقراه من صورة أصلاً —
+// زي "0707/B2" = تاريخ إنتاج 07/07 + خط B + وردية 2 (مسائي). بديل أدق من الـOCR لمنتجات المصنع الداخلية (بعكس شحنات الموردين اللي ليها باركود حقيقي)
+function computeBatchFromLineShift(){
+  const lineShift = document.getElementById('fLineShift').value;
+  const prodDate = document.getElementById('fProd').value; // YYYY-MM-DD
+  if(!lineShift || !prodDate) return;
+  const parts = prodDate.split('-'); // [YYYY, MM, DD]
+  if(parts.length !== 3) return;
+  const ddmm = parts[2] + parts[1]; // ✅ يوم ثم شهر (زي "08-07-2026" -> باتش "0807") مش شهر ثم يوم
+  document.getElementById('fBatch').value = ddmm + '/' + lineShift;
 }
 
 // ✅ الوزن الإجمالي = عدد الكراتين × وزن الكرتونة الواحدة — بيتحسب أوتوماتيك، والعامل يقدر يعدّله يدوي لو الوزن اتغيّر فعلياً
