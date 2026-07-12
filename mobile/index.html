@@ -114,6 +114,7 @@
         <img id="photoPreview" class="photo-preview hidden">
         <button type="button" id="removeLabelPhotoBtn" class="photo-remove-btn hidden" onclick="removeLabelPhoto()">✕</button>
       </div>
+      <div id="photoQualityWarn" class="hidden" style="background:#3d2c0f;border:1px solid #a16207;color:#fbbf24;border-radius:8px;padding:8px 10px;font-size:12px;margin-top:6px;text-align:center"></div>
       <div id="ocrSpinner" class="spinner hidden"></div>
       <div id="ocrStatus" style="text-align:center;font-size:12px;color:#94a3b8;margin-top:6px"></div>
       <details id="ocrRawWrap" class="hidden" style="margin-top:6px">
@@ -271,6 +272,7 @@ const LANG = {
     label_batch: 'رقم الباتش (إجباري)', label_batch_optional: 'رقم الباتش (اختياري — مش كل مواد التعبئة عليها باتش)', ph_batch: 'من الباركود أو مكتوب على الاستيكر',
     label_prod_date: 'تاريخ الإنتاج', label_exp_date: 'تاريخ الصلاحية',
     label_line_shift: 'أو احسبه تلقائي: خط الإنتاج والوردية (لمنتجات المصنع الداخلية)', opt_line_shift_none: '-- اختياري --',
+    quality_blurry: 'الصورة مش واضحة (بلور)', quality_dark: 'الإضاءة ضعيفة جدًا', quality_bright: 'الصورة ساطعة جدًا (وهج/فلاش)', quality_retake_hint: '— جرب تصوّرها تاني، أو كمّل لو حاسس إنها مقروءة',
     opt_A1: 'خط A - صباحي', opt_A2: 'خط A - مسائي', opt_B1: 'خط B - صباحي', opt_B2: 'خط B - مسائي', opt_C1: 'خط C - صباحي', opt_C2: 'خط C - مسائي',
     label_qty: 'عدد الكراتين', label_unit_weight: 'وزن الكرتونة الواحدة (اختياري)', label_weight: 'الوزن الإجمالي = عدد الكراتين × وزن الكرتونة (كجم، ممكن تعدّله يدوي)', unit_kg: 'كيلوجرام', unit_g: 'جرام',
     label_storage_type: 'نوع التخزين',
@@ -331,6 +333,7 @@ const LANG = {
     label_batch: 'Batch number (required)', label_batch_optional: 'Batch number (optional — not all packaging materials have one)', ph_batch: 'From the barcode or written on the sticker',
     label_prod_date: 'Production date', label_exp_date: 'Expiry date',
     label_line_shift: 'Or auto-calculate: production line & shift (in-house products)', opt_line_shift_none: '-- optional --',
+    quality_blurry: 'Photo is not clear (blurry)', quality_dark: 'Lighting is too dark', quality_bright: 'Photo is too bright (glare/flash)', quality_retake_hint: '— try retaking it, or continue if you think it\'s readable',
     opt_A1: 'Line A - morning', opt_A2: 'Line A - evening', opt_B1: 'Line B - morning', opt_B2: 'Line B - evening', opt_C1: 'Line C - morning', opt_C2: 'Line C - evening',
     label_qty: 'Number of cartons', label_unit_weight: 'Weight per carton (optional)', label_weight: 'Total weight = cartons × carton weight (kg, editable)', unit_kg: 'Kilogram', unit_g: 'Gram',
     label_storage_type: 'Storage type',
@@ -391,6 +394,7 @@ const LANG = {
     label_batch: 'بیچ نمبر (لازمی)', label_batch_optional: 'بیچ نمبر (اختیاری — تمام پیکنگ میٹریل پر بیچ نمبر نہیں ہوتا)', ph_batch: 'بارکوڈ سے یا اسٹیکر پر لکھا ہوا',
     label_prod_date: 'تاریخ پیداوار', label_exp_date: 'تاریخ میعاد ختم',
     label_line_shift: 'یا خودکار حساب کریں: پیداواری لائن اور شفٹ (اندرونی مصنوعات کے لیے)', opt_line_shift_none: '-- اختیاری --',
+    quality_blurry: 'تصویر واضح نہیں ہے (دھندلی)', quality_dark: 'روشنی بہت کم ہے', quality_bright: 'تصویر بہت روشن ہے (چمک/فلیش)', quality_retake_hint: '— دوبارہ تصویر کھینچیں، یا جاری رکھیں اگر پڑھی جا سکتی ہے',
     opt_A1: 'لائن A - صبح', opt_A2: 'لائن A - شام', opt_B1: 'لائن B - صبح', opt_B2: 'لائن B - شام', opt_C1: 'لائن C - صبح', opt_C2: 'لائن C - شام',
     label_qty: 'کارٹنوں کی تعداد', label_unit_weight: 'ایک کارٹن کا وزن (اختیاری)', label_weight: 'کل وزن = کارٹن × ایک کارٹن کا وزن (کلوگرام، تبدیل کر سکتے ہیں)', unit_kg: 'کلوگرام', unit_g: 'گرام',
     label_storage_type: 'ذخیرہ کی قسم',
@@ -884,16 +888,76 @@ function removeCartonPhoto(){
   document.getElementById('removeCartonPhotoBtn').classList.add('hidden');
 }
 
+// ✅ فحص جودة الصورة قبل الاعتماد عليها في القراءة — بيحسب درجة التشويش (بلور، عبر تباين لابلاسيان) والإضاءة (فاتحة/غامقة قوي)
+// على نسخة مصغّرة من الصورة (أسرع، مش محتاجين دقة عالية للفحص ده). تحذير بس مش منع — القرار للعامل لو حاسس الصورة أصلاً كويسة
+function assessImageQuality(dataUrl){
+  return new Promise(function(resolve){
+    const img = new Image();
+    img.onload = function(){
+      try{
+        const scale = Math.min(1, 400 / img.width);
+        const w = Math.max(1, Math.round(img.width * scale)), h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const d = ctx.getImageData(0, 0, w, h).data;
+        const gray = new Float32Array(w * h);
+        let sum = 0;
+        for(let i = 0, p = 0; i < d.length; i += 4, p++){
+          const g = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+          gray[p] = g; sum += g;
+        }
+        const brightness = sum / gray.length;
+        // لابلاسيان بسيط (4 جيران) — تباين عالي = حواف واضحة (صورة حادة)، تباين واطي = بلور
+        let lapSum = 0, lapSumSq = 0, count = 0;
+        for(let y = 1; y < h - 1; y++){
+          for(let x = 1; x < w - 1; x++){
+            const idx = y * w + x;
+            const lap = 4*gray[idx] - gray[idx-1] - gray[idx+1] - gray[idx-w] - gray[idx+w];
+            lapSum += lap; lapSumSq += lap*lap; count++;
+          }
+        }
+        const mean = lapSum / count;
+        const sharpness = (lapSumSq / count) - (mean * mean); // variance
+        resolve({
+          brightness: brightness,
+          sharpness: sharpness,
+          isBlurry: sharpness < 60,
+          isTooDark: brightness < 55,
+          isTooBright: brightness > 215
+        });
+      }catch(err){ resolve(null); } // فشل الفحص نفسه — منكملش نمنع، نسيب OCR يجرب عادي
+    };
+    img.onerror = function(){ resolve(null); };
+    img.src = dataUrl;
+  });
+}
+
 /* ===== استلام: كاميرا + OCR + استخراج ===== */
-function onPhotoSelected(e){
+async function onPhotoSelected(e){
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = function(ev){
+  reader.onload = async function(ev){
     lastPhotoDataUrl = ev.target.result;
     const img = document.getElementById('photoPreview');
     img.src = lastPhotoDataUrl; img.classList.remove('hidden');
     document.getElementById('removeLabelPhotoBtn').classList.remove('hidden');
+
+    const warnBox = document.getElementById('photoQualityWarn');
+    const quality = await assessImageQuality(lastPhotoDataUrl);
+    if(quality && (quality.isBlurry || quality.isTooDark || quality.isTooBright)){
+      const msgs = [];
+      if(quality.isBlurry) msgs.push(t('quality_blurry'));
+      if(quality.isTooDark) msgs.push(t('quality_dark'));
+      if(quality.isTooBright) msgs.push(t('quality_bright'));
+      warnBox.textContent = '⚠️ ' + msgs.join(' — ') + ' ' + t('quality_retake_hint');
+      warnBox.classList.remove('hidden');
+    } else {
+      warnBox.classList.add('hidden'); warnBox.textContent = '';
+    }
+
     runOCR(lastPhotoDataUrl);
   };
   reader.readAsDataURL(file);
@@ -907,6 +971,8 @@ function removeLabelPhoto(){
   document.getElementById('ocrStatus').textContent = '';
   document.getElementById('ocrRawWrap').classList.add('hidden');
   document.getElementById('ocrRaw').textContent = '';
+  document.getElementById('photoQualityWarn').classList.add('hidden');
+  document.getElementById('photoQualityWarn').textContent = '';
 }
 
 // تجهيز الصورة قبل الـ OCR: تدرج رمادي + تحويل ثنائي أبيض/أسود بعتبة Otsu (بتلاقي أفضل عتبة تفصل النص عن الخلفية تلقائيًا)
