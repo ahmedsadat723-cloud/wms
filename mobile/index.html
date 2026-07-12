@@ -995,9 +995,16 @@ function parseLabelText(text){
     }
   }
   out.batch = findAfterKeyword(['BATCH NO', 'BATCH NUMBER', 'BATCH:', 'BATCH', 'LOT NO', 'LOT NUMBER', 'LOT:', 'LOT']);
+  // ✅ احتياطي: لو الكلمة المفتاحية "BATCH" ضاعت في ضوضاء الـOCR (شائع لما الختم يكون جنب نص تاني في نفس السطر)،
+  // بندور على شكل رقم الباتش المستخدم فعليًا في المصنع (زي "0707/B2" أو "0807/C1": 3-4 أرقام / حرف / رقم) في كل النص
+  if(!out.batch){
+    const batchPatternMatch = text.match(/\b(\d{3,4}\s*\/\s*[A-Z]\d)\b/i);
+    if(batchPatternMatch) out.batch = batchPatternMatch[1].replace(/\s+/g, '');
+  }
 
-  // الوزن: بيدور على أول رقم جنب كلمة وزن — لو النطاق كان مدى (زي "20-100") ياخد أول رقم كتخمين أولي، العامل يصححه لو غلط
-  const weightKeywords = ['NET WEIGHT', 'NET WT', 'GROSS WEIGHT', 'WEIGHT', 'WT', 'KG'];
+  // الوزن: بيدور على أول رقم جنب كلمة وزن محددة — لو النطاق كان مدى (زي "20-100") ياخد أول رقم كتخمين أولي، العامل يصححه لو غلط
+  // ✅ شلنا "WT"/"KG" المجردة من هنا — كانت بتتطابق غلط مع أي حاجة فيها "kg" زي اسم صنف "DOUX 2KG" وتاخد رقم مالوش علاقة بوزن الكرتونة فعليًا
+  const weightKeywords = ['NET WEIGHT', 'NET WT', 'GROSS WEIGHT', 'WEIGHT'];
   const wStr = findAfterKeyword(weightKeywords);
   const wm = (wStr||'').match(/\d+(\.\d+)?/);
   if(wm) out.weightKg = wm[0];
