@@ -825,14 +825,21 @@ let scanStream = null, scanRAF = null, scanCanvas = null;
 // ده بيدي دقة بكسل أعلى بكتير على الكود من قراءة الفريم الكامل، وأهم حاجة إنه مش محتاج زوم هاردوير قوي
 // عشان يقرا كود صغير بعيد زي الـ GS1 DataMatrix المربع؛ المربع اللي المستخدم بيحاذي عليه بقى فعليًا هو المنطقة
 // اللي بتتحلل، فتقريب الكود جواه هو اللي بيحدد النجاح — مش شكل المربع نفسه.
+const SCAN_TIMEOUT_MS = 12000; // لو 12 ثانية فاتت من غير قراءة ناجحة، بنوقف ونديله رفض واضح بدل ما نسيبه ينتظر بلا نهاية بصمت
 function runScanLoop(video){
   if(!scanCanvas) scanCanvas = document.createElement('canvas');
   const OUT_SIZE = 480;
   scanCanvas.width = OUT_SIZE;
   scanCanvas.height = OUT_SIZE;
   const ctx = scanCanvas.getContext('2d', { willReadFrequently: true });
+  const startedAt = performance.now();
   function tick(){
     if(!scanStream) return; // اتوقف المسح
+    if(performance.now() - startedAt > SCAN_TIMEOUT_MS){
+      stopBarcodeScan();
+      document.getElementById('barcodeStatus').textContent = t('err_scan_failed');
+      return;
+    }
     if(video.videoWidth && video.readyState >= 2){
       try{
         const r = getGuideCropRect(video);
