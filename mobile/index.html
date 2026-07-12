@@ -1148,8 +1148,8 @@ function computeBatchFromLineShift(){
   if(!lineShift || !prodDate) return;
   const parts = prodDate.split('-'); // [YYYY, MM, DD]
   if(parts.length !== 3) return;
-  const ddmm = parts[2] + parts[1]; // ✅ يوم ثم شهر (زي "08-07-2026" -> باتش "0807") مش شهر ثم يوم
-  document.getElementById('fBatch').value = ddmm + '/' + lineShift;
+  const mmdd = parts[1] + parts[2]; // ✅ شهر ثم يوم — عكسناها بناءً على تأكيد المستخدم من الاستخدام الفعلي (مش يوم ثم شهر زي ما كان مفترض قبل كده)
+  document.getElementById('fBatch').value = mmdd + '/' + lineShift;
 }
 
 // ✅ الوزن الإجمالي = عدد الكراتين × وزن الكرتونة الواحدة — بيتحسب أوتوماتيك، والعامل يقدر يعدّله يدوي لو الوزن اتغيّر فعلياً
@@ -1278,6 +1278,7 @@ function resetReceivingForm(){
   document.getElementById('barcodeStatus').textContent = '';
   document.getElementById('barcodeStartBtn').classList.remove('hidden');
   document.getElementById('fBatch').value = '';
+  document.getElementById('fLineShift').value = '';
   document.getElementById('fUnitWeight').value = '';
   document.getElementById('fUnitWeightUnit').value = 'kg';
   document.getElementById('fWeight').value = '';
