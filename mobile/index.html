@@ -661,14 +661,35 @@ function pickSuggestion(el){
   box.classList.add('hidden'); box.innerHTML = '';
 }
 
-// بيملأ عدد الكراتين (رصات × كرتون/رصة) ووزن الكرتونة من سعات الطبالي المعتمدة (Supabase) لو الصنف معروف — بس لو الحقل لسه فاضي، عشان ميكسرش قيمة الباركود أو تعديل يدوي سابق من العامل
+// ✅ كل أصناف المواد الخام والمنتج النهائي (RM-*/FG-*) اسمها بيحمل شكل "عدد الأكياس × وزن الكيس" (زي "20*400" = 20 كيس × 400 جرام)،
+// وغالبًا الوحدة (جرام/كيلو) مكتوبة صراحة جنب الرقم في الاسم الإنجليزي أو الوصف العربي. لو الاسم مالوش وحدة واضحة (أو الوحدة لتر مش وزن)، منجازفش ونرجّع null.
+// بينطبق بس على RM-/FG- لأن أكواد التعبئة (PKG-*) بيحمل نفس شكل الرقم بس بمعنى مختلف تمامًا (مواصفات كرتونة شحن، مش وزن منتج).
+function parseWeightFromName(code, nameEn, arDesc){
+  if(!/^(RM|FG)-/.test(code) || !nameEn) return null;
+  const m = nameEn.match(/(\d+)\s*[*xX]\s*(\d+(?:\.\d+)?)\s*(KG|GM|G|LTR|L)?\b/i);
+  if(!m) return null;
+  const bags = +m[1], perBag = +m[2], nameUnit = (m[3]||'').toUpperCase();
+  if(nameUnit === 'LTR' || nameUnit === 'L' || /لتر/.test(arDesc||'')) return null; // وحدة حجم مش وزن
+  const isKg = nameUnit === 'KG' || /كيلو|كجم/.test(arDesc||'');
+  const isGram = nameUnit === 'GM' || nameUnit === 'G' || /جرام|جم\b/.test(arDesc||'');
+  if(!isKg && !isGram) return null; // مفيش وحدة واضحة — منجازفش بتخمين
+  return bags * (isKg ? perBag : perBag / 1000);
+}
+
+// بيملأ عدد الكراتين (رصات × كرتون/رصة) ووزن الكرتونة من سعات الطبالي المعتمدة (Supabase) لو الصنف معروف، وإلا من شكل الاسم نفسه — بس لو الحقل لسه فاضي، عشان ميكسرش قيمة الباركود أو تعديل يدوي سابق من العامل
 function applyCapacityDefaults(code){
   const entry = CATALOG[code];
-  const cap = entry && entry.oracle && CAPACITY[entry.oracle];
-  if(!cap) return;
-  const qtyEl = document.getElementById('fQty'), wEl = document.getElementById('fUnitWeight');
-  if(!qtyEl.value && cap.layers && cap.per) qtyEl.value = cap.layers * cap.per;
-  if(!wEl.value && cap.weightKg){ wEl.value = cap.weightKg; document.getElementById('fUnitWeightUnit').value = 'kg'; }
+  if(!entry) return;
+  const cap = entry.oracle && CAPACITY[entry.oracle];
+  const qtyEl = document.getElementById('fQty'), wEl = document.getElementById('fUnitWeight'), wUnitEl = document.getElementById('fUnitWeightUnit');
+  if(cap){
+    if(!qtyEl.value && cap.layers && cap.per) qtyEl.value = cap.layers * cap.per;
+    if(!wEl.value && cap.weightKg){ wEl.value = cap.weightKg; wUnitEl.value = 'kg'; }
+  }
+  if(!wEl.value){
+    const fromName = parseWeightFromName(code, entry.nameEn, entry.cat);
+    if(fromName){ wEl.value = Math.round(fromName * 1000) / 1000; wUnitEl.value = 'kg'; }
+  }
   recalcTotalWeight();
 }
 
