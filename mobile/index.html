@@ -801,45 +801,83 @@ function showScreen(name){
 
 /* ===== استلام: مسح باركود GS1-128 (تاريخ إنتاج/انتهاء/وزن/باتش) ===== */
 const gs1CodeReader = (typeof ZXing !== 'undefined') ? new ZXing.BrowserMultiFormatReader() : null;
-let scanControls = null;
 async function startBarcodeScan(){
   const statusEl = document.getElementById('barcodeStatus');
   if(!gs1CodeReader){ statusEl.textContent = t('err_no_barcode_lib'); return; }
   document.getElementById('barcodeVideoWrap').classList.remove('hidden');
   document.getElementById('barcodeStartBtn').classList.add('hidden');
   statusEl.textContent = t('scan_aim');
+  const video = document.getElementById('barcodeVideo');
   try{
-    // مسح مستمر (مش لقطة واحدة) — يفضل يجرب كل فريم لحد ما يقرا الكود أو المستخدم يلغي، مهم للأكواد الصغيرة اللي محتاجة تقريب/تثبيت
-    scanControls = await gs1CodeReader.decodeFromConstraints(
-      { video: { facingMode: { ideal: 'environment' } } },
-      'barcodeVideo',
-      function(result, err, controls){
-        if(result){
-          controls.stop();
-          scanControls = null;
-          document.getElementById('barcodeVideoWrap').classList.add('hidden');
-          document.getElementById('barcodeStartBtn').classList.remove('hidden');
-          document.getElementById('zoomRow').classList.add('hidden');
-          zoomTrack = null;
-          onBarcodeDecoded(result.getText());
-        }
-        // err هنا NotFoundException عادية لكل فريم مفيهوش كود — متوقعة ومش خطأ حقيقي، بنتجاهلها ونكمل المحاولة
-      }
-    );
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
+    video.srcObject = scanStream;
+    await video.play();
     setupZoomControl();
+    runScanLoop(video);
   }catch(e){
     statusEl.textContent = t('err_scan_failed');
     console.warn('barcode scan failed', e);
-    document.getElementById('barcodeVideoWrap').classList.add('hidden');
-    document.getElementById('barcodeStartBtn').classList.remove('hidden');
+    stopBarcodeScan();
   }
 }
-function skipBarcodeScan(){
-  if(scanControls){ try{ scanControls.stop(); }catch(e){} scanControls = null; }
+let scanStream = null, scanRAF = null, scanCanvas = null;
+// بنقص بس منطقة المربع التوجيهي من كل فريم ونكبّرها لمساحة أعلى قبل ما نديها لـ ZXing —
+// ده بيدي دقة بكسل أعلى بكتير على الكود من قراءة الفريم الكامل، وأهم حاجة إنه مش محتاج زوم هاردوير قوي
+// عشان يقرا كود صغير بعيد زي الـ GS1 DataMatrix المربع؛ المربع اللي المستخدم بيحاذي عليه بقى فعليًا هو المنطقة
+// اللي بتتحلل، فتقريب الكود جواه هو اللي بيحدد النجاح — مش شكل المربع نفسه.
+function runScanLoop(video){
+  if(!scanCanvas) scanCanvas = document.createElement('canvas');
+  const OUT_SIZE = 480;
+  scanCanvas.width = OUT_SIZE;
+  scanCanvas.height = OUT_SIZE;
+  const ctx = scanCanvas.getContext('2d', { willReadFrequently: true });
+  function tick(){
+    if(!scanStream) return; // اتوقف المسح
+    if(video.videoWidth && video.readyState >= 2){
+      try{
+        const r = getGuideCropRect(video);
+        ctx.drawImage(video, r.x, r.y, r.w, r.h, 0, 0, OUT_SIZE, OUT_SIZE);
+        const luminance = new ZXing.HTMLCanvasElementLuminanceSource(scanCanvas);
+        const bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminance));
+        const result = gs1CodeReader.decodeBitmap(bitmap);
+        stopBarcodeScan();
+        onBarcodeDecoded(result.getText());
+        return;
+      }catch(err){
+        // NotFoundException متوقعة كل فريم مفيهوش كود قابل للقراءة جوه المربع — بنكمل المحاولة
+      }
+    }
+    scanRAF = requestAnimationFrame(tick);
+  }
+  scanRAF = requestAnimationFrame(tick);
+}
+function getGuideCropRect(video){
+  const vRect = video.getBoundingClientRect();
+  const gRect = video.parentElement.querySelector('.scan-guide').getBoundingClientRect();
+  const scaleX = video.videoWidth / vRect.width;
+  const scaleY = video.videoHeight / vRect.height;
+  const x = Math.max(0, (gRect.left - vRect.left) * scaleX);
+  const y = Math.max(0, (gRect.top - vRect.top) * scaleY);
+  // المربع مربّع الشكل دايمًا، بس نسبة أبعاد الفيديو نفسه ممكن تكون مختلفة (خصوصًا كاميرات لابتوب landscape) —
+  // نقصّه لحدود الفيديو الفعلية بدل ما نطلب منطقة تتعدّاها
+  return {
+    x,
+    y,
+    w: Math.min(gRect.width * scaleX, video.videoWidth - x),
+    h: Math.min(gRect.height * scaleY, video.videoHeight - y)
+  };
+}
+function stopBarcodeScan(){
+  if(scanRAF) cancelAnimationFrame(scanRAF);
+  scanRAF = null;
+  if(scanStream){ scanStream.getTracks().forEach(function(tr){ tr.stop(); }); scanStream = null; }
+  zoomTrack = null;
   document.getElementById('barcodeVideoWrap').classList.add('hidden');
   document.getElementById('barcodeStartBtn').classList.remove('hidden');
   document.getElementById('zoomRow').classList.add('hidden');
-  zoomTrack = null;
+}
+function skipBarcodeScan(){
+  stopBarcodeScan();
   document.getElementById('barcodeStatus').textContent = t('scan_skipped');
 }
 // بعض الكاميرات (خصوصًا أندرويد كروم) بتدعم زوم حقيقي عبر MediaStreamTrack.applyConstraints — ده اللي بيكبّر الباركود فعليًا
