@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sadat-depot-mobile-v1';
+const CACHE_NAME = 'sadat-depot-mobile-v20260712172752';
 const SHELL_FILES = ['./index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', function(e){
