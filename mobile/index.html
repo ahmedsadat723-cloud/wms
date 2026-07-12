@@ -149,8 +149,14 @@
       <input id="fExp" type="date" autocomplete="off">
       <label data-i18n="label_qty">عدد الكراتين</label>
       <input id="fQty" type="number" min="1" autocomplete="off" oninput="recalcTotalWeight()">
-      <label data-i18n="label_unit_weight">وزن الكرتونة الواحدة (كجم، اختياري)</label>
-      <input id="fUnitWeight" type="number" min="0" step="0.001" autocomplete="off" oninput="recalcTotalWeight()">
+      <label data-i18n="label_unit_weight">وزن الكرتونة الواحدة (اختياري)</label>
+      <div style="display:flex;gap:6px">
+        <input id="fUnitWeight" type="number" min="0" step="0.001" autocomplete="off" oninput="recalcTotalWeight()" style="flex:1">
+        <select id="fUnitWeightUnit" onchange="recalcTotalWeight()" style="width:auto">
+          <option value="kg" data-i18n="unit_kg">كيلوجرام</option>
+          <option value="g" data-i18n="unit_g">جرام</option>
+        </select>
+      </div>
       <label data-i18n="label_weight">الوزن الإجمالي = عدد الكراتين × وزن الكرتونة (كجم، ممكن تعدّله يدوي)</label>
       <input id="fWeight" type="number" min="0" step="0.001" autocomplete="off">
       <label data-i18n="label_storage_type">نوع التخزين</label>
@@ -254,7 +260,7 @@ const LANG = {
     label_code: 'كود داخلي (اختياري)', ph_code: 'مثال: FG-0001',
     label_batch: 'رقم الباتش (إجباري)', label_batch_optional: 'رقم الباتش (اختياري — مش كل مواد التعبئة عليها باتش)', ph_batch: 'من الباركود أو مكتوب على الاستيكر',
     label_prod_date: 'تاريخ الإنتاج', label_exp_date: 'تاريخ الصلاحية',
-    label_qty: 'عدد الكراتين', label_unit_weight: 'وزن الكرتونة الواحدة (كجم، اختياري)', label_weight: 'الوزن الإجمالي = عدد الكراتين × وزن الكرتونة (كجم، ممكن تعدّله يدوي)',
+    label_qty: 'عدد الكراتين', label_unit_weight: 'وزن الكرتونة الواحدة (اختياري)', label_weight: 'الوزن الإجمالي = عدد الكراتين × وزن الكرتونة (كجم، ممكن تعدّله يدوي)', unit_kg: 'كيلوجرام', unit_g: 'جرام',
     label_storage_type: 'نوع التخزين',
     opt_dry: '🏭 جاف', opt_frozen: '❄️ مجمد', opt_final: '🛍️ منتج نهائي',
     label_room_prefix: 'الغرفة (متاح بس غرف نوع "', label_room_suffix: '")',
@@ -312,7 +318,7 @@ const LANG = {
     label_code: 'Internal code (optional)', ph_code: 'e.g. FG-0001',
     label_batch: 'Batch number (required)', label_batch_optional: 'Batch number (optional — not all packaging materials have one)', ph_batch: 'From the barcode or written on the sticker',
     label_prod_date: 'Production date', label_exp_date: 'Expiry date',
-    label_qty: 'Number of cartons', label_unit_weight: 'Weight per carton (kg, optional)', label_weight: 'Total weight = cartons × carton weight (kg, editable)',
+    label_qty: 'Number of cartons', label_unit_weight: 'Weight per carton (optional)', label_weight: 'Total weight = cartons × carton weight (kg, editable)', unit_kg: 'Kilogram', unit_g: 'Gram',
     label_storage_type: 'Storage type',
     opt_dry: '🏭 Dry', opt_frozen: '❄️ Frozen', opt_final: '🛍️ Final product',
     label_room_prefix: 'Room (only "', label_room_suffix: '" rooms available)',
@@ -370,7 +376,7 @@ const LANG = {
     label_code: 'اندرونی کوڈ (اختیاری)', ph_code: 'مثال: FG-0001',
     label_batch: 'بیچ نمبر (لازمی)', label_batch_optional: 'بیچ نمبر (اختیاری — تمام پیکنگ میٹریل پر بیچ نمبر نہیں ہوتا)', ph_batch: 'بارکوڈ سے یا اسٹیکر پر لکھا ہوا',
     label_prod_date: 'تاریخ پیداوار', label_exp_date: 'تاریخ میعاد ختم',
-    label_qty: 'کارٹنوں کی تعداد', label_unit_weight: 'ایک کارٹن کا وزن (کلوگرام، اختیاری)', label_weight: 'کل وزن = کارٹن × ایک کارٹن کا وزن (کلوگرام، تبدیل کر سکتے ہیں)',
+    label_qty: 'کارٹنوں کی تعداد', label_unit_weight: 'ایک کارٹن کا وزن (اختیاری)', label_weight: 'کل وزن = کارٹن × ایک کارٹن کا وزن (کلوگرام، تبدیل کر سکتے ہیں)', unit_kg: 'کلوگرام', unit_g: 'گرام',
     label_storage_type: 'ذخیرہ کی قسم',
     opt_dry: '🏭 خشک', opt_frozen: '❄️ منجمد', opt_final: '🛍️ حتمی پروڈکٹ',
     label_room_prefix: 'کمرہ (صرف "', label_room_suffix: '" قسم کے کمرے دستیاب ہیں)',
@@ -662,7 +668,7 @@ function applyCapacityDefaults(code){
   if(!cap) return;
   const qtyEl = document.getElementById('fQty'), wEl = document.getElementById('fUnitWeight');
   if(!qtyEl.value && cap.layers && cap.per) qtyEl.value = cap.layers * cap.per;
-  if(!wEl.value && cap.weightKg) wEl.value = cap.weightKg;
+  if(!wEl.value && cap.weightKg){ wEl.value = cap.weightKg; document.getElementById('fUnitWeightUnit').value = 'kg'; }
   recalcTotalWeight();
 }
 
@@ -780,7 +786,7 @@ function onBarcodeDecoded(text){
   if(parsed.prodDate){ document.getElementById('fProd').value = parsed.prodDate; filled.push(t('fld_prod')); }
   if(parsed.expDate){ document.getElementById('fExp').value = parsed.expDate; filled.push(t('fld_exp')); }
   if(parsed.batch){ document.getElementById('fBatch').value = parsed.batch; filled.push(t('fld_batch')); }
-  if(parsed.weightKg){ document.getElementById('fUnitWeight').value = parsed.weightKg; recalcTotalWeight(); filled.push(t('fld_weight')); }
+  if(parsed.weightKg){ document.getElementById('fUnitWeight').value = parsed.weightKg; document.getElementById('fUnitWeightUnit').value = 'kg'; recalcTotalWeight(); filled.push(t('fld_weight')); }
   document.getElementById('barcodeStatus').textContent = filled.length
     ? (t('scan_filled') + filled.join('، '))
     : t('scan_empty');
@@ -1031,11 +1037,14 @@ function normalizeDate(raw){
 }
 
 // ✅ الوزن الإجمالي = عدد الكراتين × وزن الكرتونة الواحدة — بيتحسب أوتوماتيك، والعامل يقدر يعدّله يدوي لو الوزن اتغيّر فعلياً
+// وزن الكرتونة ممكن يتكتب بالجرام أو الكيلوجرام (خانة الاختيار جنبه) — الإجمالي دايمًا بيتخزن بالكيلوجرام
 function recalcTotalWeight(){
-  const unit = +document.getElementById('fUnitWeight').value || 0;
-  if(unit <= 0) return; // مفيش وزن كرتونة معروف — سيب الإجمالي زي ما هو (يتكتب يدوي)
+  const rawUnitWeight = +document.getElementById('fUnitWeight').value || 0;
+  if(rawUnitWeight <= 0) return; // مفيش وزن كرتونة معروف — سيب الإجمالي زي ما هو (يتكتب يدوي)
+  const isGrams = document.getElementById('fUnitWeightUnit').value === 'g';
+  const unitWeightKg = isGrams ? rawUnitWeight / 1000 : rawUnitWeight;
   const qty = +document.getElementById('fQty').value || 1;
-  document.getElementById('fWeight').value = (qty * unit).toFixed(3);
+  document.getElementById('fWeight').value = (qty * unitWeightKg).toFixed(3);
 }
 
 function fillReviewForm(parsed){
@@ -1050,7 +1059,7 @@ function fillReviewForm(parsed){
   // وتعرض قائمة اقتراحات لو مفيش تطابق تمام — وبتملأ عدد الكراتين/وزن الكرتونة من سعات الطبالي المعتمدة لو الصنف معروف (applyCapacityDefaults)
   onItemInput();
   // احتياطي: لو الصنف مش موجود في سعات الطبالي المعتمدة (applyCapacityDefaults ماملتش الحقل)، نرجع لتخمين الـ OCR كحل أخير
-  if(!document.getElementById('fUnitWeight').value) document.getElementById('fUnitWeight').value = parsed.weightKg || '';
+  if(!document.getElementById('fUnitWeight').value && parsed.weightKg){ document.getElementById('fUnitWeight').value = parsed.weightKg; document.getElementById('fUnitWeightUnit').value = 'kg'; }
   if(!document.getElementById('fQty').value) document.getElementById('fQty').value = parsed.qty || '';
   recalcTotalWeight();
   populateRoomSelect();
@@ -1154,6 +1163,7 @@ function resetReceivingForm(){
   document.getElementById('barcodeStartBtn').classList.remove('hidden');
   document.getElementById('fBatch').value = '';
   document.getElementById('fUnitWeight').value = '';
+  document.getElementById('fUnitWeightUnit').value = 'kg';
   document.getElementById('fWeight').value = '';
   document.getElementById('saveMsg').className = 'msg';
   document.getElementById('saveMsg').textContent = '';
