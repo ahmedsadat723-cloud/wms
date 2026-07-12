@@ -1829,6 +1829,7 @@ tr:hover td{background:var(--brand-soft)}
     <div class="header-right">
       <input class="quick-search" id="headerSearch" placeholder="🔎" oninput="quickSearch(this.value)" style="width:140px;padding:8px 10px;font-size:11px">
       <button class="icon-btn" onclick="shareViaWhatsApp()" title="مشاركة واتساب" style="background:rgba(37,211,102,.15);color:#25d366;font-weight:900">📱</button>
+      <button class="icon-btn" onclick="showMobileQrModal()" title="QR تثبيت تطبيق الموبايل" style="background:rgba(96,165,250,.15);color:#60a5fa;font-weight:900">📷</button>
       <button class="icon-btn" id="expTabBtn" onclick="openExpDrawer()" title="الصلاحية" style="position:relative">⏰<span id="expBadge" style="display:none;position:absolute;top:-8px;left:-8px;background:#ef4444;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:900;line-height:16px;text-align:center"></span></button>
       <button class="icon-btn" onclick="toggleSidebar()" id="sidebarToggleBtn" title="إخفاء/إظهار الشريط الجانبي" style="color:var(--brand);font-weight:900">≡</button>
       <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="وضع ليلي">🌙</button>
@@ -4942,6 +4943,7 @@ tr:hover td{background:var(--brand-soft)}
 </div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <script style="display:none">
 "use strict";
 // ✅ Sadat Depot backend — قاعدة بيانات حقيقية (Supabase) بديلة لـ localStorage للمخزون الحي وسجل التدقيق
@@ -10304,6 +10306,22 @@ function showToast(msg,type='success'){
   playSound(type==='error'?'whoosh':type==='info'?'beep':'success');
   setTimeout(()=>{t.style.animation='toastExit .4s ease-in';setTimeout(()=>t.remove(),400)},3500);
 }
+// ✅ QR ثابت لتثبيت تطبيق الموبايل — بيتولّد مرة واحدة بس ويتخزن، عشان أي حد جديد يفتح الزر ده ويثبّت بنفسه من غير ما يطلب باركود منفصل من جديد
+let _mobileQrRendered = false;
+function showMobileQrModal(){
+  const modal = document.getElementById('mobileQrModal');
+  modal.style.display = 'flex';
+  if(_mobileQrRendered) return;
+  if(typeof QRCode === 'undefined'){ document.getElementById('mobileQrCanvasWrap').textContent = '❌ تعذر تحميل مكتبة QR'; return; }
+  QRCode.toCanvas('https://ahmedsadat723-cloud.github.io/wms/mobile/', { width: 220, margin: 2 }, function(err, canvas){
+    if(err){ document.getElementById('mobileQrCanvasWrap').textContent = '❌ ' + err; return; }
+    document.getElementById('mobileQrCanvasWrap').appendChild(canvas);
+    _mobileQrRendered = true;
+  });
+}
+function closeMobileQrModal(){
+  document.getElementById('mobileQrModal').style.display = 'none';
+}
 function shareViaWhatsApp(){
   // ✅ اتشالت بيانات دخول ثابتة كانت متسربة هنا (اسم مستخدم/باسورد وهميين من نظام الدخول المحلي القديم) — كل مستخدم دلوقتي له حساب Supabase حقيقي خاص بيه
   const msg = 'نظام إدارة مستودع المنجم للأغذية — رابط النظام:\n' +
@@ -11941,6 +11959,17 @@ function go3D(){switchTab(5);}
   renderAll();
 })();
 </script>
+
+  <!-- Mobile App QR Modal — ثابت جوه الملف الأساسي، أي حد جديد يقدر يفتحه من زر 📷 فوق ويثبّت التطبيق بنفسه من غير ما حد يطلب باركود من جديد -->
+  <div id="mobileQrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center">
+    <div style="background:#fff;border-radius:16px;padding:28px;width:min(360px,92vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+      <div style="font-size:15px;font-weight:900;color:#1e293b;margin-bottom:6px">📱 تثبيت تطبيق الاستلام على الموبايل</div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:16px">صوّر الكود بكاميرا الموبايل العادية (من غير أي تطبيق سكانر خاص)</div>
+      <div id="mobileQrCanvasWrap" style="display:inline-block;background:#fff"></div>
+      <div style="font-size:11px;color:#94a3b8;direction:ltr;margin-top:14px;word-break:break-all">https://ahmedsadat723-cloud.github.io/wms/mobile/</div>
+      <button class="modal-close" onclick="closeMobileQrModal()" style="margin-top:16px">✓ حسناً</button>
+    </div>
+  </div>
 
   <!-- SHARE MODAL -->
   <!-- Oracle Export Modal -->
