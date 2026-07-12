@@ -1021,12 +1021,13 @@ function parseLabelText(text){
       if(m){ out.expDate = normalizeDate(m[0]); break; }
     }
   }
-  out.batch = findAfterKeyword(['BATCH NO', 'BATCH NUMBER', 'BATCH:', 'BATCH', 'LOT NO', 'LOT NUMBER', 'LOT:', 'LOT']);
-  // ✅ احتياطي: لو الكلمة المفتاحية "BATCH" ضاعت في ضوضاء الـOCR (شائع لما الختم يكون جنب نص تاني في نفس السطر)،
-  // بندور على شكل رقم الباتش المستخدم فعليًا في المصنع (زي "0707/B2" أو "0807/C1": 3-4 أرقام / حرف / رقم) في كل النص
-  if(!out.batch){
-    const batchPatternMatch = text.match(/\b(\d{3,4}\s*\/\s*[A-Z]\d)\b/i);
-    if(batchPatternMatch) out.batch = batchPatternMatch[1].replace(/\s+/g, '');
+  // ✅ أولوية لشكل رقم الباتش المستخدم فعليًا في المصنع (زي "0707/B2" أو "0807/C1": 3-4 أرقام / حرف / رقم) — أدق بكتير من البحث بكلمة مفتاحية،
+  // لأن الختم بيكون جنب نصوص تانية في نفس السطر وممكن الـOCR يخلط حواليها فيرجع نص غلط تمامًا (زي "Day : ..." بدل رقم الباتش الحقيقي)
+  const batchPatternMatch = text.match(/\b(\d{3,4}\s*\/\s*[A-Z]\d)\b/i);
+  if(batchPatternMatch){
+    out.batch = batchPatternMatch[1].replace(/\s+/g, '');
+  } else {
+    out.batch = findAfterKeyword(['BATCH NO', 'BATCH NUMBER', 'BATCH:', 'BATCH', 'LOT NO', 'LOT NUMBER', 'LOT:', 'LOT']);
   }
 
   // الوزن: بيدور على أول رقم جنب كلمة وزن محددة — لو النطاق كان مدى (زي "20-100") ياخد أول رقم كتخمين أولي، العامل يصححه لو غلط
