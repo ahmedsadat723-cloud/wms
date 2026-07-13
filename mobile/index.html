@@ -158,6 +158,13 @@
       </div>
       <label data-i18n="label_code">كود داخلي (اختياري)</label>
       <input id="fCode" data-i18n-ph="ph_code" placeholder="مثال: FG-0001" autocomplete="off">
+      <label data-i18n="label_supplier">اسم المورد / المُصدِّر</label>
+      <input id="fSupplier" data-i18n-ph="ph_supplier" placeholder="اسم المورد أو المُصدِّر" autocomplete="off">
+      <select id="fSupplierFactory" class="hidden">
+        <option value="مصنع المنجم لإنتاج اللحوم">مصنع المنجم لإنتاج اللحوم</option>
+        <option value="مصنع الزامل">مصنع الزامل</option>
+        <option value="مصنع التنمية">مصنع التنمية</option>
+      </select>
       <label id="batchLabelWrap" data-i18n="label_batch">رقم الباتش (إجباري)</label>
       <input id="fBatch" data-i18n-ph="ph_batch" placeholder="من الباركود أو مكتوب على الاستيكر" autocomplete="off">
       <label data-i18n="label_line_shift">أو احسبه تلقائي: خط الإنتاج والوردية (لمنتجات المصنع الداخلية)</label>
@@ -302,6 +309,7 @@ const LANG = {
     step4_review: '4️⃣ راجع وصحّح البيانات قبل الحفظ',
     label_item: 'الصنف', ph_item_name: 'اسم الصنف',
     label_code: 'كود داخلي (اختياري)', ph_code: 'مثال: FG-0001',
+    label_supplier: 'اسم المورد / المُصدِّر', ph_supplier: 'اسم المورد أو المُصدِّر', supplier_internal: 'إنتاج داخلي — مصنع المنجم لإنتاج اللحوم',
     label_batch: 'رقم الباتش (إجباري)', label_batch_optional: 'رقم الباتش (اختياري — مش كل مواد التعبئة عليها باتش)', ph_batch: 'من الباركود أو مكتوب على الاستيكر',
     label_prod_date: 'تاريخ الإنتاج', label_exp_date: 'تاريخ الصلاحية',
     label_line_shift: 'أو احسبه تلقائي: خط الإنتاج والوردية (لمنتجات المصنع الداخلية)', opt_line_shift_none: '-- اختياري --',
@@ -364,6 +372,7 @@ const LANG = {
     step4_review: '4️⃣ Review and correct the data before saving',
     label_item: 'Item', ph_item_name: 'Item name',
     label_code: 'Internal code (optional)', ph_code: 'e.g. FG-0001',
+    label_supplier: 'Supplier / Exporter', ph_supplier: 'Supplier or exporter name', supplier_internal: 'Internal production — Al-Munajem meat factory',
     label_batch: 'Batch number (required)', label_batch_optional: 'Batch number (optional — not all packaging materials have one)', ph_batch: 'From the barcode or written on the sticker',
     label_prod_date: 'Production date', label_exp_date: 'Expiry date',
     label_line_shift: 'Or auto-calculate: production line & shift (in-house products)', opt_line_shift_none: '-- optional --',
@@ -426,6 +435,7 @@ const LANG = {
     step4_review: '4️⃣ محفوظ کرنے سے پہلے ڈیٹا کا جائزہ لیں اور درست کریں',
     label_item: 'آئٹم', ph_item_name: 'آئٹم کا نام',
     label_code: 'اندرونی کوڈ (اختیاری)', ph_code: 'مثال: FG-0001',
+    label_supplier: 'سپلائر / برآمد کنندہ', ph_supplier: 'سپلائر یا برآمد کنندہ کا نام', supplier_internal: 'داخلی پیداوار — المنجم گوشت فیکٹری',
     label_batch: 'بیچ نمبر (لازمی)', label_batch_optional: 'بیچ نمبر (اختیاری — تمام پیکنگ میٹریل پر بیچ نمبر نہیں ہوتا)', ph_batch: 'بارکوڈ سے یا اسٹیکر پر لکھا ہوا',
     label_prod_date: 'تاریخ پیداوار', label_exp_date: 'تاریخ میعاد ختم',
     label_line_shift: 'یا خودکار حساب کریں: پیداواری لائن اور شفٹ (اندرونی مصنوعات کے لیے)', opt_line_shift_none: '-- اختیاری --',
@@ -672,6 +682,24 @@ function updateReceivingModeUI(){
     meatSection.classList.add('hidden');
     unitRow.classList.remove('hidden');
     qtyEl.readOnly = false; wEl.readOnly = false;
+  }
+  applySupplierDefault();
+}
+// المورد بيختلف حسب النوع: نهائي = قائمة مصانع المنجم الداخلية؛ جاف/مجمّد = اسم مورد/مُصدِّر خارجي (يتملّى من الكتالوج)
+function applySupplierDefault(){
+  const type = document.getElementById('fType').value;
+  const code = document.getElementById('fCode').value.trim();
+  const supText = document.getElementById('fSupplier');
+  const supFactory = document.getElementById('fSupplierFactory');
+  if(!supText || !supFactory) return;
+  if(type === 'final'){
+    supText.classList.add('hidden');
+    supFactory.classList.remove('hidden'); // اختيار المصنع الداخلي
+  } else {
+    supFactory.classList.add('hidden');
+    supText.classList.remove('hidden');
+    const catSup = code && CATALOG[code] ? CATALOG[code].supplier : '';
+    if(catSup && !supText.value) supText.value = catSup; // ما نكسرش تعديل يدوي
   }
 }
 function addMeatCarton(){
@@ -1469,6 +1497,7 @@ function fillReviewForm(parsed){
   // استلام جديد = نبدأ قائمة أوزان اللحوم من الصفر (ومنشيل وضع الوزن الثابت)
   meatCartons = [];
   const mft = document.getElementById('meatFixedToggle'); if(mft) mft.checked = false;
+  document.getElementById('fSupplier').value = ''; // يتملّى من جديد حسب الصنف/النوع
   document.getElementById('fItem').value = parsed.item || '';
   // لو الباركود سبق وملأ الحقل ده، سيبه — الباركود أدق من الـ OCR
   if(!document.getElementById('fProd').value) document.getElementById('fProd').value = parsed.prodDate || '';
@@ -1529,7 +1558,9 @@ async function saveReceiving(){
     }
   }
 
-  const supplier = code && CATALOG[code] ? CATALOG[code].supplier : '';
+  const supplier = (type === 'final')
+    ? document.getElementById('fSupplierFactory').value
+    : (document.getElementById('fSupplier').value.trim() || (code && CATALOG[code] ? CATALOG[code].supplier : ''));
   const missing = [];
   if(!supplier) missing.push('المورد');
   if(!code) missing.push('الكود الداخلي');
@@ -1589,6 +1620,7 @@ function resetReceivingForm(){
   document.getElementById('fUnitWeightUnit').value = 'kg';
   document.getElementById('fWeight').value = '';
   document.getElementById('fQty').value = '';
+  document.getElementById('fSupplier').value = '';
   // تصفير قائمة أوزان اللحوم
   meatCartons = [];
   const mft = document.getElementById('meatFixedToggle'); if(mft) mft.checked = false;
