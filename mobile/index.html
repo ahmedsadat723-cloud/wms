@@ -760,24 +760,34 @@ async function checkSlotOccupied(){
 function tokenizeForMatch(s){
   return (s||'').toUpperCase().match(/[\p{L}]+|[\p{N}]+/gu) || [];
 }
-function onItemInput(){
-  const raw = document.getElementById('fItem').value.trim();
-  const box = document.getElementById('itemSuggestions');
-  const matchCode = CATALOG_BY_NAME[raw.toUpperCase()] || CATALOG_BY_CAT[raw] || CATALOG_BY_UR[raw];
-  if(matchCode){
-    document.getElementById('fCode').value = matchCode;
-    document.getElementById('fType').value = classifyItemByCode(matchCode);
-    populateRoomSelect();
-    applyCapacityDefaults(matchCode);
-    updateReceivingModeUI();
-  }
+// ✅ المرساة: كود المقاس/المواصفة المطبوع على الكرتون — بيتطابق بالحرف مع اسم الداتابيز حتى لو الاسم الظاهر مختلف.
+// أقوى إشارة مطابقة عندنا، لأن الاسم بيتترجم/بيتكتب بأشكال كتير بس الكود ثابت. أمثلة:
+//   "50CL" = نسبة اللحم الأحمر (Chemical Lean) في لحوم الجملة — بتفرّق بين تشافي غنم وغيره
+//   "20*400" = عدد الأكياس × وزن الكيس — بتحدد الصنف بدقة في المنتجات المعبأة
+function extractAnchors(text){
+  const t = (text||'').toUpperCase();
+  const out = [];
+  const cl = t.match(/\b\d{2,3}\s*CL\b/g);              // 50CL
+  if(cl) cl.forEach(function(x){ out.push(x.replace(/\s+/g,'')); });
+  const sz = t.match(/\b\d{1,3}\s*[*xX]\s*\d{2,4}\b/g); // 20*400
+  if(sz) sz.forEach(function(x){ out.push(x.replace(/\s+/g,'')); });
+  return out;
+}
 
-  if(!raw){ box.classList.add('hidden'); box.innerHTML=''; return; }
-  const q = raw.toUpperCase();
-  const qTokens = tokenizeForMatch(raw);
-  const scored = CATALOG_LIST.map(function(c){
+// تقييم مشترك لكل أصناف الكتالوج مقابل نص إدخال — بيستخدمه الكتابة اليدوية والمطابقة التلقائية من الـ OCR سوا.
+// الترتيب: (1) تطابق نص كامل +100  (2) مرساة المقاس/الكود +50 لكل مرساة  (3) تطابق كلمات/أرقام جزئي.
+function scoreCatalog(text){
+  const q = (text||'').trim().toUpperCase();
+  const qTokens = tokenizeForMatch(text);
+  const anchors = extractAnchors(text);
+  return CATALOG_LIST.map(function(c){
     let score = 0;
-    if(c.searchText.indexOf(q) >= 0) score += 100; // تطابق نص كامل في أي مكان (بداية/نص/نهاية) بالاسم الإنجليزي أو الوصف العربي
+    if(q.length >= 3 && c.searchText.indexOf(q) >= 0) score += 100; // تطابق نص كامل في أي مكان بالاسم الإنجليزي أو الوصف العربي
+    // مرساة المقاس/المواصفة: بنقارن بعد شيل الرموز (فـ"20*400" تساوي "20 X 400") — الصنف اللي فيه نفس الكود بياخد وزن ساحق
+    if(anchors.length){
+      const csFlat = c.searchText.replace(/[^A-Z0-9]/g,'');
+      anchors.forEach(function(a){ if(csFlat.indexOf(a.replace(/[^A-Z0-9]/g,'')) >= 0) score += 50; });
+    }
     qTokens.forEach(function(qt){
       if(qt.length < 2) return; // تجاهل حروف مفردة (زي "G" من "700g") عشان ما تضيفش تطابقات وهمية
       const isNumeric = /^[0-9]+$/.test(qt); // رقم = مقاس/وزن — أدق من كلمة عادية في تمييز الأصناف المتشابهة، فبناخده بوزن أعلى
@@ -791,6 +801,22 @@ function onItemInput(){
     });
     return { c: c, score: score };
   }).filter(function(x){ return x.score > 0; }).sort(function(a,b){ return b.score - a.score; });
+}
+
+function onItemInput(){
+  const raw = document.getElementById('fItem').value.trim();
+  const box = document.getElementById('itemSuggestions');
+  const matchCode = CATALOG_BY_NAME[raw.toUpperCase()] || CATALOG_BY_CAT[raw] || CATALOG_BY_UR[raw];
+  if(matchCode){
+    document.getElementById('fCode').value = matchCode;
+    document.getElementById('fType').value = classifyItemByCode(matchCode);
+    populateRoomSelect();
+    applyCapacityDefaults(matchCode);
+    updateReceivingModeUI();
+  }
+
+  if(!raw){ box.classList.add('hidden'); box.innerHTML=''; return; }
+  const scored = scoreCatalog(raw);
   const matches = scored.slice(0, 8).map(function(x){ return x.c; });
   if(!matches.length){ box.classList.add('hidden'); box.innerHTML=''; return; }
   box.innerHTML = matches.map(function(c){
@@ -1405,6 +1431,20 @@ function parseLabelText(text){
 
   // الصنف: الأدق الأول (ITEM NAME / ITEM DESCRIPTION / PRODUCT) قبل الكلمة العامة "ITEM" (عشان متتلخبطش مع "Item Code")
   out.item = findAfterKeyword(['ITEM NAME', 'ITEM DESCRIPTION', 'PRODUCT :', 'PRODUCT:', 'PRODUCT', 'ITEM :', 'ITEM:', 'ITEM']);
+  // ✅ "PRODUCT OF AUSTRALIA" مش اسم صنف — بلد المنشأ. لو الاسم طلع بلد/كلمة عامة (أو فاضي)، نرجع لأول سطر منطقي:
+  // اسم المنتج على كراتين اللحوم المستوردة بيكون أعلى سطر (زي "BONELESS MUTTON") من غير أي كلمة مفتاحية.
+  if(!out.item || /^OF\b/i.test(out.item) || /^(AUSTRALIA|BRAZIL|BRASIL|INDIA|USA|NEW ZEALAND|IRELAND)\b/i.test(out.item)){
+    const noiseRe = /PRODUCT OF|EST\.?\s*NO|KEEP FROZEN|NET\s*WE?I?G?H?T?|PACKED|SLAUGHTER|USE\s*BY|BEST\s*BEFORE|HALAL|INSPECTED|LOCN|OPR|TIME\s*:/i;
+    const firstGood = lines.find(function(l){ return /[A-Z]{3,}/i.test(l) && !noiseRe.test(l) && !/^\d/.test(l); });
+    if(firstGood) out.item = firstGood;
+  }
+  // ✅ تلميحات المطابقة: كود المقاس/المواصفة (50CL / 20*400) + اختصارات اللحوم الشائعة على الكراتين مفكوكة لمصطلح الداتابيز.
+  // بتتضاف لنص المطابقة عشان الصنف يترّبط بكوده حتى لو الاسم الظاهر مختلف عن اسم قاعدة البيانات (BONELESS MUTTON ↔ MUTTON TRIMMINGS).
+  const hints = extractAnchors(text);
+  if(/\bM[-\s]?TRMG\b|\bTRMG\b|\bTRIM(MING)?S?\b/i.test(text)) hints.push('TRIMMINGS'); // M-TRMG = Mutton TRiMminG
+  if(/\bB\/?L\b|\bBNLS\b|\bBONELESS\b/i.test(text)) hints.push('BONELESS');
+  if(/\bMINCE(D)?\b|\bQEEMA\b|\bKEEMA\b/i.test(text)) hints.push('MINCE');
+  out.matchHints = hints;
 
   // ✅ التواريخ من الليبل هي الأساس دلوقتي (الباركود بقى احتياطي — أحيانًا صلاحيته مش مطابقة للّيبل).
   // بندعم مسمّيات متعددة اللغات (إنجليزي/إسباني/برتغالي/ألماني/فرنسي) لأن ليبلات اللحوم المستوردة مختلطة اللغات،
@@ -1422,10 +1462,13 @@ function parseLabelText(text){
     }
     return '';
   }
-  // تاريخ الإنتاج (Production / Producción / Date de production / F.Prod) — بنتجنّب Faena/ذبح و Congelado/تجميد
-  out.prodDate = findDateNear(/PRODUCTION|PRODUCC|PRODUZ|DATE OF PROD|F\.?\s*PROD|PROD\.?\s*DATE/i);
+  // تاريخ الإنتاج (Production / Producción / Date de production / F.Prod) — وكمان "PACKED ON" (تاريخ التعبئة = الإنتاج على كراتين اللحوم)،
+  // بنتجنّب SLAUGHTER/ذبح/Faena و Congelado/تجميد لأنها تواريخ أقدم مش تاريخ الإنتاج الفعلي.
+  const slaughterRe = /SLAUGHTER|ذبح|FAENA|CONGELAD|تجميد/i;
+  out.prodDate = findDateNear(/PRODUCTION|PRODUCC|PRODUZ|DATE OF PROD|F\.?\s*PROD|PROD\.?\s*DATE|PACKED\s*ON|PACK\s*DATE|PACKING\s*DATE|التعبئة/i);
   if(!out.prodDate){
-    for(const line of lines){ const m = line.match(dateRegex); if(m){ out.prodDate = normalizeDate(m[0]); break; } }
+    // حل أخير: أول تاريخ ظاهر مش جنب كلمة ذبح/تجميد (عشان ماياخدش تاريخ الذبح غلط)
+    for(const line of lines){ if(slaughterRe.test(line)) continue; const m = line.match(dateRegex); if(m){ out.prodDate = normalizeDate(m[0]); break; } }
   }
   // تاريخ الانتهاء/الصلاحية — مسمّيات كتير: To Consume Before / Consumir antes / Data de Validade / Best Before / Use By / Mindestens haltbar / A consommer
   out.expDate = findDateNear(/EXPIR|EXP\.?\s*DATE|BEST\s*BEFORE|BB\s*DATE|CONSUME\s*BEFORE|CONSUMIR|VALIDAD|VALIDADE|USE\s*BY|VENCIM|CADUCIDAD|MINDESTENS|CONSOMMER/i);
@@ -1447,10 +1490,26 @@ function parseLabelText(text){
 
   // الوزن: بيدور على أول رقم جنب كلمة وزن محددة — لو النطاق كان مدى (زي "20-100") ياخد أول رقم كتخمين أولي، العامل يصححه لو غلط
   // ✅ شلنا "WT"/"KG" المجردة من هنا — كانت بتتطابق غلط مع أي حاجة فيها "kg" زي اسم صنف "DOUX 2KG" وتاخد رقم مالوش علاقة بوزن الكرتونة فعليًا
-  const weightKeywords = ['NET WEIGHT', 'PESO NETO', 'POIDS NET', 'PESO LIQUIDO', 'NETTO', 'NET WT', 'GROSS WEIGHT', 'WEIGHT'];
-  const wStr = findAfterKeyword(weightKeywords);
-  const wm = (wStr||'').match(/\d+(\.\d+)?/);
-  if(wm) out.weightKg = wm[0];
+  // ✅ بندعم القيمة في نفس السطر أو في السطر/السطرين اللي بعد الكلمة (زي "NETT WEIGHT" فوق و"21.00 kg" تحته)،
+  // وبنفضّل الرقم المتبوع بـ kg على أي رقم تاني (عشان ماياخدش الباوند "46.29 lb" غلط).
+  const weightKeywords = ['NET WEIGHT', 'NETT WEIGHT', 'PESO NETO', 'POIDS NET', 'PESO LIQUIDO', 'NETTO', 'NET WT', 'NETT WT', 'GROSS WEIGHT', 'WEIGHT'];
+  function findWeightKg(){
+    for(const kw of weightKeywords){
+      const kwU = kw.toUpperCase();
+      for(let i = 0; i < lines.length; i++){
+        const idx = lines[i].toUpperCase().indexOf(kwU);
+        if(idx < 0) continue;
+        for(let j = i; j <= i + 2 && j < lines.length; j++){
+          const kgM = lines[j].match(/(\d+(?:\.\d+)?)\s*KG\b/i); // رقم متبوع بكيلو = الأدق
+          if(kgM) return kgM[1];
+          if(j === i){ const anyM = lines[i].slice(idx + kw.length).match(/\d+(?:\.\d+)?/); if(anyM) return anyM[0]; }
+        }
+      }
+    }
+    return '';
+  }
+  const wStr = findWeightKg();
+  if(wStr) out.weightKg = wStr;
 
   return out;
 }
@@ -1512,6 +1571,23 @@ function fillReviewForm(parsed){
   // ✅ onItemInput() بتحاول تربط اسم الصنف اللي طلع من الـ OCR بكود من الكتالوج تلقائي (تطابق تمام)،
   // وتعرض قائمة اقتراحات لو مفيش تطابق تمام — وبتملأ عدد الكراتين/وزن الكرتونة من سعات الطبالي المعتمدة لو الصنف معروف (applyCapacityDefaults)
   onItemInput();
+  // ✅ مطابقة تلقائية بالمرساة: onItemInput() بتطابق بالاسم الظاهر بس، واسم اللحوم المستوردة غالبًا مختلف عن الداتابيز.
+  // هنا بنطابق بالاسم + كود المقاس (50CL / 20*400) اللي التقطناه من سطر الكود — ولو فيه صنف واحد كاسب بفارق واضح
+  // (سكور مرساة على الأقل + متفوّق 1.5× على اللي بعده) نختاره تلقائي. غير كده بنسيب قائمة الاقتراحات للعامل يختار.
+  if(!document.getElementById('fCode').value && (parsed.item || (parsed.matchHints && parsed.matchHints.length))){
+    const matchText = ((parsed.item||'') + ' ' + (parsed.matchHints||[]).join(' ')).trim();
+    const ranked = scoreCatalog(matchText);
+    if(ranked.length && ranked[0].score >= 50 && (ranked.length < 2 || ranked[0].score >= ranked[1].score * 1.5)){
+      const code = ranked[0].c.code;
+      document.getElementById('fItem').value = ranked[0].c.nameEn; // نعرض الاسم المعتمد من الكتالوج بدل النص المشوّه
+      document.getElementById('fCode').value = code;
+      document.getElementById('fType').value = classifyItemByCode(code);
+      populateRoomSelect();
+      applyCapacityDefaults(code);
+      updateReceivingModeUI();
+      const box = document.getElementById('itemSuggestions'); box.classList.add('hidden'); box.innerHTML = '';
+    }
+  }
   // احتياطي: لو الصنف مش موجود في سعات الطبالي المعتمدة (applyCapacityDefaults ماملتش الحقل)، نرجع لتخمين الـ OCR كحل أخير
   if(!document.getElementById('fUnitWeight').value && parsed.weightKg){ document.getElementById('fUnitWeight').value = parsed.weightKg; document.getElementById('fUnitWeightUnit').value = 'kg'; }
   // لحوم (وزن متغيّر): نحط الوزن الصافي المقروء في خانة إدخال الكرتونة عشان العامل يضيفه بضغطة (أو يعدّله)
