@@ -806,7 +806,7 @@ const zxingHints = (typeof ZXing !== 'undefined') ? new Map([[ZXing.DecodeHintTy
 const gs1CodeReader = (typeof ZXing !== 'undefined') ? new ZXing.BrowserMultiFormatReader(zxingHints) : null;
 async function startBarcodeScan(){
   const statusEl = document.getElementById('barcodeStatus');
-  if(!gs1CodeReader){ statusEl.textContent = t('err_no_barcode_lib'); return; }
+  if(!gs1CodeReader && !('BarcodeDetector' in window)){ statusEl.textContent = t('err_no_barcode_lib'); return; }
   document.getElementById('barcodeVideoWrap').classList.remove('hidden');
   document.getElementById('barcodeStartBtn').classList.add('hidden');
   statusEl.textContent = t('scan_aim');
@@ -819,15 +819,23 @@ async function startBarcodeScan(){
     await video.play();
     setupZoomControl();
     // بنكتب الدقة الفعلية اللي المتصفح وافق عليها جنب النص — لو لسه واطية رغم طلب 4K، ده بيوريك إن السبب حدود الجهاز/المتصفح مش الكود
-    statusEl.textContent = t('scan_aim') + ' (' + video.videoWidth + '×' + video.videoHeight + ')';
-    // getUserMedia بيديك فريمات فيديو مضغوطة بمعدل ريفريش عالي (كويسة للعرض بس مش لتفاصيل باركود دقيقة).
-    // ImageCapture.takePhoto() بيطلب من الكاميرا "لقطة" حقيقية بأقصى دقة السنسور + دورة فوكس كاملة، زي بالظبط اللي سكانر الكاميرا
-    // الأصلي في الموبايل بيعمله. بندمجها مع لوب الفيديو السريع: اللوب السريع بيمسك الحالات السهلة فورًا،
-    // واللقطات الدورية دي بتمسك الحالات الصعبة (كود صغير/بعيد) اللي فشل فيها الفريم العادي.
-    let imageCapture = null;
-    try{ if(typeof ImageCapture !== 'undefined') imageCapture = new ImageCapture(scanStream.getVideoTracks()[0]); }catch(e){ imageCapture = null; }
-    if(imageCapture) startPhotoCaptureLoop(video, imageCapture);
-    runScanLoop(video);
+    // نفضّل محرك الموبايل الأصلي (BarcodeDetector = نفس ML Kit اللي سكانر كاميرا سامسونج بيستخدمه) لو مدعوم —
+    // أدق وأسرع بكتير من فك ZXing بالجافاسكريبت. لو مش مدعوم (متصفح قديم/iOS) بنرجع تلقائيًا لمسار ZXing زي ما كان.
+    const nativeDetector = await initNativeDetector();
+    if(nativeDetector){
+      statusEl.textContent = t('scan_aim') + ' (' + video.videoWidth + '×' + video.videoHeight + ' ⚡)';
+      runNativeScanLoop(video, nativeDetector);
+    } else {
+      statusEl.textContent = t('scan_aim') + ' (' + video.videoWidth + '×' + video.videoHeight + ')';
+      // getUserMedia بيديك فريمات فيديو مضغوطة بمعدل ريفريش عالي (كويسة للعرض بس مش لتفاصيل باركود دقيقة).
+      // ImageCapture.takePhoto() بيطلب من الكاميرا "لقطة" حقيقية بأقصى دقة السنسور + دورة فوكس كاملة، زي بالظبط اللي سكانر الكاميرا
+      // الأصلي في الموبايل بيعمله. بندمجها مع لوب الفيديو السريع: اللوب السريع بيمسك الحالات السهلة فورًا،
+      // واللقطات الدورية دي بتمسك الحالات الصعبة (كود صغير/بعيد) اللي فشل فيها الفريم العادي.
+      let imageCapture = null;
+      try{ if(typeof ImageCapture !== 'undefined') imageCapture = new ImageCapture(scanStream.getVideoTracks()[0]); }catch(e){ imageCapture = null; }
+      if(imageCapture) startPhotoCaptureLoop(video, imageCapture);
+      runScanLoop(video);
+    }
   }catch(e){
     statusEl.textContent = t('err_scan_failed');
     console.warn('barcode scan failed', e);
@@ -920,6 +928,53 @@ function decodeCroppedSource(source, srcW, srcH, frac){
   const luminance = new ZXing.HTMLCanvasElementLuminanceSource(scanCanvas);
   const bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminance));
   return gs1CodeReader.decodeBitmap(bitmap);
+}
+// ===== المسار الأصلي: BarcodeDetector (محرك الموبايل نفسه / ML Kit) =====
+// بنجهّز الكاشف مرة، ونطلب بس الصيغ اللي فعلاً بيدعمها الجهاز (getSupportedFormats) عشان الإنشاء ما يفشلش
+// على صيغة غير مدعومة. لو مفيش أي صيغة مفيدة مدعومة بنرجّع null فيرجع الكود لمسار ZXing.
+async function initNativeDetector(){
+  if(!('BarcodeDetector' in window)) return null;
+  try{
+    const supported = await BarcodeDetector.getSupportedFormats();
+    const want = ['code_128','code_39','code_93','ean_13','ean_8','upc_a','upc_e','itf','codabar','data_matrix','qr_code'];
+    const formats = want.filter(function(f){ return supported.indexOf(f) !== -1; });
+    if(!formats.length) return null;
+    return new BarcodeDetector({ formats: formats });
+  }catch(e){ console.warn('BarcodeDetector init failed', e); return null; }
+}
+// لوب مسح أصلي: نفس اقتصاص المربع التوجيهي بتاع ZXing (عشان ما نقراش باركود جنبه بالغلط) لكن بندي القصّة
+// للمحرك الأصلي بدقتها الطبيعية بدل التصغير — أعلى تفاصيل ممكنة للكود الصغير/البعيد.
+async function runNativeScanLoop(video, detector){
+  const startedAt = performance.now();
+  async function tick(){
+    if(!scanStream) return; // اتوقف المسح
+    if(performance.now() - startedAt > SCAN_TIMEOUT_MS){
+      stopBarcodeScan();
+      document.getElementById('barcodeStatus').textContent = t('err_scan_failed');
+      return;
+    }
+    if(video.videoWidth && video.readyState >= 2){
+      try{
+        const val = await detectCroppedNative(detector, video, video.videoWidth, video.videoHeight, getGuideCropFraction(video));
+        if(val){ stopBarcodeScan(); onBarcodeDecoded(val); return; }
+      }catch(err){ console.warn('native detect attempt failed', err); }
+    }
+    if(scanStream) scanRAF = requestAnimationFrame(tick);
+  }
+  scanRAF = requestAnimationFrame(tick);
+}
+async function detectCroppedNative(detector, source, srcW, srcH, frac){
+  const x = Math.max(0, frac.fx * srcW);
+  const y = Math.max(0, frac.fy * srcH);
+  const w = Math.min(frac.fw * srcW, srcW - x);
+  const h = Math.min(frac.fh * srcH, srcH - y);
+  if(!scanCanvas) scanCanvas = document.createElement('canvas');
+  const ctx = scanCanvas.getContext('2d', { willReadFrequently: true });
+  scanCanvas.width = Math.max(1, Math.round(w));
+  scanCanvas.height = Math.max(1, Math.round(h));
+  ctx.drawImage(source, x, y, w, h, 0, 0, scanCanvas.width, scanCanvas.height);
+  const barcodes = await detector.detect(scanCanvas);
+  return (barcodes && barcodes.length) ? barcodes[0].rawValue : null;
 }
 function stopBarcodeScan(){
   if(scanRAF) cancelAnimationFrame(scanRAF);
