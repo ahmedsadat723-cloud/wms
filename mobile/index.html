@@ -176,13 +176,30 @@
       <input id="fExp" type="date" autocomplete="off">
       <label data-i18n="label_qty">عدد الكراتين</label>
       <input id="fQty" type="number" min="1" autocomplete="off" oninput="recalcTotalWeight()">
-      <label data-i18n="label_unit_weight">وزن الكرتونة الواحدة (اختياري)</label>
-      <div style="display:flex;gap:6px">
-        <input id="fUnitWeight" type="number" min="0" step="0.001" autocomplete="off" oninput="recalcTotalWeight()" style="flex:1">
-        <select id="fUnitWeightUnit" onchange="recalcTotalWeight()" style="width:auto">
-          <option value="kg" data-i18n="unit_kg">كيلوجرام</option>
-          <option value="g" data-i18n="unit_g">جرام</option>
-        </select>
+      <div id="unitWeightRow">
+        <label data-i18n="label_unit_weight">وزن الكرتونة الواحدة (اختياري)</label>
+        <div style="display:flex;gap:6px">
+          <input id="fUnitWeight" type="number" min="0" step="0.001" autocomplete="off" oninput="recalcTotalWeight()" style="flex:1">
+          <select id="fUnitWeightUnit" onchange="recalcTotalWeight()" style="width:auto">
+            <option value="kg" data-i18n="unit_kg">كيلوجرام</option>
+            <option value="g" data-i18n="unit_g">جرام</option>
+          </select>
+        </div>
+      </div>
+      <div id="meatSection" class="hidden" style="margin-top:8px;padding:10px;border:1px dashed #475569;border-radius:10px;background:rgba(30,41,59,.4)">
+        <label data-i18n="meat_title" style="font-weight:700">🥩 وزن كل كرتونة (لحوم مجمّدة — الوزن الصافي)</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;margin:6px 0;font-weight:400">
+          <input type="checkbox" id="meatFixedToggle" onchange="updateReceivingModeUI()" style="width:auto">
+          <span data-i18n="meat_fixed_toggle">وزن ثابت لكل الكراتين (منتج معروف — استخدم عدد × وزن)</span>
+        </label>
+        <div id="meatEntryWrap">
+          <div style="display:flex;gap:6px">
+            <input id="meatWeightInput" type="number" min="0" step="0.001" inputmode="decimal" data-i18n-ph="meat_weight_ph" placeholder="وزن الكرتونة الصافي (كجم)" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addMeatCarton();}">
+            <button type="button" class="btn-secondary" style="width:auto;white-space:nowrap" data-i18n="meat_add_btn" onclick="addMeatCarton()">➕ إضافة</button>
+          </div>
+          <div id="meatList" style="margin-top:8px;display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto"></div>
+          <div id="meatTotals" style="margin-top:8px;font-size:13.5px;font-weight:700;color:#7cfc9e"></div>
+        </div>
       </div>
       <label data-i18n="label_weight">الوزن الإجمالي = عدد الكراتين × وزن الكرتونة (كجم، ممكن تعدّله يدوي)</label>
       <input id="fWeight" type="number" min="0" step="0.001" autocomplete="off">
@@ -291,6 +308,7 @@ const LANG = {
     quality_blurry: 'الصورة مش واضحة (بلور)', quality_dark: 'الإضاءة ضعيفة جدًا', quality_bright: 'الصورة ساطعة جدًا (وهج/فلاش)', quality_retake_hint: '— جرب تصوّرها تاني، أو كمّل لو حاسس إنها مقروءة',
     opt_A1: 'خط A - صباحي', opt_A2: 'خط A - مسائي', opt_B1: 'خط B - صباحي', opt_B2: 'خط B - مسائي', opt_C1: 'خط C - صباحي', opt_C2: 'خط C - مسائي',
     label_qty: 'عدد الكراتين', label_unit_weight: 'وزن الكرتونة الواحدة (اختياري)', label_weight: 'الوزن الإجمالي = عدد الكراتين × وزن الكرتونة (كجم، ممكن تعدّله يدوي)', unit_kg: 'كيلوجرام', unit_g: 'جرام',
+    meat_title: '🥩 وزن كل كرتونة (لحوم مجمّدة — الوزن الصافي)', meat_fixed_toggle: 'وزن ثابت لكل الكراتين (منتج معروف — استخدم عدد × وزن)', meat_weight_ph: 'وزن الكرتونة الصافي (كجم)', meat_add_btn: '➕ إضافة', meat_carton_n: 'كرتونة {n}', meat_totals: 'عدد الكراتين: {count} — الإجمالي الصافي: {total} كجم', meat_empty_hint: 'أضف وزن كل كرتونة (٢٥–٤٠ عادةً) — الإجمالي = مجموع الأوزان', unit_kg_short: 'كجم',
     label_storage_type: 'نوع التخزين',
     opt_dry: '🏭 جاف', opt_frozen: '❄️ مجمد', opt_final: '🛍️ منتج نهائي',
     label_room_prefix: 'الغرفة (متاح بس غرف نوع "', label_room_suffix: '")',
@@ -352,6 +370,7 @@ const LANG = {
     quality_blurry: 'Photo is not clear (blurry)', quality_dark: 'Lighting is too dark', quality_bright: 'Photo is too bright (glare/flash)', quality_retake_hint: '— try retaking it, or continue if you think it\'s readable',
     opt_A1: 'Line A - morning', opt_A2: 'Line A - evening', opt_B1: 'Line B - morning', opt_B2: 'Line B - evening', opt_C1: 'Line C - morning', opt_C2: 'Line C - evening',
     label_qty: 'Number of cartons', label_unit_weight: 'Weight per carton (optional)', label_weight: 'Total weight = cartons × carton weight (kg, editable)', unit_kg: 'Kilogram', unit_g: 'Gram',
+    meat_title: '🥩 Weight of each carton (frozen meat — net weight)', meat_fixed_toggle: 'Fixed weight for all cartons (known product — use count × weight)', meat_weight_ph: 'Carton net weight (kg)', meat_add_btn: '➕ Add', meat_carton_n: 'Carton {n}', meat_totals: 'Cartons: {count} — Total net: {total} kg', meat_empty_hint: 'Add each carton weight (usually 25–40) — total = sum of weights', unit_kg_short: 'kg',
     label_storage_type: 'Storage type',
     opt_dry: '🏭 Dry', opt_frozen: '❄️ Frozen', opt_final: '🛍️ Final product',
     label_room_prefix: 'Room (only "', label_room_suffix: '" rooms available)',
@@ -413,6 +432,7 @@ const LANG = {
     quality_blurry: 'تصویر واضح نہیں ہے (دھندلی)', quality_dark: 'روشنی بہت کم ہے', quality_bright: 'تصویر بہت روشن ہے (چمک/فلیش)', quality_retake_hint: '— دوبارہ تصویر کھینچیں، یا جاری رکھیں اگر پڑھی جا سکتی ہے',
     opt_A1: 'لائن A - صبح', opt_A2: 'لائن A - شام', opt_B1: 'لائن B - صبح', opt_B2: 'لائن B - شام', opt_C1: 'لائن C - صبح', opt_C2: 'لائن C - شام',
     label_qty: 'کارٹنوں کی تعداد', label_unit_weight: 'ایک کارٹن کا وزن (اختیاری)', label_weight: 'کل وزن = کارٹن × ایک کارٹن کا وزن (کلوگرام، تبدیل کر سکتے ہیں)', unit_kg: 'کلوگرام', unit_g: 'گرام',
+    meat_title: '🥩 ہر کارٹن کا وزن (منجمد گوشت — خالص وزن)', meat_fixed_toggle: 'تمام کارٹنوں کا مقررہ وزن (معلوم پروڈکٹ — تعداد × وزن استعمال کریں)', meat_weight_ph: 'کارٹن کا خالص وزن (کلوگرام)', meat_add_btn: '➕ شامل کریں', meat_carton_n: 'کارٹن {n}', meat_totals: 'کارٹن: {count} — کل خالص: {total} کلوگرام', meat_empty_hint: 'ہر کارٹن کا وزن شامل کریں (عام طور پر 25–40) — کل = وزنوں کا مجموعہ', unit_kg_short: 'کلوگرام',
     label_storage_type: 'ذخیرہ کی قسم',
     opt_dry: '🏭 خشک', opt_frozen: '❄️ منجمد', opt_final: '🛍️ حتمی پروڈکٹ',
     label_room_prefix: 'کمرہ (صرف "', label_room_suffix: '" قسم کے کمرے دستیاب ہیں)',
@@ -618,8 +638,75 @@ function populateRackSlot(){
     for(let i=1;i<=7;i++){ slotSel.innerHTML += '<option value="'+i+'">طبلية '+i+'</option>'; }
   }
 }
-function onTypeChange(){ populateRoomSelect(); checkSlotOccupied(); }
+function onTypeChange(){ populateRoomSelect(); checkSlotOccupied(); updateReceivingModeUI(); }
 function onRoomChange(){ checkSlotOccupied(); }
+
+// ===== وضع اللحوم المجمّدة: وزن كل كرتونة على حدة، الإجمالي = مجموع الأوزان =====
+// (بعكس التغليف/المنتج النهائي اللي وزنهم موحّد فالإجمالي = عدد × وزن). كل كرتونة لحمة وزنها الصافي مختلف.
+let meatCartons = []; // أوزان صافية بالكيلو، عنصر لكل كرتونة
+
+// بيقرّر شكل الشاشة حسب النوع: لحوم متغيّر الوزن = قسم الإدخال الفردي (وإخفاء صف الوزن الموحّد)،
+// وأي نوع تاني (أو لحوم بوزن ثابت) = الصف الموحّد العادي (عدد × وزن)
+function updateReceivingModeUI(){
+  const type = document.getElementById('fType').value;
+  const meatSection = document.getElementById('meatSection');
+  const unitRow = document.getElementById('unitWeightRow');
+  const fixedEl = document.getElementById('meatFixedToggle');
+  const fixed = fixedEl && fixedEl.checked;
+  const qtyEl = document.getElementById('fQty'), wEl = document.getElementById('fWeight');
+  if(type === 'frozen'){
+    meatSection.classList.remove('hidden');
+    if(fixed){
+      // وزن ثابت: نرجع لطريقة عدد × وزن العادية
+      document.getElementById('meatEntryWrap').classList.add('hidden');
+      unitRow.classList.remove('hidden');
+      qtyEl.readOnly = false; wEl.readOnly = false;
+      recalcTotalWeight();
+    } else {
+      document.getElementById('meatEntryWrap').classList.remove('hidden');
+      unitRow.classList.add('hidden');
+      qtyEl.readOnly = true; wEl.readOnly = true; // مشتقين من قائمة الأوزان
+      recalcMeatTotals();
+    }
+  } else {
+    meatSection.classList.add('hidden');
+    unitRow.classList.remove('hidden');
+    qtyEl.readOnly = false; wEl.readOnly = false;
+  }
+}
+function addMeatCarton(){
+  const inp = document.getElementById('meatWeightInput');
+  const v = parseFloat(inp.value);
+  if(!v || v <= 0){ inp.focus(); return; }
+  meatCartons.push(Math.round(v * 1000) / 1000);
+  inp.value = '';
+  inp.focus(); // إدخال متتالي سريع لكل الكراتين
+  recalcMeatTotals();
+}
+function removeMeatCarton(idx){
+  meatCartons.splice(idx, 1);
+  recalcMeatTotals();
+}
+function recalcMeatTotals(){
+  const list = document.getElementById('meatList');
+  const totalsEl = document.getElementById('meatTotals');
+  const total = meatCartons.reduce(function(a, b){ return a + b; }, 0);
+  if(!meatCartons.length){
+    list.innerHTML = '';
+    totalsEl.textContent = t('meat_empty_hint');
+  } else {
+    list.innerHTML = meatCartons.map(function(w, i){
+      return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;background:rgba(15,23,42,.6);border-radius:6px;font-size:13px">'
+        + '<span>' + t('meat_carton_n', {n: i + 1}) + '</span>'
+        + '<span style="display:flex;align-items:center;gap:10px"><b>' + w.toFixed(3) + ' ' + t('unit_kg_short') + '</b>'
+        + '<span onclick="removeMeatCarton(' + i + ')" style="cursor:pointer;color:#f87171;font-weight:700">✕</span></span></div>';
+    }).join('');
+    totalsEl.textContent = t('meat_totals', {count: meatCartons.length, total: total.toFixed(3)});
+  }
+  // القائمة هي مصدر الحقيقة لعدد الكراتين والإجمالي في وضع اللحوم المتغيّر
+  document.getElementById('fQty').value = meatCartons.length || '';
+  document.getElementById('fWeight').value = meatCartons.length ? total.toFixed(3) : '';
+}
 function currentLoc(){
   const room = document.getElementById('fRoom').value;
   const rack = document.getElementById('fRack').value.padStart(2,'0');
@@ -654,6 +741,7 @@ function onItemInput(){
     document.getElementById('fType').value = classifyItemByCode(matchCode);
     populateRoomSelect();
     applyCapacityDefaults(matchCode);
+    updateReceivingModeUI();
   }
 
   if(!raw){ box.classList.add('hidden'); box.innerHTML=''; return; }
@@ -692,6 +780,7 @@ function pickSuggestion(el){
   document.getElementById('fType').value = classifyItemByCode(code);
   populateRoomSelect();
   applyCapacityDefaults(code);
+  updateReceivingModeUI();
   checkSlotOccupied();
   const box = document.getElementById('itemSuggestions');
   box.classList.add('hidden'); box.innerHTML = '';
@@ -1377,6 +1466,9 @@ function recalcTotalWeight(){
 }
 
 function fillReviewForm(parsed){
+  // استلام جديد = نبدأ قائمة أوزان اللحوم من الصفر (ومنشيل وضع الوزن الثابت)
+  meatCartons = [];
+  const mft = document.getElementById('meatFixedToggle'); if(mft) mft.checked = false;
   document.getElementById('fItem').value = parsed.item || '';
   // لو الباركود سبق وملأ الحقل ده، سيبه — الباركود أدق من الـ OCR
   if(!document.getElementById('fProd').value) document.getElementById('fProd').value = parsed.prodDate || '';
@@ -1393,6 +1485,7 @@ function fillReviewForm(parsed){
   recalcTotalWeight();
   populateRoomSelect();
   populateRackSlot();
+  updateReceivingModeUI(); // يظهر قسم اللحوم لو الصنف اتصنّف "مجمّد"
   document.getElementById('reviewCard').classList.remove('hidden');
   checkSlotOccupied();
 }
@@ -1495,6 +1588,12 @@ function resetReceivingForm(){
   document.getElementById('fUnitWeight').value = '';
   document.getElementById('fUnitWeightUnit').value = 'kg';
   document.getElementById('fWeight').value = '';
+  document.getElementById('fQty').value = '';
+  // تصفير قائمة أوزان اللحوم
+  meatCartons = [];
+  const mft = document.getElementById('meatFixedToggle'); if(mft) mft.checked = false;
+  const mList = document.getElementById('meatList'); if(mList) mList.innerHTML = '';
+  const mTot = document.getElementById('meatTotals'); if(mTot) mTot.textContent = '';
   document.getElementById('saveMsg').className = 'msg';
   document.getElementById('saveMsg').textContent = '';
 }
