@@ -814,10 +814,18 @@ async function startBarcodeScan(){
   try{
     // من غير تحديد دقة، المتصفح بيديك ستريم منخفض الدقة (زي 640x480) — ده أكبر فرق بين قراءتنا وقراءة كاميرا الموبايل الأصلية،
     // لأن المربع التوجيهي بيقتطع جزء صغير من فريم أصلاً واطي الدقة فيبقى مفيش تفاصيل حقيقية تتقرا. لو الدقة العالية مش متاحة، المتصفح بيرجع لأقرب حاجة متاحة من غير error لأنها "ideal" مش "exact"
-    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 3840 }, height: { ideal: 2160 } } });
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 }, advanced: [{ focusMode: 'continuous' }] } });
     video.srcObject = scanStream;
     await video.play();
     setupZoomControl();
+    // نفعّل الفوكس التلقائي المستمر لو الجهاز بيدعمه — أهم عامل لوضوح الباركود؛ الصورة المغبشة أكبر سبب لعدم القراءة
+    try{
+      const track = scanStream.getVideoTracks()[0];
+      const caps = track.getCapabilities ? track.getCapabilities() : {};
+      if(caps.focusMode && caps.focusMode.indexOf('continuous') !== -1){
+        await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+      }
+    }catch(e){ /* الجهاز مش بيدعم التحكم في الفوكس — مش مشكلة */ }
     // بنكتب الدقة الفعلية اللي المتصفح وافق عليها جنب النص — لو لسه واطية رغم طلب 4K، ده بيوريك إن السبب حدود الجهاز/المتصفح مش الكود
     // نفضّل محرك الموبايل الأصلي (BarcodeDetector = نفس ML Kit اللي سكانر كاميرا سامسونج بيستخدمه) لو مدعوم —
     // أدق وأسرع بكتير من فك ZXing بالجافاسكريبت. لو مش مدعوم (متصفح قديم/iOS) بنرجع تلقائيًا لمسار ZXing زي ما كان.
@@ -942,13 +950,25 @@ async function initNativeDetector(){
 async function runNativeScanLoop(video, detector){
   // بنمسح الفريم كامل (مش بس جوه المربع) — المحرك الأصلي بيلاقي الباركود في أي مكان في الصورة،
   // فمفيش داعي تظبطه جوه مربع صغير؛ بس صوّب الكاميرا على الكرتونة والباركود ظاهر. ومفيش auto-stop خالص.
+  const statusEl = document.getElementById('barcodeStatus');
+  let attempts = 0, lastUiAt = 0, lastErr = '';
   async function tick(){
     if(!scanStream) return; // اتوقف المسح
     if(video.videoWidth && video.readyState >= 2){
       try{
         const barcodes = await detector.detect(video);
+        attempts++;
         if(barcodes && barcodes.length){ stopBarcodeScan(); onBarcodeDecoded(barcodes[0].rawValue); return; }
-      }catch(err){ console.warn('native detect attempt failed', err); }
+      }catch(err){ lastErr = (err && (err.name || err.message)) || 'error'; console.warn('native detect attempt failed', err); }
+    }
+    // مؤشّر حي كل ~0.4 ثانية — يورّي المستخدم إنه فعلاً بيبحث (مش صامت)، والعدّاد بيزيد يعني الاستشعار شغّال.
+    // لو ظهر ⚠️ مع اسم خطأ = detect نفسه بيفشل؛ لو العدّاد ثابت على 0 = الكاميرا مش جاهزة/الفيديو مش شغّال.
+    const now = performance.now();
+    if(now - lastUiAt > 400){
+      lastUiAt = now;
+      statusEl.textContent = lastErr
+        ? ('⚠️ ' + lastErr)
+        : ('🔎 يبحث عن الباركود… ' + video.videoWidth + '×' + video.videoHeight + ' ⚡ (' + attempts + ')');
     }
     if(scanStream) scanRAF = requestAnimationFrame(tick);
   }
