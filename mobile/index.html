@@ -818,6 +818,15 @@ async function startBarcodeScan(){
     video.srcObject = scanStream;
     await video.play();
     setupZoomControl();
+    // بنكتب الدقة الفعلية اللي المتصفح وافق عليها جنب النص — لو لسه واطية رغم طلب 4K، ده بيوريك إن السبب حدود الجهاز/المتصفح مش الكود
+    statusEl.textContent = t('scan_aim') + ' (' + video.videoWidth + '×' + video.videoHeight + ')';
+    // getUserMedia بيديك فريمات فيديو مضغوطة بمعدل ريفريش عالي (كويسة للعرض بس مش لتفاصيل باركود دقيقة).
+    // ImageCapture.takePhoto() بيطلب من الكاميرا "لقطة" حقيقية بأقصى دقة السنسور + دورة فوكس كاملة، زي بالظبط اللي سكانر الكاميرا
+    // الأصلي في الموبايل بيعمله. بندمجها مع لوب الفيديو السريع: اللوب السريع بيمسك الحالات السهلة فورًا،
+    // واللقطات الدورية دي بتمسك الحالات الصعبة (كود صغير/بعيد) اللي فشل فيها الفريم العادي.
+    let imageCapture = null;
+    try{ if(typeof ImageCapture !== 'undefined') imageCapture = new ImageCapture(scanStream.getVideoTracks()[0]); }catch(e){ imageCapture = null; }
+    if(imageCapture) startPhotoCaptureLoop(video, imageCapture);
     runScanLoop(video);
   }catch(e){
     statusEl.textContent = t('err_scan_failed');
@@ -825,16 +834,15 @@ async function startBarcodeScan(){
     stopBarcodeScan();
   }
 }
-let scanStream = null, scanRAF = null, scanCanvas = null;
+let scanStream = null, scanRAF = null, scanCanvas = null, scanPhotoTimer = null, scanPhotoBusy = false;
 // بنقص بس منطقة المربع التوجيهي من كل فريم ونكبّرها لمساحة أعلى قبل ما نديها لـ ZXing —
 // ده بيدي دقة بكسل أعلى بكتير على الكود من قراءة الفريم الكامل، وأهم حاجة إنه مش محتاج زوم هاردوير قوي
 // عشان يقرا كود صغير بعيد زي الـ GS1 DataMatrix المربع؛ المربع اللي المستخدم بيحاذي عليه بقى فعليًا هو المنطقة
 // اللي بتتحلل، فتقريب الكود جواه هو اللي بيحدد النجاح — مش شكل المربع نفسه.
 const SCAN_TIMEOUT_MS = 12000; // لو 12 ثانية فاتت من غير قراءة ناجحة، بنوقف ونديله رفض واضح بدل ما نسيبه ينتظر بلا نهاية بصمت
 const SCAN_OUT_W = 640; // عرض ثابت للكانفاس اللي بنكبّر عليه القصّة قبل فك الترميز
+const PHOTO_CAPTURE_INTERVAL_MS = 1000; // كل قد ايه بنجرب لقطة عالية الدقة (takePhoto) جنب لوب الفيديو السريع
 function runScanLoop(video){
-  if(!scanCanvas) scanCanvas = document.createElement('canvas');
-  const ctx = scanCanvas.getContext('2d', { willReadFrequently: true });
   const startedAt = performance.now();
   function tick(){
     if(!scanStream) return; // اتوقف المسح
@@ -845,16 +853,7 @@ function runScanLoop(video){
     }
     if(video.videoWidth && video.readyState >= 2){
       try{
-        const r = getGuideCropRect(video);
-        // لازم نحافظ على نسبة أبعاد منطقة القص وإحنا بنكبّرها — تربيع/تمطيط الصورة بيكسر نسب عرض الخطوط
-        // في الباركود الخطي (1D) وبيمنع فك الترميز حتى لو الكود واضح تمامًا
-        const outH = Math.round(SCAN_OUT_W * (r.h / r.w));
-        scanCanvas.width = SCAN_OUT_W;
-        scanCanvas.height = outH;
-        ctx.drawImage(video, r.x, r.y, r.w, r.h, 0, 0, SCAN_OUT_W, outH);
-        const luminance = new ZXing.HTMLCanvasElementLuminanceSource(scanCanvas);
-        const bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminance));
-        const result = gs1CodeReader.decodeBitmap(bitmap);
+        const result = decodeCroppedSource(video, video.videoWidth, video.videoHeight, getGuideCropFraction(video));
         stopBarcodeScan();
         onBarcodeDecoded(result.getText());
         return;
@@ -869,25 +868,65 @@ function runScanLoop(video){
   }
   scanRAF = requestAnimationFrame(tick);
 }
-function getGuideCropRect(video){
+// كل ثانية بناخد "لقطة" فوتوغرافية حقيقية (مش فريم فيديو) — دي بتخلي الكاميرا تعمل فوكس كامل وتديك أقصى دقة سنسور،
+// أقرب بكتير لسلوك سكانر الكاميرا الأصلي اللي بيقرا الكود واحنا مش بنقراه من نفس الفريم المضغوط اللي الفيديو بيدّيه
+function startPhotoCaptureLoop(video, imageCapture){
+  scanPhotoTimer = setInterval(async function(){
+    if(!scanStream || scanPhotoBusy) return;
+    scanPhotoBusy = true;
+    try{
+      const blob = await imageCapture.takePhoto();
+      const bmp = await createImageBitmap(blob);
+      try{
+        const result = decodeCroppedSource(bmp, bmp.width, bmp.height, getGuideCropFraction(video));
+        stopBarcodeScan();
+        onBarcodeDecoded(result.getText());
+      }finally{
+        if(bmp.close) bmp.close();
+      }
+    }catch(err){
+      const expected = err && (err.name === 'NotFoundException' || err.name === 'ChecksumException' || err.name === 'FormatException');
+      if(!expected) console.warn('photo-capture decode attempt failed', err);
+    }finally{
+      scanPhotoBusy = false;
+    }
+  }, PHOTO_CAPTURE_INTERVAL_MS);
+}
+// نسبة مكان المربع التوجيهي كنسبة 0..1 من مساحة الفيديو المعروضة — مستقلة عن دقة المصدر، عشان نقدر نطبّقها
+// سواء على فريم فيديو حي أو على لقطة takePhoto اللي غالبًا بتيجي بدقة مختلفة تمامًا عن الفيديو
+function getGuideCropFraction(video){
   const vRect = video.getBoundingClientRect();
   const gRect = video.parentElement.querySelector('.scan-guide').getBoundingClientRect();
-  const scaleX = video.videoWidth / vRect.width;
-  const scaleY = video.videoHeight / vRect.height;
-  const x = Math.max(0, (gRect.left - vRect.left) * scaleX);
-  const y = Math.max(0, (gRect.top - vRect.top) * scaleY);
-  // المربع مربّع الشكل دايمًا، بس نسبة أبعاد الفيديو نفسه ممكن تكون مختلفة (خصوصًا كاميرات لابتوب landscape) —
-  // نقصّه لحدود الفيديو الفعلية بدل ما نطلب منطقة تتعدّاها
   return {
-    x,
-    y,
-    w: Math.min(gRect.width * scaleX, video.videoWidth - x),
-    h: Math.min(gRect.height * scaleY, video.videoHeight - y)
+    fx: Math.max(0, (gRect.left - vRect.left) / vRect.width),
+    fy: Math.max(0, (gRect.top - vRect.top) / vRect.height),
+    fw: gRect.width / vRect.width,
+    fh: gRect.height / vRect.height
   };
+}
+function decodeCroppedSource(source, srcW, srcH, frac){
+  const x = Math.max(0, frac.fx * srcW);
+  const y = Math.max(0, frac.fy * srcH);
+  const w = Math.min(frac.fw * srcW, srcW - x);
+  const h = Math.min(frac.fh * srcH, srcH - y);
+  if(!scanCanvas) scanCanvas = document.createElement('canvas');
+  const ctx = scanCanvas.getContext('2d', { willReadFrequently: true });
+  // لازم نحافظ على نسبة أبعاد منطقة القص وإحنا بنكبّرها — تربيع/تمطيط الصورة بيكسر نسب عرض الخطوط
+  // في الباركود الخطي (1D) وبيمنع فك الترميز حتى لو الكود واضح تمامًا
+  const outH = Math.round(SCAN_OUT_W * (h / w));
+  scanCanvas.width = SCAN_OUT_W;
+  scanCanvas.height = outH;
+  ctx.drawImage(source, x, y, w, h, 0, 0, SCAN_OUT_W, outH);
+  const luminance = new ZXing.HTMLCanvasElementLuminanceSource(scanCanvas);
+  const bitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminance));
+  return gs1CodeReader.decodeBitmap(bitmap);
 }
 function stopBarcodeScan(){
   if(scanRAF) cancelAnimationFrame(scanRAF);
   scanRAF = null;
+  if(scanPhotoTimer) clearInterval(scanPhotoTimer);
+  scanPhotoTimer = null;
+  scanPhotoBusy = false;
   if(scanStream){ scanStream.getTracks().forEach(function(tr){ tr.stop(); }); scanStream = null; }
   zoomTrack = null;
   document.getElementById('barcodeVideoWrap').classList.add('hidden');
