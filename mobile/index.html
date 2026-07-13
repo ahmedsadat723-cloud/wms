@@ -1406,18 +1406,29 @@ function parseLabelText(text){
   // الصنف: الأدق الأول (ITEM NAME / ITEM DESCRIPTION / PRODUCT) قبل الكلمة العامة "ITEM" (عشان متتلخبطش مع "Item Code")
   out.item = findAfterKeyword(['ITEM NAME', 'ITEM DESCRIPTION', 'PRODUCT :', 'PRODUCT:', 'PRODUCT', 'ITEM :', 'ITEM:', 'ITEM']);
 
-  // تاريخ الإنتاج: يدور على أي تاريخ جنب كلمة PRODUCTION
+  // ✅ التواريخ من الليبل هي الأساس دلوقتي (الباركود بقى احتياطي — أحيانًا صلاحيته مش مطابقة للّيبل).
+  // بندعم مسمّيات متعددة اللغات (إنجليزي/إسباني/برتغالي/ألماني/فرنسي) لأن ليبلات اللحوم المستوردة مختلطة اللغات،
+  // وبندوّر على التاريخ في نفس سطر الكلمة المفتاحية أو في السطر/السطرين اللي بعدها (الجداول بتفصل المسمّى عن القيمة).
   const dateRegex = /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{1,2}[\-\s][A-Z]{3}[\-\s]\d{2,4})/i;
-  for(const line of lines){
-    if(/PRODUCTION|PROD\.?\s*DATE/i.test(line)){
-      const m = line.match(dateRegex);
-      if(m){ out.prodDate = normalizeDate(m[0]); break; }
+  function findDateNear(keywordRe){
+    for(let i = 0; i < lines.length; i++){
+      if(!keywordRe.test(lines[i])) continue;
+      const same = lines[i].match(dateRegex);
+      if(same) return normalizeDate(same[0]);
+      for(let j = i + 1; j <= i + 2 && j < lines.length; j++){
+        const nxt = lines[j].match(dateRegex);
+        if(nxt) return normalizeDate(nxt[0]);
+      }
     }
+    return '';
   }
+  // تاريخ الإنتاج (Production / Producción / Date de production / F.Prod) — بنتجنّب Faena/ذبح و Congelado/تجميد
+  out.prodDate = findDateNear(/PRODUCTION|PRODUCC|PRODUZ|DATE OF PROD|F\.?\s*PROD|PROD\.?\s*DATE/i);
   if(!out.prodDate){
-    // أي تاريخ ظاهر في الصورة كله لو مفيش كلمة PRODUCTION واضحة
     for(const line of lines){ const m = line.match(dateRegex); if(m){ out.prodDate = normalizeDate(m[0]); break; } }
   }
+  // تاريخ الانتهاء/الصلاحية — مسمّيات كتير: To Consume Before / Consumir antes / Data de Validade / Best Before / Use By / Mindestens haltbar / A consommer
+  out.expDate = findDateNear(/EXPIR|EXP\.?\s*DATE|BEST\s*BEFORE|BB\s*DATE|CONSUME\s*BEFORE|CONSUMIR|VALIDAD|VALIDADE|USE\s*BY|VENCIM|CADUCIDAD|MINDESTENS|CONSOMMER/i);
 
   // الكمية: يفضّل كمية الطبلية الواحدة (PALLET) لأننا بنستلم طبلية واحدة فعليًا، مش إجمالي الأوردر
   const qtyKeywordsPriority = ['QTY / PALLET', 'QTY/PALLET', 'QUANTITY/PALLET', 'QUANTITY PER PALLET', 'QTY / BUNDLE', 'QTY/BUNDLE', 'QUANTITY PER BOX', 'QTY PER BOX'];
@@ -1425,14 +1436,6 @@ function parseLabelText(text){
   if(!qtyStr) qtyStr = findAfterKeyword(['QTY', 'QUANTITY']);
   const qm = (qtyStr||'').match(/\d+/);
   out.qty = qm ? qm[0] : '';
-
-  // احتياطي لو مسح الباركود فشل: تاريخ الانتهاء والباتش غالبًا مطبوعين كنص قابل للقراءة جنب الباركود
-  for(const line of lines){
-    if(/EXPIRY|EXP\.?\s*DATE|BEST\s*BEFORE|BB\s*DATE/i.test(line)){
-      const m = line.match(dateRegex);
-      if(m){ out.expDate = normalizeDate(m[0]); break; }
-    }
-  }
   // ✅ أولوية لشكل رقم الباتش المستخدم فعليًا في المصنع (زي "0707/B2" أو "0807/C1": 3-4 أرقام / حرف / رقم) — أدق بكتير من البحث بكلمة مفتاحية،
   // لأن الختم بيكون جنب نصوص تانية في نفس السطر وممكن الـOCR يخلط حواليها فيرجع نص غلط تمامًا (زي "Day : ..." بدل رقم الباتش الحقيقي)
   const batchPatternMatch = text.match(/\b(\d{3,4}\s*\/\s*[A-Z]\d)\b/i);
@@ -1444,7 +1447,7 @@ function parseLabelText(text){
 
   // الوزن: بيدور على أول رقم جنب كلمة وزن محددة — لو النطاق كان مدى (زي "20-100") ياخد أول رقم كتخمين أولي، العامل يصححه لو غلط
   // ✅ شلنا "WT"/"KG" المجردة من هنا — كانت بتتطابق غلط مع أي حاجة فيها "kg" زي اسم صنف "DOUX 2KG" وتاخد رقم مالوش علاقة بوزن الكرتونة فعليًا
-  const weightKeywords = ['NET WEIGHT', 'NET WT', 'GROSS WEIGHT', 'WEIGHT'];
+  const weightKeywords = ['NET WEIGHT', 'PESO NETO', 'POIDS NET', 'PESO LIQUIDO', 'NETTO', 'NET WT', 'GROSS WEIGHT', 'WEIGHT'];
   const wStr = findAfterKeyword(weightKeywords);
   const wm = (wStr||'').match(/\d+(\.\d+)?/);
   if(wm) out.weightKg = wm[0];
@@ -1500,8 +1503,9 @@ function fillReviewForm(parsed){
   document.getElementById('fSupplier').value = ''; // يتملّى من جديد حسب الصنف/النوع
   document.getElementById('fItem').value = parsed.item || '';
   // لو الباركود سبق وملأ الحقل ده، سيبه — الباركود أدق من الـ OCR
-  if(!document.getElementById('fProd').value) document.getElementById('fProd').value = parsed.prodDate || '';
-  if(!document.getElementById('fExp').value) document.getElementById('fExp').value = parsed.expDate || '';
+  // الليبل هو الأساس للتواريخ: لو الـ OCR قرا تاريخ، يكتب فوق قيمة الباركود (اللي ممكن تكون غلط/غير مطابقة)
+  if(parsed.prodDate) document.getElementById('fProd').value = parsed.prodDate;
+  if(parsed.expDate) document.getElementById('fExp').value = parsed.expDate;
   if(!document.getElementById('fBatch').value) document.getElementById('fBatch').value = parsed.batch || '';
   document.getElementById('fCode').value = '';
   document.getElementById('fType').value = 'dry';
@@ -1510,6 +1514,9 @@ function fillReviewForm(parsed){
   onItemInput();
   // احتياطي: لو الصنف مش موجود في سعات الطبالي المعتمدة (applyCapacityDefaults ماملتش الحقل)، نرجع لتخمين الـ OCR كحل أخير
   if(!document.getElementById('fUnitWeight').value && parsed.weightKg){ document.getElementById('fUnitWeight').value = parsed.weightKg; document.getElementById('fUnitWeightUnit').value = 'kg'; }
+  // لحوم (وزن متغيّر): نحط الوزن الصافي المقروء في خانة إدخال الكرتونة عشان العامل يضيفه بضغطة (أو يعدّله)
+  const mwInput = document.getElementById('meatWeightInput');
+  if(mwInput && document.getElementById('fType').value === 'frozen' && parsed.weightKg && !mwInput.value){ mwInput.value = parsed.weightKg; }
   if(!document.getElementById('fQty').value) document.getElementById('fQty').value = parsed.qty || '';
   recalcTotalWeight();
   populateRoomSelect();
