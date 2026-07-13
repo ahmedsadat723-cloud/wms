@@ -304,7 +304,7 @@ const LANG = {
     err_fill_email_pass: '⚠️ حط الإيميل والباسورد', err_bad_login: '❌ بيانات دخول خاطئة',
     err_no_barcode_lib: '⚠️ مكتبة قراءة الباركود ما اتحمّلتش — ادخل البيانات يدويًا',
     scan_aim: '⏳ وجّه الكاميرا على الباركود...',
-    err_scan_failed: '⚠️ تعذر قراءة الباركود — جرب "ابدأ المسح" تاني أو كمّل يدوي',
+    err_scan_failed: '⚠️ يتعذر القراءة، حاول مرة أخرى',
     scan_skipped: 'تخطّيت المسح — ادخل البيانات في المراجعة تحت',
     fld_prod: 'تاريخ الإنتاج', fld_exp: 'تاريخ الانتهاء', fld_batch: 'الباتش', fld_weight: 'الوزن',
     scan_filled: '✅ اتقرا من الباركود: ', scan_empty: '⚠️ الباركود اتقرا بس مفيش بيانات معروفة جواه — كمّل يدوي',
@@ -847,13 +847,18 @@ let scanStream = null, scanRAF = null, scanCanvas = null, scanPhotoTimer = null,
 // ده بيدي دقة بكسل أعلى بكتير على الكود من قراءة الفريم الكامل، وأهم حاجة إنه مش محتاج زوم هاردوير قوي
 // عشان يقرا كود صغير بعيد زي الـ GS1 DataMatrix المربع؛ المربع اللي المستخدم بيحاذي عليه بقى فعليًا هو المنطقة
 // اللي بتتحلل، فتقريب الكود جواه هو اللي بيحدد النجاح — مش شكل المربع نفسه.
-const SCAN_TIMEOUT_MS = 12000; // لو 12 ثانية فاتت من غير قراءة ناجحة، بنوقف ونديله رفض واضح بدل ما نسيبه ينتظر بلا نهاية بصمت
+const SCAN_TIMEOUT_MS = 15000; // لو 15 ثانية فاتت من غير قراءة ناجحة، بنوقف ونعرض "يتعذر القراءة، حاول مرة أخرى" بدل ما نسيبه ينتظر بلا نهاية بصمت
 const SCAN_OUT_W = 640; // عرض ثابت للكانفاس اللي بنكبّر عليه القصّة قبل فك الترميز
 const PHOTO_CAPTURE_INTERVAL_MS = 1000; // كل قد ايه بنجرب لقطة عالية الدقة (takePhoto) جنب لوب الفيديو السريع
 function runScanLoop(video){
-  // مفيش auto-stop بالوقت — بيفضل يحاول لحد ما يقرأ أو المستخدم يوقفه بزر "تخطّي وإدخال يدوي"
+  const startedAt = performance.now();
   function tick(){
     if(!scanStream) return; // اتوقف المسح
+    if(performance.now() - startedAt > SCAN_TIMEOUT_MS){
+      stopBarcodeScan();
+      document.getElementById('barcodeStatus').textContent = t('err_scan_failed');
+      return;
+    }
     if(video.videoWidth && video.readyState >= 2){
       try{
         const result = decodeCroppedSource(video, video.videoWidth, video.videoHeight, getGuideCropFraction(video));
@@ -940,9 +945,14 @@ async function initNativeDetector(){
 // لوب مسح أصلي: نفس اقتصاص المربع التوجيهي بتاع ZXing (عشان ما نقراش باركود جنبه بالغلط) لكن بندي القصّة
 // للمحرك الأصلي بدقتها الطبيعية بدل التصغير — أعلى تفاصيل ممكنة للكود الصغير/البعيد.
 async function runNativeScanLoop(video, detector){
-  // مفيش auto-stop بالوقت — بيفضل يحاول لحد ما يقرأ أو المستخدم يوقفه بزر "تخطّي وإدخال يدوي"
+  const startedAt = performance.now();
   async function tick(){
     if(!scanStream) return; // اتوقف المسح
+    if(performance.now() - startedAt > SCAN_TIMEOUT_MS){
+      stopBarcodeScan();
+      document.getElementById('barcodeStatus').textContent = t('err_scan_failed');
+      return;
+    }
     if(video.videoWidth && video.readyState >= 2){
       try{
         const val = await detectCroppedNative(detector, video, video.videoWidth, video.videoHeight, getGuideCropFraction(video));
