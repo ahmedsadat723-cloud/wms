@@ -156,6 +156,7 @@
         <input id="fItem" data-i18n-ph="ph_item_name" placeholder="اسم الصنف" autocomplete="off" oninput="onItemInput()" onfocus="onItemInput()">
         <div id="itemSuggestions" class="hidden" style="position:absolute;top:100%;right:0;left:0;z-index:10;background:#1e293b;border:1px solid #334155;border-top:none;border-radius:0 0 10px 10px;max-height:220px;overflow-y:auto"></div>
       </div>
+      <div id="confusableGuard" class="hidden" style="margin-top:8px"></div>
       <label data-i18n="label_code">كود داخلي (اختياري)</label>
       <input id="fCode" data-i18n-ph="ph_code" placeholder="مثال: FG-0001" autocomplete="off">
       <label data-i18n="label_supplier">اسم المورد / المُصدِّر</label>
@@ -803,6 +804,93 @@ function scoreCatalog(text){
   }).filter(function(x){ return x.score > 0; }).sort(function(a,b){ return b.score - a.score; });
 }
 
+// ===== 🛡️ حارس المتشابهات (مقترح ①) =====
+// المصنع بيستلم أصناف كتير شكلها واحد (نفس المورد/الكيس/الليبل) والفرق بينها كود صغير أو كلمة —
+// زي بقسماط SO.30 مقابل T.03-B، أو بودرة ثوم مقابل بصل. لو دخلت الغلط الخط = طامة.
+// الفكرة: لو الصنف اللي اتعرف عليه ينتمي لمجموعة شبيهة، منقبلوش لوحدنا — نعرض كارت مقارنة
+// بيكبّر الجزء الفارق بس، والعامل يأكّد الصنف الصح بضغطة قبل الحفظ.
+
+let confusableConfirmedCode = null; // الكود اللي العامل أكّده صراحةً من كارت المقارنة
+
+// مفتاح الفئة: PKG بيتقسّم لفئاته الفرعية (CTN/RPC/BOX) لأنها مجموعات متشابهة حقيقية، والباقي بالبادئة
+function familyKey(code){
+  const m = (code||'').match(/^(PKG-[A-Z]+|[A-Z]+)/);
+  return m ? m[1] : (code||'');
+}
+function sigTokens(s){ return tokenizeForMatch(s).filter(function(t){ return t.length >= 4 && !/^\d+$/.test(t); }); }
+
+// مجموعة الأصناف الشبيهة لصنف معيّن: نفس الفئة + بتشارك كلمة دالة واحدة على الأقل (نوع المنتج)
+function getConfusableGroup(code){
+  const target = CATALOG[code];
+  if(!target) return [];
+  const fk = familyKey(code);
+  const tTok = sigTokens(target.nameEn + ' ' + (target.cat||''));
+  if(!tTok.length) return [];
+  const group = CATALOG_LIST.filter(function(c){
+    if(familyKey(c.code) !== fk) return false;
+    const cTok = tokenizeForMatch(c.nameEn + ' ' + (c.cat||''));
+    return tTok.some(function(t){ return cTok.indexOf(t) >= 0; });
+  });
+  return group.length >= 2 ? group : [];
+}
+
+// الكلمات الفارقة لصنف داخل مجموعته = النادرة (موجودة في أقلية الأعضاء) — دي اللي فعلاً بتفرّق،
+// مش الكلمة العامة اللي في معظمهم (زي CRUMBS/BREADED). بنحسب تكرار كل كلمة في المجموعة ونمسك اللي في النص الأقل.
+function distinguishTokens(nameEn, group){
+  const n = group.length;
+  const freq = {};
+  group.forEach(function(c){
+    const uniq = {};
+    tokenizeForMatch(c.nameEn).forEach(function(t){ uniq[t] = 1; });
+    Object.keys(uniq).forEach(function(t){ freq[t] = (freq[t]||0) + 1; });
+  });
+  const threshold = Math.floor(n / 2); // نادرة = في نص الأعضاء أو أقل
+  return tokenizeForMatch(nameEn).filter(function(tok){
+    return (freq[tok]||0) <= threshold;
+  });
+}
+
+// يعرض/يخفي كارت المقارنة حسب الكود الحالي في الحقل
+function refreshConfusableGuard(){
+  const guardEl = document.getElementById('confusableGuard');
+  if(!guardEl) return;
+  const code = document.getElementById('fCode').value.trim();
+  const group = code ? getConfusableGroup(code) : [];
+  if(group.length < 2 || confusableConfirmedCode === code){
+    guardEl.classList.add('hidden'); guardEl.innerHTML = ''; return;
+  }
+  const rows = group.map(function(c){
+    const diff = distinguishTokens(c.nameEn, group);
+    // تظليل بالتوكن (حروف/أرقام كل على حدة) عشان الأجزاء اللي فيها نقط زي "SO.30" و"T.03-B" تتلوّن صح
+    const html = c.nameEn.replace(/[A-Za-z]+|[0-9]+/g, function(w){
+      return diff.indexOf(w.toUpperCase()) >= 0
+        ? '<b style="color:#fbbf24;font-size:15px">'+w+'</b>' : '<span style="color:#94a3b8">'+w+'</span>';
+    });
+    const isCur = c.code === code;
+    return '<div onclick="confirmConfusable(\''+c.code+'\')" style="padding:11px 12px;border:1px solid '+(isCur?'#fbbf24':'#334155')+';border-radius:9px;margin-top:7px;cursor:pointer;background:'+(isCur?'#3b2f0f':'#0f172a')+'">'
+      + '<div style="font-size:13px;line-height:1.5">'+html+'</div>'
+      + '<div style="font-size:11px;color:#64748b;margin-top:3px">'+c.code+(c.cat?' · '+c.cat:'')+'</div></div>';
+  }).join('');
+  guardEl.innerHTML = '<div style="background:#7f1d1d;color:#fff;padding:9px 12px;border-radius:9px;font-size:13px;font-weight:bold">'
+    + '⚠️ في '+group.length+' أصناف شبه بعض — أكّد اللي مكتوب على الكرتونة (بصّ للكلمة الصفرا)</div>' + rows;
+  guardEl.classList.remove('hidden');
+}
+
+// العامل أكّد صنف من الكارت
+function confirmConfusable(code){
+  const c = CATALOG[code];
+  if(!c) return;
+  document.getElementById('fItem').value = c.nameEn;
+  document.getElementById('fCode').value = code;
+  document.getElementById('fType').value = classifyItemByCode(code);
+  confusableConfirmedCode = code;
+  populateRoomSelect();
+  applyCapacityDefaults(code);
+  updateReceivingModeUI();
+  checkSlotOccupied();
+  refreshConfusableGuard();
+}
+
 function onItemInput(){
   const raw = document.getElementById('fItem').value.trim();
   const box = document.getElementById('itemSuggestions');
@@ -813,6 +901,8 @@ function onItemInput(){
     populateRoomSelect();
     applyCapacityDefaults(matchCode);
     updateReceivingModeUI();
+    confusableConfirmedCode = matchCode; // كتب الاسم كامل بالظبط = تأكيد صريح
+    refreshConfusableGuard();
   }
 
   if(!raw){ box.classList.add('hidden'); box.innerHTML=''; return; }
@@ -838,6 +928,8 @@ function pickSuggestion(el){
   checkSlotOccupied();
   const box = document.getElementById('itemSuggestions');
   box.classList.add('hidden'); box.innerHTML = '';
+  confusableConfirmedCode = code; // العامل اختار بنفسه من القائمة = تأكيد صريح
+  refreshConfusableGuard();
 }
 
 // ✅ كل أصناف المواد الخام والمنتج النهائي (RM-*/FG-*) اسمها بيحمل شكل "عدد الأكياس × وزن الكيس" (زي "20*400" = 20 كيس × 400 جرام)،
@@ -1558,6 +1650,7 @@ function recalcTotalWeight(){
 function fillReviewForm(parsed){
   // استلام جديد = نبدأ قائمة أوزان اللحوم من الصفر (ومنشيل وضع الوزن الثابت)
   meatCartons = [];
+  confusableConfirmedCode = null; // استلام جديد = لسه محدش أكّد الصنف الشبيه
   const mft = document.getElementById('meatFixedToggle'); if(mft) mft.checked = false;
   document.getElementById('fSupplier').value = ''; // يتملّى من جديد حسب الصنف/النوع
   document.getElementById('fItem').value = parsed.item || '';
@@ -1588,6 +1681,8 @@ function fillReviewForm(parsed){
       const box = document.getElementById('itemSuggestions'); box.classList.add('hidden'); box.innerHTML = '';
     }
   }
+  // 🛡️ لو الصنف اللي اتعرف عليه أوتوماتيك ينتمي لمجموعة شبيهة، نطلّع كارت المقارنة يطلب تأكيد صريح قبل الحفظ
+  refreshConfusableGuard();
   // احتياطي: لو الصنف مش موجود في سعات الطبالي المعتمدة (applyCapacityDefaults ماملتش الحقل)، نرجع لتخمين الـ OCR كحل أخير
   if(!document.getElementById('fUnitWeight').value && parsed.weightKg){ document.getElementById('fUnitWeight').value = parsed.weightKg; document.getElementById('fUnitWeightUnit').value = 'kg'; }
   // لحوم (وزن متغيّر): نحط الوزن الصافي المقروء في خانة إدخال الكرتونة عشان العامل يضيفه بضغطة (أو يعدّله)
@@ -1616,6 +1711,13 @@ async function saveReceiving(){
 
   if(!item || !qty){
     msgEl.className='msg err'; msgEl.textContent=t('err_item_qty'); return;
+  }
+  // 🛡️ بوابة المتشابهات: لو الصنف له كود وينتمي لمجموعة شبيهة ولسه محدش أكّده صراحةً — نوقف ونطلب التأكيد
+  if(code && getConfusableGroup(code).length >= 2 && confusableConfirmedCode !== code){
+    msgEl.className='msg err'; msgEl.textContent='⚠️ في أصناف شبه بعض — أكّد الصنف الصح من الكارت قبل الحفظ';
+    refreshConfusableGuard();
+    const g = document.getElementById('confusableGuard'); if(g) g.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
   }
   // الباتش إجباري بس لمواد فيها ضمان إن المورد حاططه فعليًا على الكرتون (مجمد مواد أولية ومنتج نهائي) — الجاف (كراتين/رولات تعبئة) غالبًا مالوش باتش أصلاً
   if(!batch && type !== 'dry'){
