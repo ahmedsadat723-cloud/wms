@@ -851,14 +851,9 @@ const SCAN_TIMEOUT_MS = 12000; // لو 12 ثانية فاتت من غير قرا
 const SCAN_OUT_W = 640; // عرض ثابت للكانفاس اللي بنكبّر عليه القصّة قبل فك الترميز
 const PHOTO_CAPTURE_INTERVAL_MS = 1000; // كل قد ايه بنجرب لقطة عالية الدقة (takePhoto) جنب لوب الفيديو السريع
 function runScanLoop(video){
-  const startedAt = performance.now();
+  // مفيش auto-stop بالوقت — بيفضل يحاول لحد ما يقرأ أو المستخدم يوقفه بزر "تخطّي وإدخال يدوي"
   function tick(){
     if(!scanStream) return; // اتوقف المسح
-    if(performance.now() - startedAt > SCAN_TIMEOUT_MS){
-      stopBarcodeScan();
-      document.getElementById('barcodeStatus').textContent = t('err_scan_failed');
-      return;
-    }
     if(video.videoWidth && video.readyState >= 2){
       try{
         const result = decodeCroppedSource(video, video.videoWidth, video.videoHeight, getGuideCropFraction(video));
@@ -945,14 +940,9 @@ async function initNativeDetector(){
 // لوب مسح أصلي: نفس اقتصاص المربع التوجيهي بتاع ZXing (عشان ما نقراش باركود جنبه بالغلط) لكن بندي القصّة
 // للمحرك الأصلي بدقتها الطبيعية بدل التصغير — أعلى تفاصيل ممكنة للكود الصغير/البعيد.
 async function runNativeScanLoop(video, detector){
-  const startedAt = performance.now();
+  // مفيش auto-stop بالوقت — بيفضل يحاول لحد ما يقرأ أو المستخدم يوقفه بزر "تخطّي وإدخال يدوي"
   async function tick(){
     if(!scanStream) return; // اتوقف المسح
-    if(performance.now() - startedAt > SCAN_TIMEOUT_MS){
-      stopBarcodeScan();
-      document.getElementById('barcodeStatus').textContent = t('err_scan_failed');
-      return;
-    }
     if(video.videoWidth && video.readyState >= 2){
       try{
         const val = await detectCroppedNative(detector, video, video.videoWidth, video.videoHeight, getGuideCropFraction(video));
