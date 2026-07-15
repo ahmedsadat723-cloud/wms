@@ -402,7 +402,7 @@ const LANG = {
     saved_success: 'اتحفظت الطبلية في المخزون',
     photo_another_btn: '📸 صوّر طبلية تانية', search_it_btn: '🔎 دور عليها في المخزون',
     search_title: '🔎 بحث في المخزون', ph_search: 'ابحث بالكود أو الاسم أو الموقع...',
-    nav_receive: 'استلام', nav_search: 'بحث', nav_logout: 'خروج',
+    nav_receive: 'استلام', nav_search: 'بحث', nav_log: 'سجل', nav_logout: 'خروج',
     type_dry: 'جاف', type_frozen: 'مجمد', type_final: 'منتج نهائي',
     err_fill_email_pass: '⚠️ حط الإيميل والباسورد', err_bad_login: '❌ بيانات دخول خاطئة',
     err_no_barcode_lib: '⚠️ مكتبة قراءة الباركود ما اتحمّلتش — ادخل البيانات يدويًا',
@@ -470,7 +470,7 @@ const LANG = {
     saved_success: 'Pallet saved to inventory',
     photo_another_btn: '📸 Photograph another pallet', search_it_btn: '🔎 Find it in inventory',
     search_title: '🔎 Search inventory', ph_search: 'Search by code, name, or location...',
-    nav_receive: 'Receive', nav_search: 'Search', nav_logout: 'Log out',
+    nav_receive: 'Receive', nav_search: 'Search', nav_log: 'Log', nav_logout: 'Log out',
     type_dry: 'Dry', type_frozen: 'Frozen', type_final: 'Final product',
     err_fill_email_pass: '⚠️ Enter email and password', err_bad_login: '❌ Invalid login credentials',
     err_no_barcode_lib: '⚠️ Barcode scanner library failed to load — enter data manually',
@@ -538,7 +538,7 @@ const LANG = {
     saved_success: 'پیلیٹ اسٹاک میں محفوظ ہو گئی',
     photo_another_btn: '📸 دوسری پیلیٹ کی تصویر لیں', search_it_btn: '🔎 اسٹاک میں تلاش کریں',
     search_title: '🔎 اسٹاک میں تلاش کریں', ph_search: 'کوڈ، نام یا مقام سے تلاش کریں...',
-    nav_receive: 'وصولی', nav_search: 'تلاش', nav_logout: 'لاگ آؤٹ',
+    nav_receive: 'وصولی', nav_search: 'تلاش', nav_log: 'لاگ', nav_logout: 'لاگ آؤٹ',
     type_dry: 'خشک', type_frozen: 'منجمد', type_final: 'حتمی پروڈکٹ',
     err_fill_email_pass: '⚠️ ای میل اور پاس ورڈ درج کریں', err_bad_login: '❌ لاگ ان کی معلومات غلط ہیں',
     err_no_barcode_lib: '⚠️ بارکوڈ اسکینر لوڈ نہیں ہوا — ڈیٹا خود درج کریں',
@@ -1827,7 +1827,7 @@ function parseLabelText(text){
   // ✅ "PRODUCT OF AUSTRALIA" مش اسم صنف — بلد المنشأ. لو الاسم طلع بلد/كلمة عامة (أو فاضي)، نرجع لأول سطر منطقي:
   // اسم المنتج على كراتين اللحوم المستوردة بيكون أعلى سطر (زي "BONELESS MUTTON") من غير أي كلمة مفتاحية.
   if(!out.item || /^OF\b/i.test(out.item) || /^(AUSTRALIA|BRAZIL|BRASIL|INDIA|USA|NEW ZEALAND|IRELAND)\b/i.test(out.item)){
-    const noiseRe = /PRODUCT OF|EST\.?\s*NO|KEEP FROZEN|NET\s*WE?I?G?H?T?|PACKED|SLAUGHTER|USE\s*BY|BEST\s*BEFORE|HALAL|INSPECTED|LOCN|OPR|TIME\s*:/i;
+    const noiseRe = /PRODUCT OF|EST\.?\s*NO|KEEP FROZEN|NET\s*WE?I?G?H?T?|PACKED|SLAUGHTER|USE\s*BY|BEST\s*BEFORE|HALAL|INSPECTED|LOCN|OPR|TIME\s*:|IDENTIFICATION\s*CODE|WORK\s*ORDER|W\.?O\.?\s*NO|REEL\s*NO|ORDER\s*NO|CUSTOMER|AN\s+ITW\s+COMPANY/i;
     const firstGood = lines.find(function(l){ return /[A-Z]{3,}/i.test(l) && !noiseRe.test(l) && !/^\d/.test(l); });
     if(firstGood) out.item = firstGood;
   }
