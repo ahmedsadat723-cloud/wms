@@ -28,6 +28,7 @@
   .msg.err{background:rgba(239,68,68,.15);color:#fca5a5;display:block}
   .msg.ok{background:rgba(34,197,94,.15);color:#86efac;display:block}
   .hidden{display:none !important}
+  @media print{ #navBar{display:none} .no-print{display:none} body{background:#fff;color:#000;padding-bottom:0} #logScreen table{color:#000;width:100%} #logScreen th,#logScreen td{border:1px solid #ccc} #logScreen .card{border:none;background:#fff} }
   #navBar{position:fixed;bottom:0;left:0;right:0;display:flex;background:#1e293b;border-top:1px solid #334155;padding:8px;gap:8px;max-width:480px;margin:0 auto}
   #navBar button{flex:1;background:transparent;color:#94a3b8;font-size:12.5px;padding:10px 4px}
   #navBar button.active{color:#e8622c}
@@ -287,9 +288,50 @@
     </div>
   </div>
 
+  <!-- شاشة السجل -->
+  <div id="logScreen" class="screen hidden">
+    <h1>📋 سجل العمليات</h1>
+    <div class="card">
+      <div class="no-print" style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+        <label style="margin:0;flex:0 0 auto">اليوم</label>
+        <input id="logDate" type="date" style="flex:1" onchange="loadLogScreen()">
+        <button class="btn-secondary" type="button" style="width:auto;white-space:nowrap" onclick="loadLogScreen()">🔄</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:#7cfc9e" id="logReceiveCount">0</div>
+          <div style="font-size:12px;color:#94a3b8">📸 استلام</div>
+        </div>
+        <div style="background:#0f172a;border:1px solid #334155;border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:22px;font-weight:700;color:#fca5a5" id="logWithdrawCount">0</div>
+          <div style="font-size:12px;color:#94a3b8">📤 سحب</div>
+        </div>
+      </div>
+      <div class="no-print" style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn-secondary" type="button" style="flex:1" onclick="printLogScreen()">🖨️ طباعة</button>
+        <button class="btn-secondary" type="button" style="flex:1" onclick="exportLogExcel()">📊 تصدير Excel</button>
+      </div>
+      <div id="logMsg" class="msg"></div>
+      <div id="logTableWrap" style="overflow-x:auto">
+        <table id="logTable" style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead>
+            <tr style="border-bottom:1px solid #334155;color:#94a3b8;text-align:right">
+              <th style="padding:6px 4px">الوقت</th>
+              <th style="padding:6px 4px">العملية</th>
+              <th style="padding:6px 4px">التفاصيل</th>
+              <th style="padding:6px 4px">بواسطة</th>
+            </tr>
+          </thead>
+          <tbody id="logTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <div id="navBar">
     <button id="navReceive" class="active" onclick="showScreen(&#39;receive&#39;)">📸<br><span data-i18n="nav_receive">استلام</span></button>
     <button id="navSearch" onclick="showScreen(&#39;search&#39;)">🔎<br><span data-i18n="nav_search">بحث</span></button>
+    <button id="navLog" onclick="showScreen('log')">📋<br><span data-i18n="nav_log">سجل</span></button>
     <button onclick="doLogout()">🚪<br><span data-i18n="nav_logout">خروج</span></button>
   </div>
 </div>
@@ -297,6 +339,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script>
 // "تذكرني" اختياري: لو متفعّل الـ session بيتخزن في localStorage (يفضل بعد قفل التطبيق)،
 // لو مش متفعّل بيتخزن في sessionStorage بس (بيروح أول ما يتقفل التطبيق فعلياً) — أمان للأجهزة المشتركة
@@ -1073,9 +1116,111 @@ document.addEventListener('DOMContentLoaded', async function(){
 function showScreen(name){
   document.getElementById('receiveScreen').classList.toggle('hidden', name!=='receive');
   document.getElementById('searchScreen').classList.toggle('hidden', name!=='search');
+  document.getElementById('logScreen').classList.toggle('hidden', name!=='log');
   document.getElementById('navReceive').classList.toggle('active', name==='receive');
   document.getElementById('navSearch').classList.toggle('active', name==='search');
+  document.getElementById('navLog').classList.toggle('active', name==='log');
+  if(name==='log') loadLogScreen();
 }
+
+/* ===== سجل العمليات (استلام/سحب) — طباعة وتصدير إكسيل ===== */
+let LOG_ROWS_CACHE = [];
+async function loadLogScreen(){
+  const dateInput = document.getElementById('logDate');
+  if(!dateInput.value){ dateInput.value = new Date().toISOString().slice(0,10); }
+  const day = dateInput.value;
+  const start = day + 'T00:00:00.000Z';
+  const end = day + 'T23:59:59.999Z';
+  const msgEl = document.getElementById('logMsg');
+  msgEl.className='msg'; msgEl.textContent='...جاري التحميل';
+  const { data, error } = await supabaseClient.from('ops_log').select('*')
+    .eq('organization_id', CURRENT_ORG_ID)
+    .gte('created_at', start).lte('created_at', end)
+    .order('created_at', {ascending:false});
+  if(error){ msgEl.className='msg err'; msgEl.textContent='❌ تعذر تحميل السجل: '+error.message; return; }
+  msgEl.className='msg'; msgEl.textContent='';
+  LOG_ROWS_CACHE = data||[];
+  renderLogTable();
+}
+
+function renderLogTable(){
+  const body = document.getElementById('logTableBody');
+  let recCount=0, wdCount=0;
+  body.innerHTML = LOG_ROWS_CACHE.map(function(r){
+    const action = r.action||'';
+    if(action.indexOf('استلام')!==-1) recCount++;
+    if(action.indexOf('سحب')!==-1) wdCount++;
+    const time = r.created_at ? new Date(r.created_at).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}) : '-';
+    const by = r.performed_by ? String(r.performed_by).slice(0,8) : '-';
+    return '<tr style="border-bottom:1px solid #1e293b">'
+      + '<td style="padding:6px 4px;white-space:nowrap">'+time+'</td>'
+      + '<td style="padding:6px 4px;white-space:nowrap">'+action+'</td>'
+      + '<td style="padding:6px 4px">'+(r.details||'')+'</td>'
+      + '<td style="padding:6px 4px;white-space:nowrap">'+by+'</td>'
+      + '</tr>';
+  }).join('');
+  document.getElementById('logReceiveCount').textContent = recCount;
+  document.getElementById('logWithdrawCount').textContent = wdCount;
+  if(LOG_ROWS_CACHE.length===0){
+    body.innerHTML = '<tr><td colspan="4" style="padding:14px;text-align:center;color:#64748b">مفيش عمليات في اليوم ده</td></tr>';
+  }
+}
+
+function printLogScreen(){
+  window.print();
+}
+
+function exportLogExcel(){
+  if(typeof XLSX === 'undefined'){ alert('مكتبة الإكسيل لسه بتحمّل، جرب تاني بعد ثانية'); return; }
+  const day = document.getElementById('logDate').value || new Date().toISOString().slice(0,10);
+  const rows = LOG_ROWS_CACHE.map(function(r){
+    const d = r.created_at ? new Date(r.created_at) : null;
+    return {
+      'التاريخ': d ? d.toLocaleDateString('ar-EG') : '',
+      'الوقت': d ? d.toLocaleTimeString('ar-EG') : '',
+      'العملية': r.action||'',
+      'التفاصيل': r.details||'',
+      'بواسطة': r.performed_by||''
+    };
+  });
+  if(rows.length===0){ rows.push({'التاريخ':day,'الوقت':'','العملية':'مفيش عمليات','التفاصيل':'','بواسطة':''}); }
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'السجل');
+  XLSX.writeFile(wb, 'سجل_العمليات_'+day+'.xlsx');
+}
+
+/* ===== الموقع الجغرافي وبيانات الجهاز — تُلتقط وقت الاستلام/السحب ===== */
+function getDeviceLabel(){
+  const ua = navigator.userAgent || '';
+  let os = 'جهاز غير معروف';
+  if(/android/i.test(ua)) os='Android';
+  else if(/iphone|ipad|ipod/i.test(ua)) os='iOS';
+  else if(/windows/i.test(ua)) os='Windows';
+  else if(/mac os/i.test(ua)) os='Mac';
+  let browser = 'متصفح';
+  if(/edg/i.test(ua)) browser='Edge';
+  else if(/chrome/i.test(ua)) browser='Chrome';
+  else if(/firefox/i.test(ua)) browser='Firefox';
+  else if(/safari/i.test(ua)) browser='Safari';
+  return os + ' - ' + browser;
+}
+
+function captureLocation(){
+  return new Promise(function(resolve){
+    if(!navigator.geolocation){ resolve(null); return; }
+    const timer = setTimeout(function(){ resolve(null); }, 4000);
+    navigator.geolocation.getCurrentPosition(function(pos){
+      clearTimeout(timer);
+      resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy });
+    }, function(){ clearTimeout(timer); resolve(null); }, { enableHighAccuracy:false, timeout:3500, maximumAge:60000 });
+  });
+}
+
+function locationTag(geo){
+  return geo ? (' — 📍 ' + geo.lat.toFixed(5) + ',' + geo.lng.toFixed(5)) : '';
+}
+
 
 /* ===== استلام: مسح باركود GS1-128 (تاريخ إنتاج/انتهاء/وزن/باتش) ===== */
 // TRY_HARDER بيخلي ZXing يعمل محاولات فك ترميز أعمق (زوايا/تدوير/binarization بديل) بدل محاولة واحدة سريعة —
@@ -1921,8 +2066,11 @@ async function saveReceiving(){
     }catch(e){ console.warn('photo upload failed', e); photoPath = null; }
   }
 
+  const geo = await captureLocation();
+  const deviceLabel = getDeviceLabel();
+
   // لقطة من البيانات زي ما العامل بعتها بالظبط — مرجع أساسي لو المشرف عدّل حاجة وقت المراجعة
-  const original_submission = { item, code, prodDate, expDate, qty, batch, weightKg, supplier };
+  const original_submission = { item, code, prodDate, expDate, qty, batch, weightKg, supplier, location: geo, device: deviceLabel };
 
   const row = {
     organization_id: CURRENT_ORG_ID, loc: loc, code: code||item, name: item, supplier: supplier||null,
@@ -1940,7 +2088,7 @@ async function saveReceiving(){
   supabaseClient.from('ops_log').insert({
     organization_id: CURRENT_ORG_ID,
     action: '📸 استلام موبايل (بانتظار موافقة)',
-    details: item + ' — ' + qty + ' كرتون — ' + loc + ' — باتش ' + batch,
+    details: item + ' — ' + qty + ' كرتون — ' + loc + ' — باتش ' + batch + locationTag(geo) + ' — 📱 ' + deviceLabel,
     performed_by: (currentUser && currentUser.id) || null
   }).then(function(r){ if(r.error) console.warn('ops_log insert failed', r.error); });
   msgEl.className='msg'; msgEl.textContent='';
@@ -2029,6 +2177,9 @@ async function confirmWithdraw(){
   if(qty <= 0 || qty > (+WD_ITEM.cartons||0)){ msgEl.className='msg err'; msgEl.textContent=t('err_withdraw_qty'); return; }
   if(!confirm(t('confirm_withdraw', {qty: qty, name: WD_ITEM.name||WD_ITEM.code, loc: WD_LOC}))) return;
 
+  const wdGeo = await captureLocation();
+  const wdDeviceLabel = getDeviceLabel();
+
   const parts = WD_LOC.split('-'); // room-rack-level-slot
   const room = parts[0], level = parts[2];
 
@@ -2048,7 +2199,7 @@ async function confirmWithdraw(){
 
   supabaseClient.from('ops_log').insert({
     organization_id: CURRENT_ORG_ID, action: '📤 سحب موبايل',
-    details: (WD_ITEM.name||WD_ITEM.code) + ' — ' + qty + ' كرتون — ' + WD_LOC,
+    details: (WD_ITEM.name||WD_ITEM.code) + ' — ' + qty + ' كرتون — ' + WD_LOC + locationTag(wdGeo) + ' — 📱 ' + wdDeviceLabel,
     performed_by: (currentUser&&currentUser.id)||null
   }).then(function(r){ if(r.error) console.warn('ops_log insert failed', r.error); });
 
