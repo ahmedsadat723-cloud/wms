@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0065)file:///C:/Users/MR%20ahmed%20sadat/Downloads/mobile_index_1.html -->
+<html dir="rtl" lang="ar"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Sadat Depot — استلام موبايل</title>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="file:///C:/Users/MR%20ahmed%20sadat/Downloads/manifest.json">
 <meta name="theme-color" content="#0f172a">
-<link rel="icon" href="icon.svg">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" href="file:///C:/Users/MR%20ahmed%20sadat/Downloads/icon.svg">
+<link rel="apple-touch-icon" href="file:///C:/Users/MR%20ahmed%20sadat/Downloads/icon.svg">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Sadat Depot">
@@ -34,6 +34,12 @@
   .photo-preview{width:100%;border-radius:12px;margin-top:10px;max-height:220px;object-fit:contain;background:#0f172a}
   .photo-wrap{position:relative}
   .photo-remove-btn{position:absolute;top:18px;left:10px;width:30px;height:30px;padding:0;border-radius:50%;background:rgba(15,23,42,.85);color:#fca5a5;border:1px solid #ef4444;font-size:15px;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .photo-action-row{display:flex;gap:8px;flex-wrap:wrap}
+  .photo-action-row>*{flex:1 1 100px;margin-top:0;width:auto}
+  .photo-paste-box input{border:1px dashed #38bdf8;background:#0f172a;text-align:center;font-size:13px;color:#7dd3fc}
+  .photo-paste-box input::placeholder{color:#38bdf8}
+  .photo-url-row{display:flex;gap:8px;margin-top:8px}
+  .photo-url-row input{flex:1}
   .spinner{border:3px solid #334155;border-top:3px solid #e8622c;border-radius:50%;width:26px;height:26px;animation:spin 1s linear infinite;margin:14px auto}
   @keyframes spin{to{transform:rotate(360deg)}}
   .ocr-raw{background:#0f172a;border-radius:8px;padding:10px;font-family:monospace;font-size:10.5px;color:#64748b;max-height:110px;overflow-y:auto;white-space:pre-wrap;direction:ltr;text-align:left;margin-top:8px}
@@ -57,9 +63,9 @@
 <body>
 
 <div id="langSwitcher">
-  <button class="lang-btn" data-lang="ar" onclick="setLang('ar')">AR</button>
-  <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
-  <button class="lang-btn" data-lang="ur" onclick="setLang('ur')">UR</button>
+  <button class="lang-btn active-lang" data-lang="ar" onclick="setLang(&#39;ar&#39;)">AR</button>
+  <button class="lang-btn" data-lang="en" onclick="setLang(&#39;en&#39;)">EN</button>
+  <button class="lang-btn" data-lang="ur" onclick="setLang(&#39;ur&#39;)">UR</button>
 </div>
 
 <h2 class="sr-only" data-i18n="app_description" style="position:absolute;width:1px;height:1px;overflow:hidden">تطبيق Sadat Depot للموبايل — استلام بالكاميرا وبحث في المخزون</h2>
@@ -76,7 +82,7 @@
 </div>
 
 <!-- ===== شاشة الدخول ===== -->
-<div id="loginScreen" class="screen">
+<div id="loginScreen" class="screen hidden">
   <div style="text-align:center;margin:30px 0 10px">
     <div style="font-size:38px">📦</div>
     <h1 style="margin-top:8px">Sadat Depot</h1>
@@ -99,7 +105,7 @@
 </div>
 
 <!-- ===== التطبيق الرئيسي ===== -->
-<div id="appScreen" class="hidden">
+<div id="appScreen" class="">
 
   <!-- شاشة الاستلام -->
   <div id="receiveScreen" class="screen">
@@ -108,7 +114,7 @@
     <div class="card">
       <label data-i18n="step1_barcode_label">1️⃣ امسح باركود الكرتونة (تاريخ إنتاج/انتهاء/وزن/باتش تلقائي)</label>
       <div id="barcodeVideoWrap" class="hidden scan-frame" style="margin-top:8px">
-        <video id="barcodeVideo" style="width:100%;display:block;background:#000" muted playsinline></video>
+        <video id="barcodeVideo" style="width:100%;display:block;background:#000" muted="" playsinline=""></video>
         <div class="scan-guide"><i></i></div>
       </div>
       <div id="zoomRow" class="zoom-row hidden">
@@ -124,8 +130,19 @@
 
     <div class="card">
       <label data-i18n="step2_label_photo">2️⃣ صوّر ليبل الكرتونة</label>
-      <label for="labelPhoto" class="file-btn btn-secondary" data-i18n="choose_photo_btn">📷 اختر صورة</label>
-      <input id="labelPhoto" type="file" accept="image/*" capture="environment" onchange="onPhotoSelected(event)" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
+      <div class="photo-action-row">
+        <label for="labelPhoto" class="file-btn btn-secondary" data-i18n="choose_photo_btn">📷 اختر صورة</label>
+        <input id="labelPhoto" type="file" accept="image/*" capture="environment" onchange="onPhotoSelected(event)" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
+        <button type="button" class="btn-secondary" data-i18n="paste_photo_btn" onclick="pasteImageForLabel()">📋 لصق</button>
+        <button type="button" class="btn-secondary" data-i18n="url_photo_btn" onclick="toggleUrlInput(&#39;label&#39;)">🔗 رابط</button>
+      </div>
+      <div id="labelPasteHint" class="hidden photo-paste-box" style="margin-top:8px">
+        <input id="labelPasteBox" data-i18n-ph="paste_box_ph" placeholder="دوس هنا وكليك يمين ← لصق، أو Ctrl+V" autocomplete="off">
+      </div>
+      <div id="labelUrlRow" class="hidden photo-url-row">
+        <input id="labelUrlInput" data-i18n-ph="url_input_ph" placeholder="الصق رابط الصورة هنا" style="flex:1" autocomplete="off">
+        <button type="button" class="btn-secondary" data-i18n="url_submit_btn" onclick="submitLabelUrl()">تحميل</button>
+      </div>
       <div class="photo-wrap">
         <img id="photoPreview" class="photo-preview hidden">
         <button type="button" id="removeLabelPhotoBtn" class="photo-remove-btn hidden" onclick="removeLabelPhoto()">✕</button>
@@ -141,8 +158,19 @@
 
     <div class="card">
       <label data-i18n="step3_carton_photo">3️⃣ صوّر الكرتونة من الأمام (صورة مرجعية للتوزيع على الطبالي)</label>
-      <label for="cartonPhoto" class="file-btn btn-secondary" data-i18n="choose_photo_btn">📷 اختر صورة</label>
-      <input id="cartonPhoto" type="file" accept="image/*" capture="environment" onchange="onCartonPhotoSelected(event)" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
+      <div class="photo-action-row">
+        <label for="cartonPhoto" class="file-btn btn-secondary" data-i18n="choose_photo_btn">📷 اختر صورة</label>
+        <input id="cartonPhoto" type="file" accept="image/*" capture="environment" onchange="onCartonPhotoSelected(event)" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
+        <button type="button" class="btn-secondary" data-i18n="paste_photo_btn" onclick="pasteImageForCarton()">📋 لصق</button>
+        <button type="button" class="btn-secondary" data-i18n="url_photo_btn" onclick="toggleUrlInput(&#39;carton&#39;)">🔗 رابط</button>
+      </div>
+      <div id="cartonPasteHint" class="hidden photo-paste-box" style="margin-top:8px">
+        <input id="cartonPasteBox" data-i18n-ph="paste_box_ph" placeholder="دوس هنا وكليك يمين ← لصق، أو Ctrl+V" autocomplete="off">
+      </div>
+      <div id="cartonUrlRow" class="hidden photo-url-row">
+        <input id="cartonUrlInput" data-i18n-ph="url_input_ph" placeholder="الصق رابط الصورة هنا" style="flex:1" autocomplete="off">
+        <button type="button" class="btn-secondary" data-i18n="url_submit_btn" onclick="submitCartonUrl()">تحميل</button>
+      </div>
       <div class="photo-wrap">
         <img id="cartonPhotoPreview" class="photo-preview hidden">
         <button type="button" id="removeCartonPhotoBtn" class="photo-remove-btn hidden" onclick="removeCartonPhoto()">✕</button>
@@ -166,7 +194,7 @@
         <option value="مصنع الزامل">مصنع الزامل</option>
         <option value="مصنع التنمية">مصنع التنمية</option>
       </select>
-      <label id="batchLabelWrap" data-i18n="label_batch">رقم الباتش (إجباري)</label>
+      <label id="batchLabelWrap" data-i18n="label_batch">رقم الباتش (اختياري — مش كل مواد التعبئة عليها باتش)</label>
       <input id="fBatch" data-i18n-ph="ph_batch" placeholder="من الباركود أو مكتوب على الاستيكر" autocomplete="off">
       <label data-i18n="label_line_shift">أو احسبه تلقائي: خط الإنتاج والوردية (لمنتجات المصنع الداخلية)</label>
       <select id="fLineShift" onchange="computeBatchFromLineShift()">
@@ -202,7 +230,7 @@
         </label>
         <div id="meatEntryWrap">
           <div style="display:flex;gap:6px">
-            <input id="meatWeightInput" type="number" min="0" step="0.001" inputmode="decimal" data-i18n-ph="meat_weight_ph" placeholder="وزن الكرتونة الصافي (كجم)" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addMeatCarton();}">
+            <input id="meatWeightInput" type="number" min="0" step="0.001" inputmode="decimal" data-i18n-ph="meat_weight_ph" placeholder="وزن الكرتونة الصافي (كجم)" style="flex:1" onkeydown="if(event.key===&#39;Enter&#39;){event.preventDefault();addMeatCarton();}">
             <button type="button" class="btn-secondary" style="width:auto;white-space:nowrap" data-i18n="meat_add_btn" onclick="addMeatCarton()">➕ إضافة</button>
           </div>
           <div id="meatList" style="margin-top:8px;display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto"></div>
@@ -260,15 +288,15 @@
   </div>
 
   <div id="navBar">
-    <button id="navReceive" class="active" onclick="showScreen('receive')">📸<br><span data-i18n="nav_receive">استلام</span></button>
-    <button id="navSearch" onclick="showScreen('search')">🔎<br><span data-i18n="nav_search">بحث</span></button>
+    <button id="navReceive" class="active" onclick="showScreen(&#39;receive&#39;)">📸<br><span data-i18n="nav_receive">استلام</span></button>
+    <button id="navSearch" onclick="showScreen(&#39;search&#39;)">🔎<br><span data-i18n="nav_search">بحث</span></button>
     <button onclick="doLogout()">🚪<br><span data-i18n="nav_logout">خروج</span></button>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script src="./Sadat Depot —  اخر تحديث استلام موبايل_files/supabase-js@2"></script>
+<script src="./Sadat Depot —  اخر تحديث استلام موبايل_files/tesseract.min.js.تنزيل"></script>
+<script src="./Sadat Depot —  اخر تحديث استلام موبايل_files/index.min.js.تنزيل"></script>
 <script>
 // "تذكرني" اختياري: لو متفعّل الـ session بيتخزن في localStorage (يفضل بعد قفل التطبيق)،
 // لو مش متفعّل بيتخزن في sessionStorage بس (بيروح أول ما يتقفل التطبيق فعلياً) — أمان للأجهزة المشتركة
@@ -305,6 +333,11 @@ const LANG = {
     start_scan_btn: '📷 ابدأ المسح', skip_scan_btn: 'تخطّي وإدخال يدوي',
     step2_label_photo: '2️⃣ صوّر ليبل الكرتونة',
     choose_photo_btn: '📷 اختر صورة',
+    paste_photo_btn: '📋 لصق', url_photo_btn: '🔗 رابط', paste_now_hint: 'دوس Ctrl+V دلوقتي', paste_box_ph: 'دوس هنا وكليك يمين ← لصق، أو Ctrl+V',
+    url_input_ph: 'الصق رابط الصورة هنا', url_submit_btn: 'تحميل',
+    clipboard_no_image: 'مفيش صورة في الحافظة (Clipboard)',
+    clipboard_error: 'تعذّر اللصق من الحافظة',
+    url_load_error: 'تعذّر تحميل الصورة من الرابط',
     ocr_raw_summary: 'النص الخام اللي اتقرا (تصحيح/مراجعة)',
     step3_carton_photo: '3️⃣ صوّر الكرتونة من الأمام (صورة مرجعية للتوزيع على الطبالي)',
     step4_review: '4️⃣ راجع وصحّح البيانات قبل الحفظ',
@@ -368,6 +401,11 @@ const LANG = {
     start_scan_btn: '📷 Start scan', skip_scan_btn: 'Skip, enter manually',
     step2_label_photo: '2️⃣ Photograph the carton label',
     choose_photo_btn: '📷 Choose photo',
+    paste_photo_btn: '📋 Paste', url_photo_btn: '🔗 Link', paste_now_hint: 'Press Ctrl+V now', paste_box_ph: 'Click here, right-click → Paste, or Ctrl+V',
+    url_input_ph: 'Paste image URL here', url_submit_btn: 'Load',
+    clipboard_no_image: 'No image found in clipboard',
+    clipboard_error: 'Could not paste from clipboard',
+    url_load_error: 'Could not load image from link',
     ocr_raw_summary: 'Raw text read (review/correct)',
     step3_carton_photo: '3️⃣ Photograph the carton from the front (reference photo for pallet distribution)',
     step4_review: '4️⃣ Review and correct the data before saving',
@@ -431,6 +469,11 @@ const LANG = {
     start_scan_btn: '📷 اسکین شروع کریں', skip_scan_btn: 'چھوڑیں، خود درج کریں',
     step2_label_photo: '2️⃣ کارٹن کا لیبل تصویر کریں',
     choose_photo_btn: '📷 تصویر منتخب کریں',
+    paste_photo_btn: '📋 پیسٹ', url_photo_btn: '🔗 لنک', paste_now_hint: 'ابھی Ctrl+V دبائیں', paste_box_ph: 'یہاں دبائیں، رائٹ کلک ← پیسٹ، یا Ctrl+V',
+    url_input_ph: 'یہاں تصویر کا لنک پیسٹ کریں', url_submit_btn: 'لوڈ کریں',
+    clipboard_no_image: 'کلپ بورڈ میں کوئی تصویر نہیں ملی',
+    clipboard_error: 'کلپ بورڈ سے پیسٹ نہیں ہو سکا',
+    url_load_error: 'لنک سے تصویر لوڈ نہیں ہو سکی',
     ocr_raw_summary: 'پڑھا گیا خام متن (جائزہ/درستگی)',
     step3_carton_photo: '3️⃣ کارٹن کی سامنے سے تصویر لیں (پیلیٹس کی تقسیم کے لیے حوالہ تصویر)',
     step4_review: '4️⃣ محفوظ کرنے سے پہلے ڈیٹا کا جائزہ لیں اور درست کریں',
@@ -1316,16 +1359,19 @@ function gs1DateToIso(yymmdd){
 
 /* ===== صورة الكرتونة من الأمام (مرجعية) ===== */
 let cartonPhotoDataUrl = null;
+function processCartonPhotoDataUrl(dataUrl){
+  cartonPhotoDataUrl = dataUrl;
+  const img = document.getElementById('cartonPhotoPreview');
+  img.src = cartonPhotoDataUrl; img.classList.remove('hidden');
+  document.getElementById('removeCartonPhotoBtn').classList.remove('hidden');
+  document.getElementById('cartonPasteHint').classList.add('hidden');
+  document.getElementById('cartonUrlRow').classList.add('hidden');
+}
 function onCartonPhotoSelected(e){
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = function(ev){
-    cartonPhotoDataUrl = ev.target.result;
-    const img = document.getElementById('cartonPhotoPreview');
-    img.src = cartonPhotoDataUrl; img.classList.remove('hidden');
-    document.getElementById('removeCartonPhotoBtn').classList.remove('hidden');
-  };
+  reader.onload = function(ev){ processCartonPhotoDataUrl(ev.target.result); };
   reader.readAsDataURL(file);
 }
 function removeCartonPhoto(){
@@ -1334,6 +1380,9 @@ function removeCartonPhoto(){
   document.getElementById('cartonPhotoPreview').src = '';
   document.getElementById('cartonPhotoPreview').classList.add('hidden');
   document.getElementById('removeCartonPhotoBtn').classList.add('hidden');
+  document.getElementById('cartonPasteHint').classList.add('hidden');
+  document.getElementById('cartonUrlRow').classList.add('hidden');
+  document.getElementById('cartonUrlInput').value = '';
 }
 
 // ✅ فحص جودة الصورة قبل الاعتماد عليها في القراءة — بيحسب درجة التشويش (بلور، عبر تباين لابلاسيان) والإضاءة (فاتحة/غامقة قوي)
@@ -1383,32 +1432,136 @@ function assessImageQuality(dataUrl){
 }
 
 /* ===== استلام: كاميرا + OCR + استخراج ===== */
+async function processLabelPhotoDataUrl(dataUrl){
+  lastPhotoDataUrl = dataUrl;
+  const img = document.getElementById('photoPreview');
+  img.src = lastPhotoDataUrl; img.classList.remove('hidden');
+  document.getElementById('removeLabelPhotoBtn').classList.remove('hidden');
+  document.getElementById('labelPasteHint').classList.add('hidden');
+  document.getElementById('labelUrlRow').classList.add('hidden');
+
+  const warnBox = document.getElementById('photoQualityWarn');
+  const quality = await assessImageQuality(lastPhotoDataUrl);
+  if(quality && (quality.isBlurry || quality.isTooDark || quality.isTooBright)){
+    const msgs = [];
+    if(quality.isBlurry) msgs.push(t('quality_blurry'));
+    if(quality.isTooDark) msgs.push(t('quality_dark'));
+    if(quality.isTooBright) msgs.push(t('quality_bright'));
+    warnBox.textContent = '⚠️ ' + msgs.join(' — ') + ' ' + t('quality_retake_hint');
+    warnBox.classList.remove('hidden');
+  } else {
+    warnBox.classList.add('hidden'); warnBox.textContent = '';
+  }
+
+  runOCR(lastPhotoDataUrl);
+}
 async function onPhotoSelected(e){
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = async function(ev){
-    lastPhotoDataUrl = ev.target.result;
-    const img = document.getElementById('photoPreview');
-    img.src = lastPhotoDataUrl; img.classList.remove('hidden');
-    document.getElementById('removeLabelPhotoBtn').classList.remove('hidden');
-
-    const warnBox = document.getElementById('photoQualityWarn');
-    const quality = await assessImageQuality(lastPhotoDataUrl);
-    if(quality && (quality.isBlurry || quality.isTooDark || quality.isTooBright)){
-      const msgs = [];
-      if(quality.isBlurry) msgs.push(t('quality_blurry'));
-      if(quality.isTooDark) msgs.push(t('quality_dark'));
-      if(quality.isTooBright) msgs.push(t('quality_bright'));
-      warnBox.textContent = '⚠️ ' + msgs.join(' — ') + ' ' + t('quality_retake_hint');
-      warnBox.classList.remove('hidden');
-    } else {
-      warnBox.classList.add('hidden'); warnBox.textContent = '';
-    }
-
-    runOCR(lastPhotoDataUrl);
-  };
+  reader.onload = async function(ev){ await processLabelPhotoDataUrl(ev.target.result); };
   reader.readAsDataURL(file);
+}
+
+/* ===== لصق من الحافظة (Clipboard) ووضع رابط صورة — بديل للكاميرا ===== */
+function blobToDataUrl(blob){
+  return new Promise(function(resolve, reject){
+    const reader = new FileReader();
+    reader.onload = function(){ resolve(reader.result); };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+// ملاحظة: navigator.clipboard.read() غير مدعوم في فايرفوكس (بيرفضه دايمًا)، فبنستخدم بدل منه
+// حدث "paste" القياسي (Ctrl+V) اللي شغال على كل المتصفحات — الطريقة الوحيدة المضمونة بدون إضافة صلاحيات خاصة.
+// صندوق لصق ظاهر (مش مخفي برّه الشاشة) عشان "كليك يمين ← لصق" يشتغل زي Ctrl+V بالظبط —
+// المتصفح مايفتحش قائمة "لصق" على عنصر مش ظاهر أو مش قادر توصله بالماوس.
+function armPasteCapture(which){
+  const hint = document.getElementById(which === 'label' ? 'labelPasteHint' : 'cartonPasteHint');
+  const box = document.getElementById(which === 'label' ? 'labelPasteBox' : 'cartonPasteBox');
+  if(hint){ hint.classList.remove('hidden'); }
+  if(box){ box.value = ''; box.focus(); }
+}
+async function handlePasteEvent(e, which){
+  const items = (e.clipboardData && e.clipboardData.items) || [];
+  let imageFile = null;
+  for(let i = 0; i < items.length; i++){
+    if(items[i].type && items[i].type.indexOf('image/') === 0){
+      imageFile = items[i].getAsFile();
+      break;
+    }
+  }
+  const hint = document.getElementById(which === 'label' ? 'labelPasteHint' : 'cartonPasteHint');
+  if(!imageFile){ alert(t('clipboard_no_image')); return; }
+  e.preventDefault();
+  if(hint) hint.classList.add('hidden');
+  try{
+    const dataUrl = await blobToDataUrl(imageFile);
+    if(which === 'label') await processLabelPhotoDataUrl(dataUrl);
+    else processCartonPhotoDataUrl(dataUrl);
+  }catch(err){ alert(t('clipboard_error')); }
+}
+(function(){
+  const lb = document.getElementById('labelPasteBox');
+  const cb = document.getElementById('cartonPasteBox');
+  if(lb) lb.addEventListener('paste', function(e){ handlePasteEvent(e, 'label'); });
+  if(cb) cb.addEventListener('paste', function(e){ handlePasteEvent(e, 'carton'); });
+})();
+function pasteImageForLabel(){ armPasteCapture('label'); }
+function pasteImageForCarton(){ armPasteCapture('carton'); }
+function toggleUrlInput(which){
+  const row = document.getElementById(which === 'label' ? 'labelUrlRow' : 'cartonUrlRow');
+  row.classList.toggle('hidden');
+  if(!row.classList.contains('hidden')){
+    document.getElementById(which === 'label' ? 'labelUrlInput' : 'cartonUrlInput').focus();
+  }
+}
+async function loadImageFromUrl(url){
+  try{
+    const resp = await fetch(url, { mode: 'cors' });
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const blob = await resp.blob();
+    if(blob.type.indexOf('image/') !== 0) throw new Error('not-an-image');
+    return await blobToDataUrl(blob);
+  }catch(err){
+    // فشل الـ fetch (غالبًا CORS) — نحاول تحميلها كـ <img> ونرسمها على canvas
+    return await new Promise(function(resolve, reject){
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function(){
+        try{
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+          canvas.getContext('2d').drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/jpeg', 0.92));
+        }catch(e2){ reject(new Error(t('url_load_error'))); }
+      };
+      img.onerror = function(){ reject(new Error(t('url_load_error'))); };
+      img.src = url;
+    });
+  }
+}
+async function submitLabelUrl(){
+  const input = document.getElementById('labelUrlInput');
+  const url = input.value.trim();
+  if(!url) return;
+  try{
+    const dataUrl = await loadImageFromUrl(url);
+    await processLabelPhotoDataUrl(dataUrl);
+    input.value = '';
+    document.getElementById('labelUrlRow').classList.add('hidden');
+  }catch(err){ alert(t('url_load_error')); }
+}
+async function submitCartonUrl(){
+  const input = document.getElementById('cartonUrlInput');
+  const url = input.value.trim();
+  if(!url) return;
+  try{
+    const dataUrl = await loadImageFromUrl(url);
+    processCartonPhotoDataUrl(dataUrl);
+    input.value = '';
+    document.getElementById('cartonUrlRow').classList.add('hidden');
+  }catch(err){ alert(t('url_load_error')); }
 }
 function removeLabelPhoto(){
   lastPhotoDataUrl = null;
@@ -1421,6 +1574,9 @@ function removeLabelPhoto(){
   document.getElementById('ocrRaw').textContent = '';
   document.getElementById('photoQualityWarn').classList.add('hidden');
   document.getElementById('photoQualityWarn').textContent = '';
+  document.getElementById('labelPasteHint').classList.add('hidden');
+  document.getElementById('labelUrlRow').classList.add('hidden');
+  document.getElementById('labelUrlInput').value = '';
 }
 
 // تجهيز الصورة قبل الـ OCR: تدرج رمادي + تحويل ثنائي أبيض/أسود بعتبة Otsu (بتلاقي أفضل عتبة تفصل النص عن الخلفية تلقائيًا)
@@ -1901,5 +2057,6 @@ async function confirmWithdraw(){
   alert(t('withdraw_done'));
 }
 </script>
-</body>
-</html>
+
+
+</body></html>
