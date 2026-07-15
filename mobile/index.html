@@ -28,6 +28,11 @@
   .msg.err{background:rgba(239,68,68,.15);color:#fca5a5;display:block}
   .msg.ok{background:rgba(34,197,94,.15);color:#86efac;display:block}
   .hidden{display:none !important}
+  body.cold-mode input, body.cold-mode select, body.cold-mode button, body.cold-mode textarea{font-size:17px !important;padding:16px 14px !important}
+  body.cold-mode label{font-size:15px !important}
+  body.cold-mode .card{padding:18px !important}
+  body.cold-mode #navBar button{font-size:14px !important;padding:14px 4px !important}
+  #coldModeBtn.cold-active{background:#0369a1;color:#fff}
   @media print{ #navBar{display:none} .no-print{display:none} body{background:#fff;color:#000;padding-bottom:0} #logScreen table{color:#000;width:100%} #logScreen th,#logScreen td{border:1px solid #ccc} #logScreen .card{border:none;background:#fff} }
   #navBar{position:fixed;bottom:0;left:0;right:0;display:flex;background:#1e293b;border-top:1px solid #334155;padding:8px;gap:8px;max-width:480px;margin:0 auto}
   #navBar button{flex:1;background:transparent;color:#94a3b8;font-size:12.5px;padding:10px 4px}
@@ -67,6 +72,7 @@
   <button class="lang-btn active-lang" data-lang="ar" onclick="setLang(&#39;ar&#39;)">AR</button>
   <button class="lang-btn" data-lang="en" onclick="setLang(&#39;en&#39;)">EN</button>
   <button class="lang-btn" data-lang="ur" onclick="setLang(&#39;ur&#39;)">UR</button>
+  <button id="coldModeBtn" class="lang-btn" onclick="toggleColdMode()" title="وضع غرفة التبريد">❄️</button>
 </div>
 
 <h2 class="sr-only" data-i18n="app_description" style="position:absolute;width:1px;height:1px;overflow:hidden">تطبيق Sadat Depot للموبايل — استلام بالكاميرا وبحث في المخزون</h2>
@@ -111,6 +117,19 @@
   <!-- شاشة الاستلام -->
   <div id="receiveScreen" class="screen">
     <h1 data-i18n="receiving_title">📸 استلام طبلية</h1>
+
+    <div id="offlineBadge" class="hidden" style="margin-bottom:10px;padding:8px 10px;border-radius:8px;background:rgba(96,165,250,.15);color:#93c5fd;font-size:12.5px;text-align:center"></div>
+
+    <div class="card">
+      <label>🧾 بيانات المستلم والسائق</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+        <div><label style="font-size:12px">اسم المستلم</label><input id="fReceiverName" autocomplete="off"></div>
+        <div><label style="font-size:12px">اسم السائق</label><input id="fDriverName" autocomplete="off"></div>
+      </div>
+      <label style="font-size:12px;margin-top:8px">✍️ توقيع المستلم</label>
+      <canvas id="sigPad" width="500" height="150" style="width:100%;height:110px;background:#0f172a;border:1px solid #334155;border-radius:10px;touch-action:none"></canvas>
+      <button type="button" class="btn-ghost" style="margin-top:6px" onclick="clearSignature()">🧹 مسح التوقيع</button>
+    </div>
 
     <div class="card">
       <label data-i18n="step1_barcode_label">1️⃣ امسح باركود الكرتونة (تاريخ إنتاج/انتهاء/وزن/باتش تلقائي)</label>
@@ -210,7 +229,8 @@
       <label data-i18n="label_prod_date">تاريخ الإنتاج</label>
       <input id="fProd" type="date" autocomplete="off" oninput="computeBatchFromLineShift()">
       <label data-i18n="label_exp_date">تاريخ الصلاحية</label>
-      <input id="fExp" type="date" autocomplete="off">
+      <input id="fExp" type="date" autocomplete="off" oninput="checkExpiryProximity()">
+      <div id="expProximityWarn" class="hidden"></div>
       <label data-i18n="label_qty">عدد الكراتين</label>
       <input id="fQty" type="number" min="1" autocomplete="off" oninput="recalcTotalWeight()">
       <div id="unitWeightRow">
@@ -312,6 +332,10 @@
         <button class="btn-secondary" type="button" style="flex:1" onclick="exportLogExcel()">📊 تصدير Excel</button>
       </div>
       <div id="logMsg" class="msg"></div>
+      <label class="no-print" style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:12.5px;margin-bottom:8px">
+        <input type="checkbox" id="logMineOnly" style="width:auto" onchange="loadLogScreen()">
+        <span>📋 عملياتي أنا بس</span>
+      </label>
       <div id="logTableWrap" style="overflow-x:auto">
         <table id="logTable" style="width:100%;border-collapse:collapse;font-size:12px">
           <thead>
@@ -320,6 +344,7 @@
               <th style="padding:6px 4px">العملية</th>
               <th style="padding:6px 4px">التفاصيل</th>
               <th style="padding:6px 4px">بواسطة</th>
+              <th style="padding:6px 4px">الحالة</th>
             </tr>
           </thead>
           <tbody id="logTableBody"></tbody>
@@ -1115,6 +1140,10 @@ async function doLogout(){
 
 document.addEventListener('DOMContentLoaded', async function(){
   applyLang();
+  initColdMode();
+  initSignaturePad();
+  updateOfflineBadge();
+  syncOfflineQueue();
   try{
     const { data } = await supabaseClient.auth.getSession();
     if(data && data.session){ await afterLoginSuccess(data.session.user); }
@@ -1141,36 +1170,71 @@ async function loadLogScreen(){
   const end = day + 'T23:59:59.999Z';
   const msgEl = document.getElementById('logMsg');
   msgEl.className='msg'; msgEl.textContent='...جاري التحميل';
-  const { data, error } = await supabaseClient.from('ops_log').select('*')
+  let query = supabaseClient.from('ops_log').select('*')
     .eq('organization_id', CURRENT_ORG_ID)
     .gte('created_at', start).lte('created_at', end)
     .order('created_at', {ascending:false});
+  const mineOnly = document.getElementById('logMineOnly').checked;
+  if(mineOnly && currentUser && currentUser.id){ query = query.eq('performed_by', currentUser.id); }
+  const { data, error } = await query;
   if(error){ msgEl.className='msg err'; msgEl.textContent='❌ تعذر تحميل السجل: '+error.message; return; }
   msgEl.className='msg'; msgEl.textContent='';
   LOG_ROWS_CACHE = data||[];
-  renderLogTable();
+  await renderLogTable();
 }
 
-function renderLogTable(){
+// 🔎 استخراج كود الموقع (زي R4-02-A-1) من نص تفاصيل العملية عشان نجيب حالته الحالية من المخزون
+function extractLocFromDetails(details){
+  const m = (details||'').match(/\bR\d+-\d{2}-[A-Z]-\d+\b/);
+  return m ? m[0] : null;
+}
+
+async function renderLogTable(){
   const body = document.getElementById('logTableBody');
   let recCount=0, wdCount=0;
+
+  // 🔗 حالة الاستلام الفعلية (بانتظار/متوافق عليه) — بنجيبها من جدول inventory الحالي لمواقع عمليات الاستلام في السجل
+  const receiveLocs = [];
+  LOG_ROWS_CACHE.forEach(function(r){
+    if((r.action||'').indexOf('استلام')===-1) return;
+    const loc = extractLocFromDetails(r.details);
+    if(loc) receiveLocs.push(loc);
+  });
+  let statusByLoc = {};
+  if(receiveLocs.length && CURRENT_ORG_ID){
+    try{
+      const { data: invRows } = await supabaseClient.from('inventory').select('loc,hold,batch').eq('organization_id', CURRENT_ORG_ID).in('loc', receiveLocs);
+      (invRows||[]).forEach(function(row){ statusByLoc[row.loc] = row.hold ? 'pending' : 'approved'; });
+    }catch(e){ console.warn('status lookup failed', e); }
+  }
+
   body.innerHTML = LOG_ROWS_CACHE.map(function(r){
     const action = r.action||'';
-    if(action.indexOf('استلام')!==-1) recCount++;
+    const isReceive = action.indexOf('استلام')!==-1;
+    if(isReceive) recCount++;
     if(action.indexOf('سحب')!==-1) wdCount++;
     const time = r.created_at ? new Date(r.created_at).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}) : '-';
     const by = r.performed_by ? String(r.performed_by).slice(0,8) : '-';
+    let statusHtml = '-';
+    if(isReceive){
+      const loc = extractLocFromDetails(r.details);
+      const st = loc ? statusByLoc[loc] : null;
+      if(st === 'pending') statusHtml = '<span style="color:#fbbf24">🔒 بانتظار</span>';
+      else if(st === 'approved') statusHtml = '<span style="color:#7cfc9e">✅ متوافق</span>';
+      else statusHtml = '<span style="color:#64748b">❔ غير معروف</span>';
+    }
     return '<tr style="border-bottom:1px solid #1e293b">'
       + '<td style="padding:6px 4px;white-space:nowrap">'+time+'</td>'
       + '<td style="padding:6px 4px;white-space:nowrap">'+action+'</td>'
       + '<td style="padding:6px 4px">'+(r.details||'')+'</td>'
       + '<td style="padding:6px 4px;white-space:nowrap">'+by+'</td>'
+      + '<td style="padding:6px 4px;white-space:nowrap">'+statusHtml+'</td>'
       + '</tr>';
   }).join('');
   document.getElementById('logReceiveCount').textContent = recCount;
   document.getElementById('logWithdrawCount').textContent = wdCount;
   if(LOG_ROWS_CACHE.length===0){
-    body.innerHTML = '<tr><td colspan="4" style="padding:14px;text-align:center;color:#64748b">مفيش عمليات في اليوم ده</td></tr>';
+    body.innerHTML = '<tr><td colspan="5" style="padding:14px;text-align:center;color:#64748b">مفيش عمليات في اليوم ده</td></tr>';
   }
 }
 
@@ -1228,6 +1292,121 @@ function captureLocation(){
 function locationTag(geo){
   return geo ? (' — 📍 ' + geo.lat.toFixed(5) + ',' + geo.lng.toFixed(5)) : '';
 }
+
+/* ===== وضع غرفة التبريد — أزرار وخط أكبر ===== */
+function toggleColdMode(){
+  const on = !document.body.classList.contains('cold-mode');
+  document.body.classList.toggle('cold-mode', on);
+  document.getElementById('coldModeBtn').classList.toggle('cold-active', on);
+  localStorage.setItem('sd_cold_mode', on ? '1' : '0');
+}
+function initColdMode(){
+  if(localStorage.getItem('sd_cold_mode') === '1'){
+    document.body.classList.add('cold-mode');
+    document.getElementById('coldModeBtn').classList.add('cold-active');
+  }
+}
+
+/* ===== حماية من الاستلام/السحب المكرر بالغلط ===== */
+let LAST_SAVE_SIGNATURE = null;
+let LAST_SAVE_TIME = 0;
+function isDuplicateSave(sig){
+  const now = Date.now();
+  if(sig === LAST_SAVE_SIGNATURE && (now - LAST_SAVE_TIME) < 20000) return true;
+  return false;
+}
+function markSaved(sig){ LAST_SAVE_SIGNATURE = sig; LAST_SAVE_TIME = Date.now(); }
+
+/* ===== تنبيه فوري لو تاريخ الصلاحية قريب — وقت الكتابة نفسها، مش بس وقت الحفظ ===== */
+function checkExpiryProximity(){
+  const expEl = document.getElementById('fExp');
+  const warnEl = document.getElementById('expProximityWarn');
+  if(!warnEl) return;
+  const expDate = expEl.value;
+  if(!expDate){ warnEl.classList.add('hidden'); warnEl.textContent=''; return; }
+  const days = Math.floor((new Date(expDate) - new Date(new Date().toISOString().slice(0,10))) / 86400000);
+  if(days < 0){
+    warnEl.textContent = '⛔ الصلاحية منتهية بالفعل (' + Math.abs(days) + ' يوم)';
+    warnEl.style.cssText = 'margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(239,68,68,.18);color:#fca5a5;font-size:12.5px';
+    warnEl.classList.remove('hidden');
+  } else if(days <= 30){
+    warnEl.textContent = '⚠️ الصلاحية قربت — باقي ' + days + ' يوم بس';
+    warnEl.style.cssText = 'margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(251,191,36,.15);color:#fbbf24;font-size:12.5px';
+    warnEl.classList.remove('hidden');
+  } else {
+    warnEl.classList.add('hidden'); warnEl.textContent='';
+  }
+}
+
+/* ===== توقيع إلكتروني (Canvas) — السائق/المستلم ===== */
+let sigCanvas=null, sigCtx=null, sigDrawing=false, sigHasContent=false;
+function initSignaturePad(){
+  sigCanvas = document.getElementById('sigPad');
+  if(!sigCanvas) return;
+  sigCtx = sigCanvas.getContext('2d');
+  sigCtx.strokeStyle = '#e2e8f0'; sigCtx.lineWidth = 2.4; sigCtx.lineJoin='round'; sigCtx.lineCap='round';
+  function pos(e){
+    const r = sigCanvas.getBoundingClientRect();
+    const p = e.touches ? e.touches[0] : e;
+    return { x: (p.clientX - r.left) * (sigCanvas.width/r.width), y: (p.clientY - r.top) * (sigCanvas.height/r.height) };
+  }
+  function start(e){ sigDrawing = true; sigHasContent = true; const p = pos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x,p.y); e.preventDefault(); }
+  function move(e){ if(!sigDrawing) return; const p = pos(e); sigCtx.lineTo(p.x,p.y); sigCtx.stroke(); e.preventDefault(); }
+  function end(){ sigDrawing = false; }
+  sigCanvas.addEventListener('mousedown', start); sigCanvas.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
+  sigCanvas.addEventListener('touchstart', start, {passive:false}); sigCanvas.addEventListener('touchmove', move, {passive:false}); sigCanvas.addEventListener('touchend', end);
+}
+function clearSignature(){
+  if(!sigCtx) return;
+  sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
+  sigHasContent = false;
+}
+function getSignatureDataUrl(){
+  if(!sigCanvas || !sigHasContent) return null;
+  return sigCanvas.toDataURL('image/png');
+}
+
+/* ===== وضع بدون إنترنت — قائمة انتظار محلية وتزامن تلقائي ===== */
+const OFFLINE_QUEUE_KEY = 'sd_offline_queue';
+function getOfflineQueue(){
+  try{ return JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'); }catch(e){ return []; }
+}
+function setOfflineQueue(q){ localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(q)); }
+function queueOfflineReceiving(row, opsDetails){
+  const q = getOfflineQueue();
+  q.push({ type:'receive', row: row, opsDetails: opsDetails, queuedAt: new Date().toISOString() });
+  setOfflineQueue(q);
+  updateOfflineBadge();
+}
+function updateOfflineBadge(){
+  const badge = document.getElementById('offlineBadge');
+  if(!badge) return;
+  const n = getOfflineQueue().length;
+  if(n > 0){ badge.textContent = '📴 ' + n + ' عملية محفوظة محليًا بانتظار الاتصال'; badge.classList.remove('hidden'); }
+  else{ badge.classList.add('hidden'); badge.textContent=''; }
+}
+async function syncOfflineQueue(){
+  if(!navigator.onLine) return;
+  let q = getOfflineQueue();
+  if(!q.length) return;
+  const remaining = [];
+  for(const item of q){
+    try{
+      const { error } = await supabaseClient.from('inventory').upsert(item.row, {onConflict:'organization_id,loc'});
+      if(error){ remaining.push(item); continue; }
+      await supabaseClient.from('ops_log').insert({
+        organization_id: item.row.organization_id,
+        action: '📸 استلام موبايل (بانتظار موافقة) — 📴 اتزامن من وضع أوفلاين',
+        details: item.opsDetails,
+        performed_by: (currentUser && currentUser.id) || null
+      });
+    }catch(e){ remaining.push(item); }
+  }
+  setOfflineQueue(remaining);
+  updateOfflineBadge();
+}
+window.addEventListener('online', syncOfflineQueue);
+
 
 
 /* ===== استلام: مسح باركود GS1-128 (تاريخ إنتاج/انتهاء/وزن/باتش) ===== */
@@ -1469,7 +1648,7 @@ function onBarcodeDecoded(text){
   const parsed = parseGS1Barcode(text);
   const filled = [];
   if(parsed.prodDate){ document.getElementById('fProd').value = parsed.prodDate; filled.push(t('fld_prod')); }
-  if(parsed.expDate){ document.getElementById('fExp').value = parsed.expDate; filled.push(t('fld_exp')); }
+  if(parsed.expDate){ document.getElementById('fExp').value = parsed.expDate; filled.push(t('fld_exp')); checkExpiryProximity(); }
   if(parsed.batch){ document.getElementById('fBatch').value = parsed.batch; filled.push(t('fld_batch')); }
   if(parsed.weightKg){ document.getElementById('fUnitWeight').value = parsed.weightKg; document.getElementById('fUnitWeightUnit').value = 'kg'; recalcTotalWeight(); filled.push(t('fld_weight')); }
   document.getElementById('barcodeStatus').textContent = filled.length
@@ -1966,7 +2145,7 @@ function fillReviewForm(parsed, rawOcrTextFull){
   // لو الباركود سبق وملأ الحقل ده، سيبه — الباركود أدق من الـ OCR
   // الليبل هو الأساس للتواريخ: لو الـ OCR قرا تاريخ، يكتب فوق قيمة الباركود (اللي ممكن تكون غلط/غير مطابقة)
   if(parsed.prodDate) document.getElementById('fProd').value = parsed.prodDate;
-  if(parsed.expDate) document.getElementById('fExp').value = parsed.expDate;
+  if(parsed.expDate){ document.getElementById('fExp').value = parsed.expDate; checkExpiryProximity(); }
   if(!document.getElementById('fBatch').value) document.getElementById('fBatch').value = parsed.batch || '';
   document.getElementById('fCode').value = '';
   document.getElementById('fType').value = 'dry';
@@ -2039,6 +2218,11 @@ async function saveReceiving(){
   if(!item || !qty){
     msgEl.className='msg err'; msgEl.textContent=t('err_item_qty'); return;
   }
+  // ✋ حماية من تكرار نفس الاستلام بالغلط (نفس الصنف/الباتش/الموقع/الكمية خلال 20 ثانية)
+  const saveSig = code+'|'+batch+'|'+loc+'|'+qty;
+  if(isDuplicateSave(saveSig) && !confirm('⚠️ يبدو إن نفس الطبلية اتسجلت قبل شوية — متأكد إنك عايز تسجلها تاني؟')){
+    return;
+  }
   // 🛡️ بوابة المتشابهات: لو الصنف له كود وينتمي لمجموعة شبيهة ولسه محدش أكّده صراحةً — نوقف ونطلب التأكيد
   if(code && getConfusableGroup(code).length >= 2 && confusableConfirmedCode !== code){
     msgEl.className='msg err'; msgEl.textContent='⚠️ في أصناف شبه بعض — أكّد الصنف الصح من الكارت قبل الحفظ';
@@ -2094,9 +2278,21 @@ async function saveReceiving(){
 
   const geo = await captureLocation();
   const deviceLabel = getDeviceLabel();
+  const receiverName = document.getElementById('fReceiverName').value.trim();
+  const driverName = document.getElementById('fDriverName').value.trim();
+  let signaturePath = null;
+  const sigDataUrl = getSignatureDataUrl();
+  if(sigDataUrl && navigator.onLine){
+    try{
+      const sigBlob = await (await fetch(sigDataUrl)).blob();
+      signaturePath = CURRENT_ORG_ID + '/signatures/' + loc.replace(/[^A-Za-z0-9-]/g,'_') + '-' + Date.now() + '.png';
+      const { error: sigErr } = await supabaseClient.storage.from('carton-photos').upload(signaturePath, sigBlob, { contentType:'image/png' });
+      if(sigErr){ console.warn('signature upload failed', sigErr); signaturePath = null; }
+    }catch(e){ console.warn('signature upload failed', e); signaturePath = null; }
+  }
 
   // لقطة من البيانات زي ما العامل بعتها بالظبط — مرجع أساسي لو المشرف عدّل حاجة وقت المراجعة
-  const original_submission = { item, code, prodDate, expDate, qty, batch, weightKg, supplier, location: geo, device: deviceLabel };
+  const original_submission = { item, code, prodDate, expDate, qty, batch, weightKg, supplier, location: geo, device: deviceLabel, receiverName: receiverName||null, driverName: driverName||null, signature_url: signaturePath };
 
   const row = {
     organization_id: CURRENT_ORG_ID, loc: loc, code: code||item, name: item, supplier: supplier||null,
@@ -2105,22 +2301,47 @@ async function saveReceiving(){
     status: 'good', source: sourceNote, in_date: new Date().toISOString().slice(0,10),
     fill: 'موبايل', hold: true, hold_reason: '📱 استلام موبايل — بانتظار موافقة المشرف', disabled: false
   };
-  const { error } = await supabaseClient.from('inventory').upsert(row, {onConflict:'organization_id,loc'});
-  if(error){
-    msgEl.className='msg err'; msgEl.textContent=t('err_save_failed', {msg: error.message});
+  const opsDetails = item + ' — ' + qty + ' كرتون — ' + loc + ' — باتش ' + batch
+    + (driverName? ' — 🚚 سائق: '+driverName : '') + (receiverName? ' — 🧑 مستلم: '+receiverName : '')
+    + locationTag(geo) + ' — 📱 ' + deviceLabel;
+
+  // 📴 لو مفيش نت، نحفظ محليًا ونتزامن تلقائي لما النت يرجع — بدل ما نضيّع بيانات الاستلام
+  if(!navigator.onLine){
+    queueOfflineReceiving(row, opsDetails);
+    markSaved(saveSig);
+    msgEl.className='msg'; msgEl.textContent='';
+    document.getElementById('reviewCard').classList.add('hidden');
+    document.getElementById('confirmSummary').textContent = item + ' — ' + qty + ' ' + t('cartons_word') + ' — ' + loc + ' — 📴 محفوظ محليًا (هيترفع لما النت يرجع)';
+    document.getElementById('saveConfirm').classList.remove('hidden');
+    clearSignature();
     return;
   }
+
+  const { error } = await supabaseClient.from('inventory').upsert(row, {onConflict:'organization_id,loc'});
+  if(error){
+    // فشل الاتصال وقت الحفظ نفسه (مش بس عدم اتصال من الأول) — نحفظ محليًا برضه بدل ما نضيّع الشغل
+    queueOfflineReceiving(row, opsDetails);
+    markSaved(saveSig);
+    msgEl.className='msg'; msgEl.textContent='';
+    document.getElementById('reviewCard').classList.add('hidden');
+    document.getElementById('confirmSummary').textContent = item + ' — ' + qty + ' ' + t('cartons_word') + ' — ' + loc + ' — 📴 تعذر الاتصال، محفوظ محليًا وهيترفع لاحقًا';
+    document.getElementById('saveConfirm').classList.remove('hidden');
+    clearSignature();
+    return;
+  }
+  markSaved(saveSig);
   // يظهر في لوحة "سجل العمليات" على الديسكتوب تلقائيًا (نفس جدول ops_log)
   supabaseClient.from('ops_log').insert({
     organization_id: CURRENT_ORG_ID,
     action: '📸 استلام موبايل (بانتظار موافقة)',
-    details: item + ' — ' + qty + ' كرتون — ' + loc + ' — باتش ' + batch + locationTag(geo) + ' — 📱 ' + deviceLabel,
+    details: opsDetails,
     performed_by: (currentUser && currentUser.id) || null
   }).then(function(r){ if(r.error) console.warn('ops_log insert failed', r.error); });
   msgEl.className='msg'; msgEl.textContent='';
   document.getElementById('reviewCard').classList.add('hidden');
   document.getElementById('confirmSummary').textContent = item + ' — ' + qty + ' ' + t('cartons_word') + ' — ' + loc + ' — ' + t('pending_review_tag');
   document.getElementById('saveConfirm').classList.remove('hidden');
+  clearSignature();
 }
 
 function resetReceivingForm(){
