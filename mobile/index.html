@@ -942,7 +942,7 @@ function scoreCatalog(text){
     qTokens.forEach(function(qt){
       if(qt.length < 2) return; // تجاهل حروف مفردة (زي "G" من "700g") عشان ما تضيفش تطابقات وهمية
       const isNumeric = /^[0-9]+$/.test(qt);
-      const w = isNumeric ? 2 : tokenWeight(qt); // رقم = مقاس/وزن دايمًا مهم؛ كلمة = وزنها حسب ندرتها في الكتالوج
+      const w = isNumeric ? tokenWeight(qt)*1.5 : tokenWeight(qt); // الرقم زي الكلمة بالظبط: وزنه حسب ندرته الفعلية في الكتالوج، مع بونص بسيط (×1.5) لأنه غالبًا مقاس/وزن مميّز — مش وزن ثابت=2 بيدّي رقم شائع زي "400" قوة مصطنعة
       let matched = 0; // 0=مفيش, 1=جزئي, 2=تطابق تام
       let inName = false; // الكلمة دي جوه اسم الصنف نفسه مش بس الوصف/المورد؟
       for(const ct of c.tokens){
