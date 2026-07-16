@@ -4459,7 +4459,7 @@ function scoreCatalog(text){
     if(anchors.length){ const csFlat=c.searchText.replace(/[^A-Z0-9]/g,''); anchors.forEach(function(a){ if(csFlat.indexOf(a.replace(/[^A-Z0-9]/g,''))>=0) score+=50; }); }
     qTokens.forEach(function(qt){
       if(qt.length<2) return;
-      const isNumeric=/^[0-9]+$/.test(qt); const w=isNumeric?2:tokenWeight(qt);
+      const isNumeric=/^[0-9]+$/.test(qt); const w=isNumeric?tokenWeight(qt)*1.5:tokenWeight(qt);
       let matched=0, inName=false;
       for(const ct of c.tokens){ if(ct===qt){matched=2;break;} if(matched<1&&(ct.indexOf(qt)>=0||qt.indexOf(ct)>=0)) matched=1; }
       if(c.nameTokens.indexOf(qt)>=0) inName=true;
@@ -4490,7 +4490,7 @@ function resolveCatalogCode(rawInput){
   const top = ranked[0].score, second = ranked.length>1 ? ranked[1].score : 0;
   // ✅ ثقة كافية = إشارة معتبرة (مش صدفة كلمة قصيرة) + فارق واضح (نسبي وقيمة مطلقة) عن ثاني نتيجة —
   // النص اليدوي القصير سكوره أصغر طبيعيًا من نص الـOCR الطويل، فالعتبة نسبية مش رقم ثابت واحد للسياقين.
-  if(top >= 3 && top >= second*2 && (top-second) >= 2) return ranked[0].c.code;
+  if(top >= 3 && top >= second*1.8 && (top-second) >= 2) return ranked[0].c.code;
   return null;
 }
 const FROZEN_CATALOG = {"FFPTV0001": {"nameEn": "BEEF TRIMMINGS 70 VL-MF", "cat": "تشافي لحم بقري دهون اقل", "oracle": "BFPTVFBR001", "supplier": "Minerva Foods (مينيرفا فودز)."}, "FFPTX0002": {"nameEn": "BEEF TRIMMINGS 65CL FLETCHER", "cat": "تشافي لحم بقري دهون زيادة", "oracle": "BFPTXXUY001", "supplier": "Tacuarembó الأرجواي"}, "FTPTF0003": {"nameEn": "MUTTON TRIMMINGS 50CL FLETCHER", "cat": "تشافي لحم غنم", "oracle": "MTPTFLAU001", "supplier": "Fletcher International Exports"}, "FHPKN0004": {"nameEn": "RM- STRIPS CHICKEN B/L S/L BREAST NOOR", "cat": "ستريبس فيليه صدر دجاج داخلي (موزات)", "oracle": "CHPKNORU001", "supplier": "An-Noor (النور)"}, "FHPKN0005": {"nameEn": "CHICKEN B/L S/L BREAST NOOR", "cat": "صدر دجاج كامل بدون عظم وبدون جلد", "oracle": "CHPKNORU03T", "supplier": "An-Noor (النور)"}, "FHPKS0006": {"nameEn": "RM- STRIPS CHICKEN B/L SEARA", "cat": "ستربس فيليه دجاج داخلي (موزات)", "oracle": "CHPKSEBR008", "supplier": "شركة سيارا البرازيلية"}, "FHPKS0007": {"nameEn": "CHICKEN BONELESS SKINLESS BREAST SEARA", "cat": "صدر دجاج كامل بدون عظم وبدون جلد", "oracle": "CHPKSEBR003", "supplier": "شركة سيارا البرازيلية"}, "FHPNS0008": {"nameEn": "CHICKEN SKIN SEARA 1*15 KG", "cat": "جلد دجاج مجمد فلت", "oracle": "CHPNSEBR01T", "supplier": "شركة سيارا البرازيلية"}, "FVLPC0009": {"nameEn": "BOBBY VEAL MANNAT", "cat": "لحم عجل بوبي بدون عظم مجمد", "oracle": "VLPCMNIN001", "supplier": ""}, "FBFPQ0010": {"nameEn": "BEEF FOREQUARTER PUL", "cat": "ربع أمامي بقري - علامة بُول", "oracle": "BFPQPLBR001", "supplier": "Minerva Foods (مينيرفا فودز)"}, "FANPQ0011": {"nameEn": "BUFFALO B/L FOREQUARTER HABRA", "cat": "ربع أمامي هبرة جاموس مجمد بدون عظم", "oracle": "ANPQHBIN001", "supplier": ""}, "FGRGX0012": {"nameEn": "TEXTURED SOYA PROTEIN SONIC 20 KG", "cat": "بروتين صويا", "oracle": "GRGXSCIN01T", "supplier": "SONIC: علامة سونيك"}, "FGRGX0013": {"nameEn": "TEXTURED SOYA PROTEIN", "cat": "فول صويا", "oracle": "GRGXXXIN001", "supplier": ""}, "FGRRX0014": {"nameEn": "SOYA PROTEIN GRANULES", "cat": "بروتين صويا حبيبات", "oracle": "GRRXXXAR001", "supplier": ""}, "FANPQ0015": {"nameEn": "BUFFALO B/L FOREQUARTER HABRA 2", "cat": "ربع أمامي هبرة جاموس مجمد بدون عظم", "oracle": "", "supplier": ""}};
