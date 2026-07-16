@@ -197,7 +197,8 @@
       </div>
     </div>
 
-    <div id="reviewCard" class="card hidden">
+    <div id="ocrWarnBanner" style="display:none;background:#7C2D12;color:#FED7AA;border:1.5px solid #DC2626;border-radius:10px;padding:12px 16px;margin:10px 0 6px;font-size:13.5px;line-height:1.6;align-items:flex-start;gap:10px;"></div>
+<div id="reviewCard" class="card hidden">
       <label data-i18n="step4_review">4️⃣ راجع وصحّح البيانات قبل الحفظ</label>
       <label data-i18n="label_item">الصنف</label>
       <div style="position:relative">
@@ -2262,6 +2263,23 @@ function fillReviewForm(parsed, rawOcrTextFull){
   updateReceivingModeUI(); // يظهر قسم اللحوم لو الصنف اتصنّف "مجمّد"
   document.getElementById('reviewCard').classList.remove('hidden');
   checkSlotOccupied();
+
+  // تحقق من الحقول الأساسية بعد OCR
+  const missingFields = [];
+  if(!document.getElementById('fProd').value) missingFields.push('تاريخ الإنتاج');
+  if(!document.getElementById('fExp').value) missingFields.push('تاريخ الصلاحية');
+  if(!document.getElementById('fQty').value) missingFields.push('عدد الكراتين');
+  if(!document.getElementById('fCode').value) missingFields.push('كود الصنف');
+
+  const warnEl = document.getElementById('ocrWarnBanner');
+  if(warnEl){
+    if(missingFields.length){
+      warnEl.innerHTML = '\u26a0\ufe0f تعذّر قراءة: <b>' + missingFields.join(' &middot; ') + '</b> — أدخلها يدوياً';
+      warnEl.style.display = 'flex';
+    } else {
+      warnEl.style.display = 'none';
+    }
+  }
 }
 
 async function saveReceiving(){
