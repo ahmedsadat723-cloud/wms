@@ -725,7 +725,8 @@ const CATALOG_LIST = Object.keys(CATALOG).map(function(code){
     code: code, nameEn: nameEn, cat: cat, nameUr: nameUr, supplier: supplier, oracle: oracle,
     searchText: combined.toUpperCase(),
     tokens: tokenizeForMatch(combined),
-    nameTokens: tokenizeForMatch(nameEn+' '+alias) // هوية الصنف (+البراند التجاري) — بتاخد وزن مضاعف في المطابقة
+    nameTokens: tokenizeForMatch(nameEn), // هوية الصنف الحقيقية — وزن مضاعف كامل (×2)
+    aliasTokens: tokenizeForMatch(alias) // براند/اسم بديل مشترك بين أصناف (زي SANACEL بين البطاطس والقمح) — وزن أخف (×1.3) عشان ميغلبش المميّز الحقيقي
   };
 });
 
@@ -950,7 +951,8 @@ function scoreCatalog(text){
         if(matched < 1 && (ct.indexOf(qt)>=0 || qt.indexOf(ct)>=0)) matched = 1;
       }
       if(c.nameTokens.indexOf(qt) >= 0) inName = true;
-      const nameBoost = inName ? 2 : 1; // كلمة موجودة في اسم الصنف الفعلي تاخد ضعف الوزن عن وصف عام
+      const inAlias = !inName && c.aliasTokens.indexOf(qt) >= 0;
+      const nameBoost = inName ? 2 : (inAlias ? 1.3 : 1); // اسم الصنف الحقيقي ×2، براند مشترك (زي SANACEL بين صنفين) ×1.3 بس، وصف عام ×1
       if(matched===2) score += w * nameBoost;
       else if(matched===1) score += w * 0.4 * nameBoost;
     });
