@@ -2032,10 +2032,30 @@ async function runOCR(imageDataUrl){
 
 // ✅ استخراج بقواعد بسيطة مبنية على أشكال ليبلات حقيقية (FUTURE PACK / UCIC / Jamjoom)
 function parseLabelText(text){
-  // ✅ OCR عربي+إنجليزي مختلط بيحط علامات اتجاه/فراغات صفرية مخفية (LRM/RLM إلخ) جوه الكلمات الإنجليزية
-  // نفسها — بتبان زي نص سليم بس بتكسر مطابقة الكلمة المفتاحية الحرفية. لازم نشيلها قبل أي حاجة.
-  var BIDI_CTRL_RE = new RegExp(String.fromCharCode(91) + '\\u200B-\\u200F\\u202A-\\u202E\\u2066-\\u2069\\uFEFF' + String.fromCharCode(93), 'g');
-  text = (text||'').normalize('NFKC').replace(BIDI_CTRL_RE, '');
+  // تنظيف شامل: Bidi + أحرف تحكم + همزات + تشكيل + مسافات غير منتظمة
+  var BIDI_CTRL_RE = new RegExp('[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF\u00AD]', 'g');
+  text = (text||'')
+    .normalize('NFKC')
+    .replace(BIDI_CTRL_RE, '')
+    // توحيد علامات الترقيم الدولية لنقطة/نقطتين/شرطة عادية
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+    .replace(/[\u2013\u2014\u2015\u2212]/g, '-')
+    .replace(/[\u00B7\u2022\u2027\u30FB]/g, '.')
+    // توحيد الأرقام العربية/الفارسية/الهندية للأرقام اللاتينية
+    .replace(/[\u0660-\u0669]/g, function(c){ return c.charCodeAt(0) - 0x0660; })
+    .replace(/[\u06F0-\u06F9]/g, function(c){ return c.charCodeAt(0) - 0x06F0; })
+    .replace(/[\u0966-\u096F]/g, function(c){ return c.charCodeAt(0) - 0x0966; })
+    // شيل التشكيل العربي (حركات)
+    .replace(/[\u064B-\u065F\u0670]/g, '')
+    // توحيد الألف بأشكالها المختلفة
+    .replace(/[\u0622\u0623\u0625\u0671]/g, '\u0627')
+    // توحيد الياء/الألف المقصورة
+    .replace(/\u0649/g, '\u064A')
+    // توحيد الهاء/التاء المربوطة
+    .replace(/\u0629/g, '\u0647')
+    // شيل مسافات متعددة
+    .replace(/[ \t]+/g, ' ');
   const lines = text.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
   const out = {};
 
@@ -2082,7 +2102,10 @@ function parseLabelText(text){
   // ✅ التواريخ من الليبل هي الأساس دلوقتي (الباركود بقى احتياطي — أحيانًا صلاحيته مش مطابقة للّيبل).
   // بندعم مسمّيات متعددة اللغات (إنجليزي/إسباني/برتغالي/ألماني/فرنسي) لأن ليبلات اللحوم المستوردة مختلطة اللغات،
   // وبندوّر على التاريخ في نفس سطر الكلمة المفتاحية أو في السطر/السطرين اللي بعدها (الجداول بتفصل المسمّى عن القيمة).
-  const dateRegex = /(\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2}|\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}|\d{1,2}[\-\s][A-Z]{3,9}[\-\s]\d{2,4})/i;
+  // dateRegex موسّع: يشمل كل الصيغ العالمية
+  // YYYY-MM-DD | DD/MM/YYYY | DD-MON-YYYY | DD.MM.YYYY | YYYY/MM/DD
+  // + أرقام ملتصقة بنقاط (01.03.2026) + تاريخ عربي (٢٠٢٦/٠٣/٠١)
+  const dateRegex = /(\d{4}[\.\/\-]\d{1,2}[\.\/\-]\d{1,2}|\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4}|\d{1,2}[\s\-\.][A-Za-z]{3,9}[\s\-\.]\d{2,4}|\d{6,8})/i;
   function findDateNear(keywordRe){
     for(let i = 0; i < lines.length; i++){
       if(!keywordRe.test(lines[i])) continue;
@@ -2098,16 +2121,22 @@ function parseLabelText(text){
   // تاريخ الإنتاج (Production / Producción / Date de production / F.Prod) — وكمان "PACKED ON" (تاريخ التعبئة = الإنتاج على كراتين اللحوم)،
   // بنتجنّب SLAUGHTER/ذبح/Faena و Congelado/تجميد لأنها تواريخ أقدم مش تاريخ الإنتاج الفعلي.
   const slaughterRe = /SLAUGHTER|ذبح|FAENA|CONGELAD|تجميد/i;
-  out.prodDate = findDateNear(/PRODUCTION|PRODUCC|PRODUZ|DATE OF PROD|F\.?\s*PROD|PROD\.?\s*DATE|PACKED\s*ON|PACK\s*DATE|PACKING\s*DATE|التعبئة/i);
+  out.prodDate = findDateNear(/PRODUCTION|PRODUCC|PRODUZ|DATE OF PROD|F\.?\s*PROD|PROD\.?\s*DATE|PACKED\s*ON|PACK\s*DATE|PACKING\s*DATE|MFG|MFD|MFG\.?\s*DATE|MANUFACTURED|MANUFACTURE\s*DATE|FABRICAT|DATE\s*DE\s*FABRIC|DATA\s*DE\s*FABRIC|HERST\.?|HERSTELLUNGSDATUM|DATA\s*DI\s*PRODUZ|ДАТА\s*ПРОИЗВОДСТВА|تاريخ\s*الإنتاج|تاريخ\s*الانتاج|تاريخ\s*التصنيع|تاريخ\s*التعبئة|إنتاج|انتاج|تصنيع|تعبئة/i);
   if(!out.prodDate){
     // حل أخير: أول تاريخ ظاهر مش جنب كلمة ذبح/تجميد (عشان ماياخدش تاريخ الذبح غلط)
     for(const line of lines){ if(slaughterRe.test(line)) continue; const m = line.match(dateRegex); if(m){ out.prodDate = normalizeDate(m[0]); break; } }
   }
   // تاريخ الانتهاء/الصلاحية — مسمّيات كتير: To Consume Before / Consumir antes / Data de Validade / Best Before / Use By / Mindestens haltbar / A consommer
-  out.expDate = findDateNear(/EXPIR|EXP\.?\s*DATE|BEST\s*BEFORE|BB\s*DATE|CONSUME\s*BEFORE|CONSUMIR|VALIDAD|VALIDADE|USE\s*BY|VENCIM|CADUCIDAD|MINDESTENS|CONSOMMER/i);
+  out.expDate = findDateNear(/EXPIR|EXP\.?\s*DATE|BEST\s*BEFORE|BB\.?\s*DATE|CONSUME\s*BEFORE|CONSUMIR|VALIDAD|VALIDADE|USE\s*BY|VENCIM|CADUCIDAD|MINDESTENS|CONSOMMER|SCADENZA|SCAD|VERFALL|BBE|BB\b|USE\s*BEFORE|SELL\s*BY|ENJOY\s*BY|BORN\s*ON|DURABILITE|СРОК\s*ГОДНОСТИ|تاريخ\s*الصلاحية|تاريخ\s*انتهاء|تاريخ\s*الانتهاء|صالح\s*حتى|صلاحية|انتهاء|استخدام\s*قبل|يستخدم\s*قبل/i);
 
   // الكمية: يفضّل كمية الطبلية الواحدة (PALLET) لأننا بنستلم طبلية واحدة فعليًا، مش إجمالي الأوردر
-  const qtyKeywordsPriority = ['QTY / PALLET', 'QTY/PALLET', 'QUANTITY/PALLET', 'QUANTITY PER PALLET', 'QTY / BUNDLE', 'QTY/BUNDLE', 'QUANTITY PER BOX', 'QTY PER BOX'];
+  const qtyKeywordsPriority = [
+    'QTY / PALLET', 'QTY/PALLET', 'QUANTITY/PALLET', 'QUANTITY PER PALLET',
+    'QTY / BUNDLE', 'QTY/BUNDLE', 'QUANTITY PER BOX', 'QTY PER BOX',
+    'NO OF CARTONS', 'NO. OF CARTONS', 'NUMBER OF CARTONS', 'CARTONS PER PALLET',
+    'CTN/PLT', 'CTNS', 'CARTON QTY', 'PIECES', 'PCS', 'UNITS',
+    'عدد الكراتين', 'عدد الكارتونات', 'الكمية', 'كمية', 'عدد'
+  ];
   let qtyStr = findAfterKeyword(qtyKeywordsPriority);
   if(!qtyStr) qtyStr = findAfterKeyword(['QTY', 'QUANTITY']);
   const qm = (qtyStr||'').replace(/(\d),(?=\d{3}\b)/g, '$1').match(/\d+/); // شيل فاصلة الآلاف (1,500 → 1500) قبل الاستخراج
@@ -2125,7 +2154,12 @@ function parseLabelText(text){
   // ✅ شلنا "WT"/"KG" المجردة من هنا — كانت بتتطابق غلط مع أي حاجة فيها "kg" زي اسم صنف "DOUX 2KG" وتاخد رقم مالوش علاقة بوزن الكرتونة فعليًا
   // ✅ بندعم القيمة في نفس السطر أو في السطر/السطرين اللي بعد الكلمة (زي "NETT WEIGHT" فوق و"21.00 kg" تحته)،
   // وبنفضّل الرقم المتبوع بـ kg على أي رقم تاني (عشان ماياخدش الباوند "46.29 lb" غلط).
-  const weightKeywords = ['NET WEIGHT', 'NETT WEIGHT', 'PESO NETO', 'POIDS NET', 'PESO LIQUIDO', 'NETTO', 'NET WT', 'NETT WT', 'GROSS WEIGHT', 'WEIGHT'];
+  const weightKeywords = [
+    'NET WEIGHT', 'NETT WEIGHT', 'PESO NETO', 'POIDS NET', 'PESO LIQUIDO',
+    'NETTO', 'NET WT', 'NETT WT', 'GROSS WEIGHT', 'WEIGHT',
+    'WT', 'GEWICHT', 'PESO', 'POIDS', 'ВАГА', 'GEWICHT',
+    'الوزن الصافي', 'الوزن', 'وزن', 'صافي الوزن', 'الوزن الإجمالي'
+  ];
   function findWeightKg(){
     for(const kw of weightKeywords){
       const kwU = kw.toUpperCase();
