@@ -1483,6 +1483,7 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg
 .tabs::-webkit-scrollbar-thumb{background:var(--brand-soft);border-radius:4px;}
 .tab-scroll-btn{width:40px;height:40px;border-radius:50%;border:2px solid var(--line2);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:.3s;color:var(--brand);font-weight:900;flex-shrink:0}
 .tab-scroll-btn:hover{background:var(--brand-soft);border-color:var(--brand);transform:scale(1.1)}
+.tab-scroll-btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
 .tab-btn{padding:11px 18px;border:1px solid var(--line2);background:var(--bg2);color:var(--muted);
   cursor:pointer;border-radius:10px;font-size:12.5px;font-weight:700;transition:.25s;font-family:inherit;
   white-space:nowrap;flex-shrink:0;}
@@ -1848,6 +1849,8 @@ tr:hover td{background:var(--brand-soft)}
 
   <!-- TABS WITH SCROLL CONTROLS -->
   <div id="topNavRow" style="gap: 12px; align-items: center; margin-bottom: 16px;">
+    <button id="tabBackBtn" class="tab-scroll-btn" onclick="tabGoBack()" title="التاب السابق (رجوع)" disabled>⬅</button>
+    <button id="tabFwdBtn" class="tab-scroll-btn" onclick="tabGoForward()" title="التاب التالي (تقدم)" disabled>➡</button>
     <button class="tab-scroll-btn" onclick="scrollTabsLeft()" title="التابات السابقة">❮</button>
     <div id="tabsWrapper" style="flex:1;overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:var(--brand-soft) transparent;-webkit-overflow-scrolling:touch">
       <div class="tabs" id="tabs">
@@ -9095,7 +9098,38 @@ var MASTER_DATA = JSON.parse(localStorage.getItem('almanjam_master_data')||'{}')
 const BATCH_WEIGHT_KG = 750;
 
 
+// ===== 🔗 تاريخ التنقل بين التابات (رجوع/تقدم زي المتصفح) — 16 يوليو 2026 =====
+let TAB_HISTORY = [0];
+let TAB_HISTORY_POS = 0;
+let TAB_NAV_IN_PROGRESS = false;
+function updateTabNavButtons(){
+  const backBtn = document.getElementById('tabBackBtn'), fwdBtn = document.getElementById('tabFwdBtn');
+  if(backBtn) backBtn.disabled = TAB_HISTORY_POS <= 0;
+  if(fwdBtn) fwdBtn.disabled = TAB_HISTORY_POS >= TAB_HISTORY.length - 1;
+}
+function tabGoBack(){
+  if(TAB_HISTORY_POS <= 0) return;
+  TAB_HISTORY_POS--;
+  TAB_NAV_IN_PROGRESS = true;
+  switchTab(TAB_HISTORY[TAB_HISTORY_POS]);
+  TAB_NAV_IN_PROGRESS = false;
+}
+function tabGoForward(){
+  if(TAB_HISTORY_POS >= TAB_HISTORY.length - 1) return;
+  TAB_HISTORY_POS++;
+  TAB_NAV_IN_PROGRESS = true;
+  switchTab(TAB_HISTORY[TAB_HISTORY_POS]);
+  TAB_NAV_IN_PROGRESS = false;
+}
+
 function switchTab(i){
+  // ✅ تسجيل التاب في التاريخ — إلا لو إحنا بالفعل جوه تنقل رجوع/تقدم (عشان ميكررش نفسه)
+  if(!TAB_NAV_IN_PROGRESS && TAB_HISTORY[TAB_HISTORY_POS] !== i){
+    TAB_HISTORY = TAB_HISTORY.slice(0, TAB_HISTORY_POS + 1); // امسح أي "تقدم" قديم لو فتحنا تاب جديد بعد رجوع
+    TAB_HISTORY.push(i);
+    TAB_HISTORY_POS = TAB_HISTORY.length - 1;
+  }
+  updateTabNavButtons();
   try{ refreshMoveNos(); }catch(e){}  // ✅ v184: تحديث أرقام الحركة التلقائية عند فتح أي تاب
   document.querySelectorAll('.tab-btn').forEach(function(b){var oc=b.getAttribute('onclick')||'';var m=oc.match(/switchTab\((\d+)\)/);b.classList.toggle('active',!!m&&(+m[1]===i));});
   document.querySelectorAll('.panel').forEach(function(p){ p.classList.toggle('active', +p.getAttribute('data-tab')===i); });
