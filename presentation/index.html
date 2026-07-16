@@ -79,6 +79,10 @@ body{
 .topbar .title:hover,.topbar .title:focus{background:var(--bg-panel-2);}
 .topbar .title:focus{box-shadow:0 0 0 1.5px var(--amber);}
 .topbar .sub{font-size:11px;color:var(--text-dim);font-family:var(--mono);letter-spacing:.05em;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.timestamp-badge{display:flex;align-items:center;gap:6px;background:var(--bg-panel-2);border:1px solid var(--line-soft);border-radius:100px;padding:6px 14px;font-family:var(--mono);font-size:11px;color:var(--text-dim);white-space:nowrap;}
+.timestamp-badge .ts-icon{font-size:13px;opacity:.7;}
+#tsText{color:var(--text-mid);}
 .live-pill{display:flex;align-items:center;gap:8px;background:var(--bg-panel);border:1px solid var(--line);border-radius:100px;padding:7px 16px 7px 12px;}
 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(63,164,106,.6);animation:pulse 2s infinite;}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(63,164,106,.5);}70%{box-shadow:0 0 0 8px rgba(63,164,106,0);}100%{box-shadow:0 0 0 0 rgba(63,164,106,0);}}
@@ -140,6 +144,9 @@ section{padding:60px 40px;max-width:1400px;margin:0 auto;}
 .photo-slot:hover .rm-btn{display:block;}
 
 /* ===== شريط التحكم بأوضاع العرض ===== */
+.mode-bar-label{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;padding:0 4px;}
+.kiosk-btn{border:1px solid rgba(212,169,76,.25) !important;}
+.kiosk-btn:not(.active):hover{color:var(--amber) !important;border-color:var(--amber) !important;}
 .mode-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:60;
   background:rgba(16,22,31,.92);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:100px;
   padding:8px;display:flex;gap:4px;box-shadow:0 12px 30px rgba(0,0,0,.4);}
@@ -196,9 +203,15 @@ body.auto-cycling section{position:relative;}
         <div class="sub" id="orgLabel">وضع تجريبي</div>
       </div>
     </div>
-    <div class="live-pill">
-      <div class="live-dot" id="liveDot"></div>
-      <span id="liveLabel">جارِ الاتصال...</span>
+    <div class="topbar-right">
+      <div class="timestamp-badge" id="timestampBadge" title="آخر تحديث للبيانات">
+        <span class="ts-icon">🕐</span>
+        <span id="tsText">—</span>
+      </div>
+      <div class="live-pill">
+        <div class="live-dot" id="liveDot"></div>
+        <span id="liveLabel">جارِ الاتصال...</span>
+      </div>
     </div>
   </div>
 
@@ -279,9 +292,23 @@ body.auto-cycling section{position:relative;}
 <button id="kioskExitBtn" onclick="setMode('interactive')">✕ خروج من وضع العرض</button>
 
 <div class="mode-bar">
-  <button class="mode-btn active" data-mode="interactive" onclick="setMode('interactive')">🖱️ تفاعلي</button>
-  <button class="mode-btn" data-mode="auto" onclick="setMode('auto')">🎬 عرض تلقائي</button>
-  <button class="mode-btn" data-mode="kiosk" onclick="setMode('kiosk')">📺 شاشة مستمرة</button>
+  <span class="mode-bar-label">وضع العرض</span>
+  <button class="mode-btn active" data-mode="interactive" onclick="setMode('interactive')" title="تصفّح حر — جميع الأقسام مرئية">🖱️ تفاعلي</button>
+  <button class="mode-btn" data-mode="auto" onclick="setMode('auto')" title="تنقّل تلقائي بين الأقسام كل 7 ثوانٍ">🎬 عرض تلقائي</button>
+  <button class="mode-btn kiosk-btn" data-mode="kiosk" onclick="confirmKiosk()" title="شاشة مستمرة بملء الشاشة — اضغط ESC للخروج">📺 شاشة مستمرة</button>
+</div>
+
+<!-- تأكيد وضع الكشك -->
+<div id="kioskOverlay" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(8,11,16,.92);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;">
+  <div style="background:var(--bg-panel);border:1px solid var(--line);border-radius:18px;padding:40px 48px;text-align:center;max-width:420px;">
+    <div style="font-size:40px;margin-bottom:16px;">📺</div>
+    <div style="font-family:var(--disp);font-size:20px;font-weight:700;color:var(--text-hi);margin-bottom:10px;">وضع الشاشة المستمرة</div>
+    <div style="font-size:13.5px;color:var(--text-mid);line-height:1.8;margin-bottom:28px;">سيتم تشغيل اللوحة بملء الشاشة مع تدوير تلقائي بين الأقسام.<br>اضغط <kbd style="background:var(--bg-panel-2);border:1px solid var(--line);border-radius:5px;padding:2px 8px;font-size:12px;">ESC</kbd> للخروج في أي وقت.</div>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button onclick="cancelKiosk()" style="background:none;border:1px solid var(--line);border-radius:100px;padding:10px 24px;color:var(--text-mid);font-family:var(--body);font-size:13px;cursor:pointer;">إلغاء</button>
+      <button onclick="startKiosk()" style="background:var(--amber);border:none;border-radius:100px;padding:10px 28px;color:#1A1305;font-family:var(--body);font-weight:700;font-size:13px;cursor:pointer;">▶ تشغيل</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -347,7 +374,10 @@ function setLiveStatus(live){
   const lbl = document.getElementById('liveLabel');
   if(live){ dot.style.background='var(--green)'; lbl.textContent='بيانات حية — متصل الآن'; }
   else{ dot.style.background='var(--text-dim)'; dot.style.animation='none'; lbl.textContent='بيانات تجريبية — بدون اتصال'; }
-  document.getElementById('updatedStrip').textContent = 'آخر تحديث للبيانات: ' + new Date().toLocaleString('ar-EG');
+  const now = new Date();
+  const timeStr = now.toLocaleString('ar-EG', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('updatedStrip').textContent = 'آخر تحديث للبيانات: ' + timeStr;
+  document.getElementById('tsText').textContent = timeStr;
 }
 
 function enterApp(){
@@ -629,6 +659,27 @@ const TITLE_KEY = 'almunajem_presentation_title_v1';
 })();
 
 document.getElementById('lgPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+/* ============ وضع الكشك بتأكيد ============ */
+function confirmKiosk(){
+  const overlay = document.getElementById('kioskOverlay');
+  overlay.style.display = 'flex';
+}
+function cancelKiosk(){
+  document.getElementById('kioskOverlay').style.display = 'none';
+}
+function startKiosk(){
+  document.getElementById('kioskOverlay').style.display = 'none';
+  setMode('kiosk');
+}
+
+/* ============ timestamp أولي عند التحميل ============ */
+(function initTimestamp(){
+  const now = new Date();
+  const timeStr = now.toLocaleString('ar-EG', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('tsText').textContent = timeStr;
+  document.getElementById('updatedStrip').textContent = 'آخر تحديث للبيانات: ' + timeStr;
+})();
 
 /* ✅ ضمان الخروج من وضع الكشك دايمًا — لو المستخدم ضغط Escape يخرج من الشاشة الكاملة بس الوضع فضل شغال، أو لو طلب الشاشة الكاملة فشل من الأساس */
 document.addEventListener('fullscreenchange', ()=>{ if(!document.fullscreenElement && document.body.classList.contains('kiosk')) setMode('interactive'); });
