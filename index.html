@@ -4444,7 +4444,7 @@ const CATALOG_LIST = Object.keys(CATALOG).map(function(code){
   const nameEn=c.nameEn||'', cat=c.cat||'', nameUr=c.nameUr||'', supplier=c.supplier||'', oracle=c.oracle||'', alias=c.alias||'';
   const combined = nameEn+' '+cat+' '+nameUr+' '+supplier+' '+oracle+' '+alias;
   return { code:code, nameEn:nameEn, cat:cat, nameUr:nameUr, supplier:supplier, oracle:oracle,
-    searchText: combined.toUpperCase(), tokens: tokenizeForMatch(combined), nameTokens: tokenizeForMatch(nameEn+' '+alias) };
+    searchText: combined.toUpperCase(), tokens: tokenizeForMatch(combined), nameTokens: tokenizeForMatch(nameEn), aliasTokens: tokenizeForMatch(alias) };
 });
 const TOKEN_DF = {};
 CATALOG_LIST.forEach(function(c){ const uniq={}; c.tokens.forEach(function(t){uniq[t]=1;}); Object.keys(uniq).forEach(function(t){TOKEN_DF[t]=(TOKEN_DF[t]||0)+1;}); });
@@ -4463,7 +4463,8 @@ function scoreCatalog(text){
       let matched=0, inName=false;
       for(const ct of c.tokens){ if(ct===qt){matched=2;break;} if(matched<1&&(ct.indexOf(qt)>=0||qt.indexOf(ct)>=0)) matched=1; }
       if(c.nameTokens.indexOf(qt)>=0) inName=true;
-      const nameBoost = inName?2:1;
+      const inAlias = !inName && c.aliasTokens.indexOf(qt)>=0;
+      const nameBoost = inName?2:(inAlias?1.3:1);
       if(matched===2) score += w*nameBoost; else if(matched===1) score += w*0.4*nameBoost;
     });
     return { c:c, score:score };
