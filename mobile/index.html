@@ -2081,7 +2081,7 @@ function parseLabelText(text){
   // ✅ التواريخ من الليبل هي الأساس دلوقتي (الباركود بقى احتياطي — أحيانًا صلاحيته مش مطابقة للّيبل).
   // بندعم مسمّيات متعددة اللغات (إنجليزي/إسباني/برتغالي/ألماني/فرنسي) لأن ليبلات اللحوم المستوردة مختلطة اللغات،
   // وبندوّر على التاريخ في نفس سطر الكلمة المفتاحية أو في السطر/السطرين اللي بعدها (الجداول بتفصل المسمّى عن القيمة).
-  const dateRegex = /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}|\d{1,2}[\-\s][A-Z]{3}[\-\s]\d{2,4})/i;
+  const dateRegex = /(\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2}|\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}|\d{1,2}[\-\s][A-Z]{3,9}[\-\s]\d{2,4})/i;
   function findDateNear(keywordRe){
     for(let i = 0; i < lines.length; i++){
       if(!keywordRe.test(lines[i])) continue;
@@ -2109,7 +2109,7 @@ function parseLabelText(text){
   const qtyKeywordsPriority = ['QTY / PALLET', 'QTY/PALLET', 'QUANTITY/PALLET', 'QUANTITY PER PALLET', 'QTY / BUNDLE', 'QTY/BUNDLE', 'QUANTITY PER BOX', 'QTY PER BOX'];
   let qtyStr = findAfterKeyword(qtyKeywordsPriority);
   if(!qtyStr) qtyStr = findAfterKeyword(['QTY', 'QUANTITY']);
-  const qm = (qtyStr||'').match(/\d+/);
+  const qm = (qtyStr||'').replace(/(\d),(?=\d{3}\b)/g, '$1').match(/\d+/); // شيل فاصلة الآلاف (1,500 → 1500) قبل الاستخراج
   out.qty = qm ? qm[0] : '';
   // ✅ أولوية لشكل رقم الباتش المستخدم فعليًا في المصنع (زي "0707/B2" أو "0807/C1": 3-4 أرقام / حرف / رقم) — أدق بكتير من البحث بكلمة مفتاحية،
   // لأن الختم بيكون جنب نصوص تانية في نفس السطر وممكن الـOCR يخلط حواليها فيرجع نص غلط تمامًا (زي "Day : ..." بدل رقم الباتش الحقيقي)
@@ -2132,9 +2132,13 @@ function parseLabelText(text){
         const idx = lines[i].toUpperCase().indexOf(kwU);
         if(idx < 0) continue;
         for(let j = i; j <= i + 2 && j < lines.length; j++){
-          const kgM = lines[j].match(/(\d+(?:\.\d+)?)\s*KG\b/i); // رقم متبوع بكيلو = الأدق
-          if(kgM) return kgM[1];
-          if(j === i){ const anyM = lines[i].slice(idx + kw.length).match(/\d+(?:\.\d+)?/); if(anyM) return anyM[0]; }
+          // ✅ فاصلة عشرية نقطة أو فاصلة (10.5kg أو 10,5kg — الموردين الأوروبيين بيستخدموا فاصلة غالبًا)
+          const kgM = lines[j].match(/(\d+(?:[.,]\d+)?)\s*KG\b/i); // رقم متبوع بكيلو = الأدق
+          if(kgM) return parseFloat(kgM[1].replace(',', '.'));
+          // ✅ جرام: نفس الرقم بس بيتحوّل لكيلو (÷1000) — كان مالوش أي دعم قبل كده
+          const gM = lines[j].match(/(\d+(?:[.,]\d+)?)\s*(?:GM|GR|G)\b/i);
+          if(gM) return parseFloat(gM[1].replace(',', '.')) / 1000;
+          if(j === i){ const anyM = lines[i].slice(idx + kw.length).match(/\d+(?:[.,]\d+)?/); if(anyM) return parseFloat(anyM[0].replace(',', '.')); }
         }
       }
     }
@@ -2149,11 +2153,16 @@ function parseLabelText(text){
 function normalizeDate(raw){
   // يحاول يحوّل أي شكل تاريخ لصيغة YYYY-MM-DD المطلوبة لحقل <input type=date>
   const months = {JAN:'01',FEB:'02',MAR:'03',APR:'04',MAY:'05',JUN:'06',JUL:'07',AUG:'08',SEP:'09',OCT:'10',NOV:'11',DEC:'12'};
-  let m = raw.match(/(\d{1,2})[\-\s]([A-Z]{3})[\-\s](\d{2,4})/i);
+  let m = raw.match(/(\d{1,2})[\-\s]([A-Z]{3,9})[\-\s](\d{2,4})/i);
   if(m){
-    const mon = months[m[2].toUpperCase()];
+    const mon = months[m[2].toUpperCase().slice(0,3)];
     let yr = m[3].length===2 ? '20'+m[3] : m[3];
     if(mon) return yr+'-'+mon+'-'+m[1].padStart(2,'0');
+  }
+  // ✅ صيغة ISO بالسنة الأول (2026-03-02 / 2026.03.02) — شائعة عند بعض الموردين الأوروبيين/الآسيويين
+  m = raw.match(/(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/);
+  if(m){
+    return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
   }
   m = raw.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
   if(m){
