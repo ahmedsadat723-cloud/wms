@@ -276,8 +276,9 @@ body {
 .viz3d { position: relative; height: min(62vh, 580px); border-radius: 12px; overflow: hidden; border: 1.5px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,.08); background: linear-gradient(180deg,#F7F9FC,#E9EEF4); }
 .viz3d canvas { width: 100%; height: 100%; display: block; cursor: grab; }
 .viz3d canvas:active { cursor: grabbing; }
-.viz3d__bar { position: absolute; left: 16px; right: 16px; bottom: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; pointer-events: none; }
-.viz3d__hint { font-family: var(--mono); font-size: 11px; color: var(--mid); background: rgba(255,255,255,.82); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; }
+.viz3d__tools { position: absolute; top: 14px; left: 14px; display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 28px); z-index: 2; }
+.viz3d__hint { position: absolute; left: 16px; bottom: 14px; font-family: var(--mono); font-size: 11px; color: var(--mid); background: rgba(255,255,255,.82); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; z-index: 2; }
+.viz3d__btn.active { background: var(--gold-bg); border-color: var(--gold-bd); color: var(--gold); }
 .viz3d__btn { pointer-events: auto; font-family: var(--body); font-size: 12.5px; font-weight: 600; color: var(--ink); background: rgba(255,255,255,.92); border: 1.5px solid var(--border); padding: 7px 14px; border-radius: 20px; cursor: pointer; transition: all .15s; }
 .viz3d__btn:hover { background: var(--gold-bg); border-color: var(--gold-bd); color: var(--gold); }
 </style>
@@ -408,10 +409,16 @@ body {
     </div>
     <div class="viz3d" id="viz3d">
       <canvas id="rackCanvas"></canvas>
-      <div class="viz3d__bar">
-        <span class="viz3d__hint">اسحب للتدوير · عجلة الماوس للتقريب · زر الماوس الأيمن للتحريك</span>
-        <button class="viz3d__btn" id="rotBtn">⏸ إيقاف الدوران</button>
+      <div class="viz3d__tools">
+        <button class="viz3d__btn" id="btnZoomIn"  title="تقريب">＋ تقريب</button>
+        <button class="viz3d__btn" id="btnZoomOut" title="تبعيد">－ تبعيد</button>
+        <button class="viz3d__btn" id="btnIso"  title="منظور ثلاثي">⬗ منظور</button>
+        <button class="viz3d__btn" id="btnTop"  title="من أعلى">⬒ أعلى</button>
+        <button class="viz3d__btn" id="btnSide" title="جانبي">▭ جانبي</button>
+        <button class="viz3d__btn" id="btnReset" title="إعادة الضبط">⟲ ضبط</button>
+        <button class="viz3d__btn" id="btnAuto"  title="دوران تلقائي">⟳ تلقائي</button>
       </div>
+      <div class="viz3d__hint">اسحب = تدوير 360° · عجلة أو ＋ － = تقريب · زر الماوس الأيمن = تحريك</div>
       <svg id="rackSvg" viewBox="0 0 1200 420" xmlns="http://www.w3.org/2000/svg" style="display:none;width:100%;height:auto;border-radius:12px;background:#F8FAFB;"></svg>
     </div>
     <div class="legend">
@@ -618,7 +625,7 @@ window.buildFallbackSvg = function(){
     const roomH=12.25, roomW=20, roomL=totalLen+4;                        // paced estimate 94×20×12.25
     const x0 = -totalLen/2;
 
-    const pallets=[], posts=[], rails=[], guards=[], diags=[], fbeams=[], spans={};
+    const pallets=[], posts=[], rails=[], guards=[], diags=[], fbeams=[], corbels=[], spans={};
     // side = -1 (near block, -Z) or +1 (far block, +Z)
     function buildBlock(zs, side){
       const palletZ = d => side*(AISLE/2 + (d+0.5)*palletPitchZ);
@@ -638,6 +645,10 @@ window.buildFallbackSvg = function(){
             for(let lv=0; lv<zone.lv; lv++) for(let d=0; d<DEEP; d++){                             // diagonal bracing per level
               const yb=lv*LEVELH, yt=(lv+1)*LEVELH, up=((lv+d)%2===0);
               diags.push({x:px, y0:up?yb:yt, z0:postZ(d), y1:up?yt:yb, z1:postZ(d+1)});
+            }
+            for(let lv=0; lv<zone.lv; lv++){                                                      // orange support corbels (carry the rails) at both open ends
+              const ay=(lv+1)*LEVELH;
+              corbels.push({x:px, y:ay, z:innerZ, rz:side}, {x:px, y:ay, z:outerZ, rz:-side});
             }
             guards.push({x:px, z:innerZ}, {x:px, z:outerZ});                                       // floor guards, both ends
           }
@@ -698,6 +709,12 @@ window.buildFallbackSvg = function(){
     fbeams.forEach((b,i)=>{ dummy.position.set(b.x,b.y,b.z); dummy.scale.set(laneClear+post,1,1); dummy.updateMatrix(); fbeamMesh.setMatrixAt(i,dummy.matrix); });
     fbeamMesh.instanceMatrix.needsUpdate=true; scene.add(fbeamMesh);
 
+    // orange support corbels — angled brackets under each rail at the open ends (drive-in signature)
+    const corbelMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.07,0.42,0.1), new THREE.MeshLambertMaterial({color:0xD2691E}), corbels.length);
+    corbels.forEach((c,i)=>{ dummy.position.set(c.x, c.y-0.19, c.z + c.rz*0.10); dummy.rotation.set(c.rz*0.6,0,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); corbelMesh.setMatrixAt(i,dummy.matrix); });
+    corbelMesh.instanceMatrix.needsUpdate=true; scene.add(corbelMesh);
+    dummy.rotation.set(0,0,0);
+
     // ---- ROOM SHELL: floor / grid / ceiling / walls / receiving doors ----
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(roomL,roomW), new THREE.MeshLambertMaterial({color:0xDFE4EA}));
     floor.rotation.x=-Math.PI/2; scene.add(floor);
@@ -730,22 +747,45 @@ window.buildFallbackSvg = function(){
     const dist = Math.max(roomL, roomW) * 1.05;
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping=true; controls.dampingFactor=0.08;
-    controls.autoRotate=true; controls.autoRotateSpeed=0.45;
+    controls.autoRotate=false; controls.autoRotateSpeed=0.45;   // manual only (per spec) — toggle via ⟳ button
     controls.minDistance=dist*0.16; controls.maxDistance=dist*2.2;
     controls.maxPolarAngle=Math.PI*0.49;
     controls.target.set(0, roomH*0.35, 0);
     camera.position.set(-dist*0.5, dist*0.42, dist*0.62);
     controls.update();
 
-    const btn = document.getElementById('rotBtn');
-    if(btn) btn.addEventListener('click', ()=>{ controls.autoRotate = !controls.autoRotate; btn.textContent = controls.autoRotate ? '⏸ إيقاف الدوران' : '▶ تشغيل الدوران'; });
+    // ---- interactive controls: zoom / preset views / reset / optional auto-spin ----
+    let dirty = true;
+    controls.addEventListener('change', ()=> dirty = true);
+    const home = { pos: camera.position.clone(), tgt: controls.target.clone() };
+    const D = dist;
+    function frame(px,py,pz, ty){ controls.target.set(0, ty!=null?ty:roomH*0.35, 0); camera.position.set(px,py,pz); controls.update(); dirty=true; }
+    function dolly(f){ camera.position.sub(controls.target).multiplyScalar(f).add(controls.target); controls.update(); dirty=true; }
+    const bind=(id,fn)=>{ const b=document.getElementById(id); if(b) b.addEventListener('click',fn); };
+    bind('btnZoomIn',  ()=> dolly(0.82));
+    bind('btnZoomOut', ()=> dolly(1.22));
+    bind('btnIso',  ()=> frame(-D*0.5, D*0.42, D*0.62));
+    bind('btnTop',  ()=> frame(0.001, D*1.15, 0.001, 0));
+    bind('btnSide', ()=> frame(0, roomH*0.6, D*0.9, roomH*0.35));
+    bind('btnReset',()=>{ controls.target.copy(home.tgt); camera.position.copy(home.pos); controls.update(); dirty=true; });
+    const bAuto = document.getElementById('btnAuto');
+    if(bAuto) bAuto.addEventListener('click', ()=>{ controls.autoRotate=!controls.autoRotate; bAuto.classList.toggle('active', controls.autoRotate); dirty=true; });
 
-    function onResize(){ const w=wrap.clientWidth||1, h=wrap.clientHeight||1; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h,false); }
+    function onResize(){ const w=wrap.clientWidth||1, h=wrap.clientHeight||1; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h,false); dirty=true; }
     onResize();
     if(window.ResizeObserver) new ResizeObserver(onResize).observe(wrap);   // recover if container lays out late (0x0 at init)
     window.addEventListener('resize', onResize);
 
-    (function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene,camera); })();
+    // render-on-demand: idle frames do NO GPU work → no device lag when nobody's interacting.
+    // Size is corrected inside the loop so the canvas is always right once the tab is on-screen.
+    let lastW=0, lastH=0;
+    (function loop(){
+      requestAnimationFrame(loop);
+      const w=wrap.clientWidth, h=wrap.clientHeight;
+      if(w>0 && h>0 && (w!==lastW || h!==lastH)){ lastW=w; lastH=h; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h,false); dirty=true; }
+      const moved = controls.update();
+      if(dirty || moved){ renderer.render(scene,camera); dirty=false; }
+    })();
   }
 })();
 </script>
