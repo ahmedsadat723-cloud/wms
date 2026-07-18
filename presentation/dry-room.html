@@ -403,7 +403,7 @@ body {
   <section>
     <div class="sh">
       <span class="sh__eye">محاكاة 3D</span>
-      <span class="sh__title">تخطيط الراكات — منظر ثلاثي الأبعاد تفاعلي</span>
+      <span class="sh__title">تخطيط الراكات Drive-Through — منظر ثلاثي الأبعاد تفاعلي</span>
       <div class="sh__line"></div>
     </div>
     <div class="viz3d" id="viz3d">
@@ -601,93 +601,149 @@ window.buildFallbackSvg = function(){
     const dir = new THREE.DirectionalLight(0xffffff, 0.7); dir.position.set(-60,120,80); scene.add(dir);
     const dir2 = new THREE.DirectionalLight(0xffffff, 0.22); dir2.position.set(80,40,-60); scene.add(dir2);
 
-    // ---- rack geometry params ----
-    const PPX=0.5, PW=0.42, PH=0.44, PD=0.95, PALLETS=6, LEVELH=0.62, RACKGAP=0.42;
-    const RACKW = PALLETS*PPX, RACKPITCH = RACKW+RACKGAP, AISLE=4.6;
-    const rowZ = { far: AISLE/2+PD/2, near: -(AISLE/2+PD/2) };
-    // right (far) row and left (near) row — matches the documented counts (3,120 total)
-    const zonesRight = [{z:1,c:0xC9A84C,n:19,lv:5,occ:0.68},{z:2,c:0x4A8FBF,n:19,lv:5,occ:0.80},{z:3,c:0x6FBF8B,n:15,lv:5,occ:0.55}];
-    const zonesLeft  = [{z:1,c:0xC9A84C,n:19,lv:5,occ:0.68},{z:2,c:0x4A8FBF,n:20,lv:5,occ:0.80},{z:3,c:0x6FBF8B,n:15,lv:4,occ:0.55}];
+    // ==== DRIVE-THROUGH racking — REAL SCALE (1 unit = 1 metre) ====
+    // مقاسات ميدانية: بالتة 1200mm عرض × ~950mm عمق، دور 2.45م، قائم 12سم، عارضة 5.7م، فاصل مناطق 2.3م.
+    const PW=1.20, PDp=0.85, PHp=1.55;         // pallet face(X)=1200mm, depth(Z) visual, loaded height
+    const DEEP=6, LEVELH=2.45;                 // 6 deep; level 2.45m → 5×2.45 = 12.25m (room height)
+    const post=0.12;                           // upright 12cm
+    const palletPitchZ=0.95, laneDepth=DEEP*palletPitchZ;   // posts 95cm apart → lane depth 5.70m ≈ 572cm rail
+    const laneClear=1.45, lanePitch=1.69;      // inner clear 145cm, pitch (external) 169cm
+    const sideX=laneClear/2+post/2;            // upright offset from lane centre
+    const AISLE=4.0, ZONEGAP=2.3;              // central drive aisle; 230cm emergency-door gap between zones
+    const blockNear = [{z:1,c:0xC9A84C,n:19,lv:5,occ:0.68},{z:2,c:0x4A8FBF,n:19,lv:5,occ:0.80},{z:3,c:0x6FBF8B,n:15,lv:5,occ:0.55}];
+    const blockFar  = [{z:1,c:0xC9A84C,n:19,lv:5,occ:0.68},{z:2,c:0x4A8FBF,n:20,lv:5,occ:0.80},{z:3,c:0x6FBF8B,n:15,lv:4,occ:0.55}];
     const rr = zs => zs.reduce((a,z)=>a+z.n,0);
-    const totalLen = Math.max(rr(zonesRight), rr(zonesLeft)) * RACKPITCH;
+    const maxLanes = Math.max(rr(blockNear), rr(blockFar));
+    const totalLen = maxLanes*lanePitch + (blockNear.length-1)*ZONEGAP;   // rack run incl. zone gaps
+    const roomH=12.25, roomW=20, roomL=totalLen+4;                        // paced estimate 94×20×12.25
     const x0 = -totalLen/2;
 
-    const pallets=[], posts=[], beams=[], spans={};
-    function buildRow(zs, zc){
-      let ri=0;
-      for(const zone of zs){
-        for(let k=0;k<zone.n;k++,ri++){
-          const rackX = x0 + ri*RACKPITCH;
+    const pallets=[], posts=[], rails=[], guards=[], diags=[], fbeams=[], spans={};
+    // side = -1 (near block, -Z) or +1 (far block, +Z)
+    function buildBlock(zs, side){
+      const palletZ = d => side*(AISLE/2 + (d+0.5)*palletPitchZ);
+      const postZ   = d => side*(AISLE/2 + d*palletPitchZ);
+      const blockCz = side*(AISLE/2 + laneDepth/2);
+      const innerZ = postZ(0), outerZ = postZ(DEEP);
+      let x = x0;
+      zs.forEach((zone,zi)=>{
+        for(let k=0;k<zone.n;k++){
+          const cx = x + lanePitch/2; x += lanePitch;
           const s = spans[zone.z] || (spans[zone.z]={min:1e9,max:-1e9,c:zone.c,lv:zone.lv});
-          s.min=Math.min(s.min,rackX); s.max=Math.max(s.max,rackX+RACKW); s.lv=Math.max(s.lv,zone.lv);
-          const zf=zc+PD/2, zb=zc-PD/2, topH=zone.lv*LEVELH;
-          posts.push({x:rackX,y:topH/2,z:zf,h:topH},{x:rackX+RACKW,y:topH/2,z:zf,h:topH},
-                     {x:rackX,y:topH/2,z:zb,h:topH},{x:rackX+RACKW,y:topH/2,z:zb,h:topH});
-          for(let lv=0; lv<=zone.lv; lv++){
-            const by = lv*LEVELH;
-            beams.push({x:rackX+RACKW/2,y:by,z:zf},{x:rackX+RACKW/2,y:by,z:zb});
-            if(lv < zone.lv){
-              for(let p=0;p<PALLETS;p++){
-                const filled = Math.random() < zone.occ;
-                pallets.push({x:rackX+p*PPX+PPX/2, y:by+PH/2+0.05, z:zc, c: filled?zone.c:0xC6CDD8});
-              }
+          s.min=Math.min(s.min,cx-lanePitch/2); s.max=Math.max(s.max,cx+lanePitch/2); s.lv=Math.max(s.lv,zone.lv);
+          const topH = zone.lv*LEVELH;
+          for(const sx of [-1,1]){
+            const px = cx + sx*sideX;
+            for(let d=0; d<=DEEP; d++) posts.push({x:px, y:topH/2, z:postZ(d), h:topH});          // uprights
+            for(let lv=0; lv<zone.lv; lv++) for(let d=0; d<DEEP; d++){                             // diagonal bracing per level
+              const yb=lv*LEVELH, yt=(lv+1)*LEVELH, up=((lv+d)%2===0);
+              diags.push({x:px, y0:up?yb:yt, z0:postZ(d), y1:up?yt:yb, z1:postZ(d+1)});
+            }
+            guards.push({x:px, z:innerZ}, {x:px, z:outerZ});                                       // floor guards, both ends
+          }
+          for(let lv=0; lv<zone.lv; lv++){
+            const railY = lv*LEVELH;
+            for(const sx of [-1,1]) rails.push({x:cx + sx*sideX, y:railY, z:blockCz});             // orange depth rails
+            fbeams.push({x:cx, y:railY+LEVELH, z:innerZ}, {x:cx, y:railY+LEVELH, z:outerZ});        // orange front/back beams
+            for(let d=0; d<DEEP; d++){
+              const filled = Math.random() < zone.occ;
+              pallets.push({x:cx, y:railY+PHp/2+0.08, z:palletZ(d), c: filled?zone.c:0xC6CDD8});
             }
           }
         }
-      }
+        if(zi < zs.length-1) x += ZONEGAP;
+      });
     }
-    buildRow(zonesRight, rowZ.far);
-    buildRow(zonesLeft, rowZ.near);
+    buildBlock(blockNear, -1);
+    buildBlock(blockFar,  +1);
 
     const dummy = new THREE.Object3D();
 
-    // pallets
-    const palMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(PW,PH,PD), new THREE.MeshLambertMaterial(), pallets.length);
+    // pallets (colored per zone / grey when empty)
+    const palMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(PW,PHp,PDp), new THREE.MeshLambertMaterial(), pallets.length);
     const col = new THREE.Color();
     pallets.forEach((p,i)=>{ dummy.position.set(p.x,p.y,p.z); dummy.scale.set(1,1,1); dummy.updateMatrix(); palMesh.setMatrixAt(i,dummy.matrix); palMesh.setColorAt(i,col.setHex(p.c)); });
     palMesh.instanceMatrix.needsUpdate=true; if(palMesh.instanceColor) palMesh.instanceColor.needsUpdate=true;
     scene.add(palMesh);
 
-    // posts (blue uprights)
-    const postMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.1,1,0.1), new THREE.MeshLambertMaterial({color:0x1E5FA8}), posts.length);
+    // blue uprights (12cm)
+    const postMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(post,1,post), new THREE.MeshLambertMaterial({color:0x1E5FA8}), posts.length);
     posts.forEach((p,i)=>{ dummy.position.set(p.x,p.y,p.z); dummy.scale.set(1,p.h,1); dummy.updateMatrix(); postMesh.setMatrixAt(i,dummy.matrix); });
     postMesh.instanceMatrix.needsUpdate=true; scene.add(postMesh);
 
-    // beams (orange, along X)
-    const beamMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,0.07,0.07), new THREE.MeshLambertMaterial({color:0xC85A1A}), beams.length);
-    beams.forEach((b,i)=>{ dummy.position.set(b.x,b.y,b.z); dummy.scale.set(RACKW,1,1); dummy.updateMatrix(); beamMesh.setMatrixAt(i,dummy.matrix); });
-    beamMesh.instanceMatrix.needsUpdate=true; scene.add(beamMesh);
+    // orange depth rails (≈5.7m, run along Z)
+    const railMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.08,0.1,1), new THREE.MeshLambertMaterial({color:0xC85A1A}), rails.length);
+    rails.forEach((b,i)=>{ dummy.position.set(b.x,b.y,b.z); dummy.scale.set(1,1,laneDepth); dummy.updateMatrix(); railMesh.setMatrixAt(i,dummy.matrix); });
+    railMesh.instanceMatrix.needsUpdate=true; scene.add(railMesh);
 
-    // floor + grid
-    const floorW = totalLen+10, floorD = AISLE+2*PD+8;
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(floorW,floorD), new THREE.MeshLambertMaterial({color:0xE7ECF3}));
-    floor.rotation.x = -Math.PI/2; scene.add(floor);
-    const grid = new THREE.GridHelper(Math.max(floorW,floorD), Math.round(Math.max(floorW,floorD)/RACKPITCH), 0xBFC8D6, 0xD8DFE8);
-    grid.position.y = 0.01; scene.add(grid);
+    // orange floor guards
+    const guardMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.18,0.7,0.18), new THREE.MeshLambertMaterial({color:0xD2691E}), guards.length);
+    guards.forEach((g,i)=>{ dummy.position.set(g.x,0.35,g.z); dummy.scale.set(1,1,1); dummy.updateMatrix(); guardMesh.setMatrixAt(i,dummy.matrix); });
+    guardMesh.instanceMatrix.needsUpdate=true; scene.add(guardMesh);
+
+    // blue diagonal bracing (per level — the frame lattice from the photos)
+    const upV=new THREE.Vector3(0,1,0), v0=new THREE.Vector3(), v1=new THREE.Vector3(), vd=new THREE.Vector3(), q=new THREE.Quaternion();
+    const diagMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.05,1,0.05), new THREE.MeshLambertMaterial({color:0x2A6FBE}), diags.length);
+    diags.forEach((d,i)=>{
+      v0.set(d.x,d.y0,d.z0); v1.set(d.x,d.y1,d.z1); vd.subVectors(v1,v0); const len=vd.length();
+      q.setFromUnitVectors(upV, vd.clone().normalize());
+      dummy.position.copy(v0).addScaledVector(vd,0.5); dummy.quaternion.copy(q); dummy.scale.set(1,len,1); dummy.updateMatrix();
+      diagMesh.setMatrixAt(i,dummy.matrix);
+    });
+    diagMesh.instanceMatrix.needsUpdate=true; scene.add(diagMesh);
+    dummy.quaternion.set(0,0,0,1);
+
+    // orange front/back load beams
+    const fbeamMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,0.12,0.1), new THREE.MeshLambertMaterial({color:0xC85A1A}), fbeams.length);
+    fbeams.forEach((b,i)=>{ dummy.position.set(b.x,b.y,b.z); dummy.scale.set(laneClear+post,1,1); dummy.updateMatrix(); fbeamMesh.setMatrixAt(i,dummy.matrix); });
+    fbeamMesh.instanceMatrix.needsUpdate=true; scene.add(fbeamMesh);
+
+    // ---- ROOM SHELL: floor / grid / ceiling / walls / receiving doors ----
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(roomL,roomW), new THREE.MeshLambertMaterial({color:0xDFE4EA}));
+    floor.rotation.x=-Math.PI/2; scene.add(floor);
+    const grid = new THREE.GridHelper(Math.max(roomL,roomW), Math.round(Math.max(roomL,roomW)/lanePitch), 0xBFC8D6, 0xD3DAE3);
+    grid.position.y=0.02; scene.add(grid);
+    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(roomL,roomW), new THREE.MeshLambertMaterial({color:0xF2F4F7, transparent:true, opacity:0.16, side:THREE.DoubleSide}));
+    ceil.rotation.x=Math.PI/2; ceil.position.y=roomH; scene.add(ceil);
+    const wallMat = new THREE.MeshLambertMaterial({color:0xEDEFF2, transparent:true, opacity:0.20, side:THREE.DoubleSide});
+    function wall(w,h,x,y,z,ry){ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h), wallMat); m.position.set(x,y,z); m.rotation.y=ry; scene.add(m); }
+    wall(roomL, roomH, 0, roomH/2, -roomW/2, 0);          // back long wall
+    wall(roomL, roomH, 0, roomH/2,  roomW/2, 0);          // front long wall
+    wall(roomW, roomH,  roomL/2, roomH/2, 0, Math.PI/2);  // far end (zone 3)
+    wall(roomW, roomH, -roomL/2, roomH/2, 0, Math.PI/2);  // receiving end (zone 1)
+    const doorMat = new THREE.MeshLambertMaterial({color:0xB8C0CB, side:THREE.DoubleSide});
+    for(let i=-1;i<=1;i++){                                // roll-up doors on the receiving end
+      const dr = new THREE.Mesh(new THREE.PlaneGeometry(3.2,4.4), doorMat);
+      dr.position.set(-roomL/2+0.06, 2.2, i*5.5); dr.rotation.y=Math.PI/2; scene.add(dr);
+    }
 
     // zone floor tints + labels
     for(const key of Object.keys(spans)){
-      const s = spans[key], cx = (s.min+s.max)/2;
-      const tint = new THREE.Mesh(new THREE.PlaneGeometry(s.max-s.min, AISLE+2*PD+2), new THREE.MeshBasicMaterial({color:s.c, transparent:true, opacity:0.14}));
-      tint.rotation.x = -Math.PI/2; tint.position.set(cx,0.02,0); scene.add(tint);
+      const s = spans[key], cx=(s.min+s.max)/2;
+      const tint = new THREE.Mesh(new THREE.PlaneGeometry(s.max-s.min, 2*laneDepth+AISLE), new THREE.MeshBasicMaterial({color:s.c, transparent:true, opacity:0.12}));
+      tint.rotation.x=-Math.PI/2; tint.position.set(cx,0.03,0); scene.add(tint);
       const label = makeLabel(THREE, 'منطقة '+({1:'١',2:'٢',3:'٣'}[key]), '#'+s.c.toString(16).padStart(6,'0'));
-      label.position.set(cx, s.lv*LEVELH+2.6, 0); scene.add(label);
+      label.scale.set(9,2.4,1); label.position.set(cx, s.lv*LEVELH+1.4, 0); scene.add(label);
     }
 
-    // controls
+    // controls / camera
+    const dist = Math.max(roomL, roomW) * 1.05;
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; controls.dampingFactor = 0.08;
-    controls.autoRotate = true; controls.autoRotateSpeed = 0.5;
-    controls.minDistance = totalLen*0.12; controls.maxDistance = totalLen*1.4;
-    controls.maxPolarAngle = Math.PI*0.49;
-    controls.target.set(0, 2.5, 0);
-    camera.position.set(-totalLen*0.18, totalLen*0.30, totalLen*0.52);
+    controls.enableDamping=true; controls.dampingFactor=0.08;
+    controls.autoRotate=true; controls.autoRotateSpeed=0.45;
+    controls.minDistance=dist*0.16; controls.maxDistance=dist*2.2;
+    controls.maxPolarAngle=Math.PI*0.49;
+    controls.target.set(0, roomH*0.35, 0);
+    camera.position.set(-dist*0.5, dist*0.42, dist*0.62);
     controls.update();
 
     const btn = document.getElementById('rotBtn');
     if(btn) btn.addEventListener('click', ()=>{ controls.autoRotate = !controls.autoRotate; btn.textContent = controls.autoRotate ? '⏸ إيقاف الدوران' : '▶ تشغيل الدوران'; });
 
-    window.addEventListener('resize', ()=>{ const w=wrap.clientWidth,h=wrap.clientHeight; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h,false); });
+    function onResize(){ const w=wrap.clientWidth||1, h=wrap.clientHeight||1; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h,false); }
+    onResize();
+    if(window.ResizeObserver) new ResizeObserver(onResize).observe(wrap);   // recover if container lays out late (0x0 at init)
+    window.addEventListener('resize', onResize);
 
     (function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene,camera); })();
   }
