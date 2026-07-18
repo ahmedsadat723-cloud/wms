@@ -530,7 +530,7 @@ function closeLB(){document.getElementById('lb').classList.remove('open');}
 
   (function anim(){
     requestAnimationFrame(anim);
-    camera.position.x=r*Math.sin(th)*Math.cos(ph);
+    camera.position.x=15+r*Math.sin(th)*Math.cos(ph);
     camera.position.y=r*Math.sin(ph)+5;
     camera.position.z=r*Math.cos(th)*Math.cos(ph);
     camera.lookAt(15,4,0);
