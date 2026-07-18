@@ -111,7 +111,7 @@ body {
 .hstat__lbl { font-size: 12px; color: var(--dim); }
 
 /* ===== LAYOUT ===== */
-.page { max-width: 1340px; margin: 0 auto; padding: 48px 56px; display: flex; flex-direction: column; gap: 48px; }
+.page { max-width: 1720px; margin: 0 auto; padding: 40px 36px; display: flex; flex-direction: column; gap: 44px; }
 
 /* ===== SEC HEADER ===== */
 .sh { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
@@ -273,7 +273,7 @@ body {
 #lb-x:hover { opacity: 1; }
 
 /* ===== 3D VIEWPORT ===== */
-.viz3d { position: relative; height: min(62vh, 580px); border-radius: 12px; overflow: hidden; border: 1.5px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,.08); background: linear-gradient(180deg,#F7F9FC,#E9EEF4); }
+.viz3d { position: relative; height: min(86vh, 900px); border-radius: 12px; overflow: hidden; border: 1.5px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,.08); background: linear-gradient(180deg,#F7F9FC,#E9EEF4); }
 .viz3d canvas { width: 100%; height: 100%; display: block; cursor: grab; }
 .viz3d canvas:active { cursor: grabbing; }
 .viz3d__tools { position: absolute; top: 14px; left: 14px; display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 28px); z-index: 2; }
@@ -284,8 +284,6 @@ body {
 </style>
 </head>
 <body>
-
-<div id="lb" onclick="closeLB()"><button id="lb-x" onclick="closeLB()">✕</button><img id="lb-img" src="" alt=""></div>
 
 <!-- HERO -->
 <div class="hero">
@@ -429,40 +427,10 @@ body {
     </div>
   </section>
 
-  <!-- PHOTOS -->
-  <section>
-    <div class="sh">
-      <span class="sh__eye">صور ميدانية</span>
-      <span class="sh__title">غرفة الجاف — مصنع المنجم للأغذية</span>
-      <div class="sh__line"></div>
-    </div>
-    <div class="pgrid">
-      <div class="pcard wide" onclick="openLB(this)">
-        <img src="rack_main.jpg" onerror="this.style.display='none';this.parentElement.style.background='#E8ECF2';this.parentElement.innerHTML+='<div style=\'padding:80px;text-align:center;color:#718096;font-size:15px;font-family:Tajawal\'>📸 الممر الرئيسي — راكات زرقاء 5 أدوار</div>'" alt="الممر الرئيسي">
-        <div class="pcap">الممر الرئيسي — راكات زرقاء وبرتقالية، 5 أدوار</div>
-      </div>
-      <div class="pcard" onclick="openLB(this)">
-        <img src="rack_side.jpg" onerror="this.style.display='none';this.parentElement.style.background='#E8ECF2';this.parentElement.innerHTML+='<div style=\'padding:60px;text-align:center;color:#718096;font-size:15px;font-family:Tajawal\'>📸 المنطقة الجانبية</div>'" alt="جانبي">
-        <div class="pcap">المنطقة الثالثة — جانب الطوارئ</div>
-      </div>
-      <div class="pcard" onclick="openLB(this)">
-        <img src="entrance.jpg" onerror="this.style.display='none';this.parentElement.style.background='#E8ECF2';this.parentElement.innerHTML+='<div style=\'padding:60px;text-align:center;color:#718096;font-size:15px;font-family:Tajawal\'>📸 مدخل غرفة الجاف</div>'" alt="مدخل">
-        <div class="pcap">مدخل غرفة الجاف</div>
-      </div>
-      <div class="pcard wide" onclick="openLB(this)">
-        <img src="ramp.jpg" onerror="this.style.display='none';this.parentElement.style.background='#E8ECF2';this.parentElement.innerHTML+='<div style=\'padding:80px;text-align:center;color:#718096;font-size:15px;font-family:Tajawal\'>📸 رمبة الاستلام — أبواب الشاحنات</div>'" alt="رمبة">
-        <div class="pcap">رمبة الاستلام — أبواب الشاحنات المتعددة</div>
-      </div>
-    </div>
-  </section>
 
 </div>
 
 <script>
-/* LIGHTBOX */
-function openLB(c){const i=c.querySelector('img');if(i&&i.src&&!i.src.includes('data:')){document.getElementById('lb-img').src=i.src;document.getElementById('lb').classList.add('open');}}
-function closeLB(){document.getElementById('lb').classList.remove('open');}
-
 /* SVG RACK VISUALIZATION — fallback only (used if WebGL/3D fails to load) */
 window.buildFallbackSvg = function(){
   const svg = document.getElementById('rackSvg');
