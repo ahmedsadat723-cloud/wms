@@ -477,8 +477,8 @@ function closeLB(){document.getElementById('lb').classList.remove('open');}
   scene.fog=new THREE.FogExp2(0x08111A,0.012);
 
   const camera=new THREE.PerspectiveCamera(46,W/H,.1,500);
-  camera.position.set(15,12,28);
-  camera.lookAt(15,4,0);
+  camera.position.set(0,12,28);
+  camera.lookAt(0,4,0);
 
   scene.add(new THREE.AmbientLight(0xC8D8E8,2.8));
   const dl=new THREE.DirectionalLight(0xFFE8A0,1.5);
@@ -517,9 +517,9 @@ function closeLB(){document.getElementById('lb').classList.remove('open');}
     g.position.set(x,0,z);return g;
   }
 
-  for(let i=0;i<12;i++){scene.add(rack(-8+i*1.6,-3.5,5,6,0,.68));scene.add(rack(-8+i*1.6,3.5,5,6,0,.68));}
-  for(let i=0;i<7;i++){scene.add(rack(13+i*1.6,-3.5,5,6,1,.8));scene.add(rack(13+i*1.6,3.5,5,6,1,.8));}
-  for(let i=0;i<5;i++){scene.add(rack(26+i*1.6,-3.5,5,6,2,.55));scene.add(rack(26+i*1.6,3.5,4,6,2,.55));}
+  for(let i=0;i<12;i++){scene.add(rack(-9+i*1.5,-3.5,5,6,0,.68));scene.add(rack(-9+i*1.5,3.5,5,6,0,.68));}
+  for(let i=0;i<7;i++){scene.add(rack(11+i*1.5,-3.5,5,6,1,.8));scene.add(rack(11+i*1.5,3.5,5,6,1,.8));}
+  for(let i=0;i<5;i++){scene.add(rack(22+i*1.5,-3.5,5,6,2,.55));scene.add(rack(22+i*1.5,3.5,4,6,2,.55));}
 
   let drag=false,lx=0,ly=0,th=.15,ph=.38,r=34;
   canvas.addEventListener('mousedown',e=>{drag=true;lx=e.clientX;ly=e.clientY;});
@@ -530,10 +530,10 @@ function closeLB(){document.getElementById('lb').classList.remove('open');}
 
   (function anim(){
     requestAnimationFrame(anim);
-    camera.position.x=15+r*Math.sin(th)*Math.cos(ph);
+    camera.position.x=r*Math.sin(th)*Math.cos(ph);
     camera.position.y=r*Math.sin(ph)+5;
     camera.position.z=r*Math.cos(th)*Math.cos(ph);
-    camera.lookAt(15,4,0);
+    camera.lookAt(0,4,0);
     renderer.render(scene,camera);
   })();
 
