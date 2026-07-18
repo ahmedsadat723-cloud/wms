@@ -271,6 +271,15 @@ body {
 #lb img { max-width: 92vw; max-height: 92vh; border-radius: 8px; }
 #lb-x { position: absolute; top: 18px; right: 22px; background: none; border: none; color: #fff; font-size: 30px; cursor: pointer; opacity: .7; }
 #lb-x:hover { opacity: 1; }
+
+/* ===== 3D VIEWPORT ===== */
+.viz3d { position: relative; height: min(62vh, 580px); border-radius: 12px; overflow: hidden; border: 1.5px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,.08); background: linear-gradient(180deg,#F7F9FC,#E9EEF4); }
+.viz3d canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+.viz3d canvas:active { cursor: grabbing; }
+.viz3d__bar { position: absolute; left: 16px; right: 16px; bottom: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; pointer-events: none; }
+.viz3d__hint { font-family: var(--mono); font-size: 11px; color: var(--mid); background: rgba(255,255,255,.82); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; }
+.viz3d__btn { pointer-events: auto; font-family: var(--body); font-size: 12.5px; font-weight: 600; color: var(--ink); background: rgba(255,255,255,.92); border: 1.5px solid var(--border); padding: 7px 14px; border-radius: 20px; cursor: pointer; transition: all .15s; }
+.viz3d__btn:hover { background: var(--gold-bg); border-color: var(--gold-bd); color: var(--gold); }
 </style>
 </head>
 <body>
@@ -394,11 +403,16 @@ body {
   <section>
     <div class="sh">
       <span class="sh__eye">محاكاة 3D</span>
-      <span class="sh__title">تخطيط الراكات — منظر تفاعلي</span>
+      <span class="sh__title">تخطيط الراكات — منظر ثلاثي الأبعاد تفاعلي</span>
       <div class="sh__line"></div>
     </div>
-    <div class="svg-wrap" id="rackSvgWrap">
-      <svg id="rackSvg" viewBox="0 0 1200 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;border-radius:12px;border:1.5px solid #C8D0DC;background:#F8FAFB;"></svg>
+    <div class="viz3d" id="viz3d">
+      <canvas id="rackCanvas"></canvas>
+      <div class="viz3d__bar">
+        <span class="viz3d__hint">اسحب للتدوير · عجلة الماوس للتقريب · زر الماوس الأيمن للتحريك</span>
+        <button class="viz3d__btn" id="rotBtn">⏸ إيقاف الدوران</button>
+      </div>
+      <svg id="rackSvg" viewBox="0 0 1200 420" xmlns="http://www.w3.org/2000/svg" style="display:none;width:100%;height:auto;border-radius:12px;background:#F8FAFB;"></svg>
     </div>
     <div class="legend">
       <div class="leg-item"><div class="leg-dot" style="background:#C9A84C"></div> منطقة ١ — الاستلام (ذهبي)</div>
@@ -442,8 +456,8 @@ body {
 function openLB(c){const i=c.querySelector('img');if(i&&i.src&&!i.src.includes('data:')){document.getElementById('lb-img').src=i.src;document.getElementById('lb').classList.add('open');}}
 function closeLB(){document.getElementById('lb').classList.remove('open');}
 
-/* SVG RACK VISUALIZATION */
-(function(){
+/* SVG RACK VISUALIZATION — fallback only (used if WebGL/3D fails to load) */
+window.buildFallbackSvg = function(){
   const svg = document.getElementById('rackSvg');
   if(!svg) return;
 
@@ -527,6 +541,156 @@ function closeLB(){document.getElementById('lb').classList.remove('open');}
   });
 
   svg.innerHTML = svgContent;
+};
+</script>
+
+<!-- THREE.js loaded via import map (CDN); falls back to SVG if unavailable -->
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+(async function(){
+  const wrap = document.getElementById('viz3d');
+  const canvas = document.getElementById('rackCanvas');
+
+  function fallback(){
+    if(wrap) wrap.style.height = 'auto';
+    if(canvas) canvas.style.display = 'none';
+    const svg = document.getElementById('rackSvg');
+    if(svg) svg.style.display = 'block';
+    if(window.buildFallbackSvg) window.buildFallbackSvg();
+  }
+
+  let THREE, OrbitControls;
+  try {
+    THREE = await import('three');
+    ({ OrbitControls } = await import('three/addons/controls/OrbitControls.js'));
+  } catch(e){ console.warn('3D libs failed to load — using SVG fallback', e); fallback(); return; }
+
+  try { init(THREE, OrbitControls); }
+  catch(e){ console.error('3D init failed — using SVG fallback', e); fallback(); }
+
+  function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+  function makeLabel(THREE, text, color){
+    const c = document.createElement('canvas'); c.width = 512; c.height = 140;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = 'rgba(255,255,255,0.92)'; roundRect(ctx,6,6,500,128,28); ctx.fill();
+    ctx.lineWidth = 5; ctx.strokeStyle = color; roundRect(ctx,6,6,500,128,28); ctx.stroke();
+    ctx.fillStyle = color; ctx.font = 'bold 62px Tajawal, Arial, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 256, 76);
+    const tex = new THREE.CanvasTexture(c); tex.anisotropy = 4;
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+    sp.scale.set(11, 3, 1); return sp;
+  }
+
+  function init(THREE, OrbitControls){
+    const W = wrap.clientWidth, H = wrap.clientHeight;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xF3F6FA);
+    const camera = new THREE.PerspectiveCamera(42, W/H, 0.1, 3000);
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.setSize(W, H, false);
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x6b7280, 1.05));
+    const dir = new THREE.DirectionalLight(0xffffff, 0.7); dir.position.set(-60,120,80); scene.add(dir);
+    const dir2 = new THREE.DirectionalLight(0xffffff, 0.22); dir2.position.set(80,40,-60); scene.add(dir2);
+
+    // ---- rack geometry params ----
+    const PPX=0.5, PW=0.42, PH=0.44, PD=0.95, PALLETS=6, LEVELH=0.62, RACKGAP=0.42;
+    const RACKW = PALLETS*PPX, RACKPITCH = RACKW+RACKGAP, AISLE=4.6;
+    const rowZ = { far: AISLE/2+PD/2, near: -(AISLE/2+PD/2) };
+    // right (far) row and left (near) row — matches the documented counts (3,120 total)
+    const zonesRight = [{z:1,c:0xC9A84C,n:19,lv:5,occ:0.68},{z:2,c:0x4A8FBF,n:19,lv:5,occ:0.80},{z:3,c:0x6FBF8B,n:15,lv:5,occ:0.55}];
+    const zonesLeft  = [{z:1,c:0xC9A84C,n:19,lv:5,occ:0.68},{z:2,c:0x4A8FBF,n:20,lv:5,occ:0.80},{z:3,c:0x6FBF8B,n:15,lv:4,occ:0.55}];
+    const rr = zs => zs.reduce((a,z)=>a+z.n,0);
+    const totalLen = Math.max(rr(zonesRight), rr(zonesLeft)) * RACKPITCH;
+    const x0 = -totalLen/2;
+
+    const pallets=[], posts=[], beams=[], spans={};
+    function buildRow(zs, zc){
+      let ri=0;
+      for(const zone of zs){
+        for(let k=0;k<zone.n;k++,ri++){
+          const rackX = x0 + ri*RACKPITCH;
+          const s = spans[zone.z] || (spans[zone.z]={min:1e9,max:-1e9,c:zone.c,lv:zone.lv});
+          s.min=Math.min(s.min,rackX); s.max=Math.max(s.max,rackX+RACKW); s.lv=Math.max(s.lv,zone.lv);
+          const zf=zc+PD/2, zb=zc-PD/2, topH=zone.lv*LEVELH;
+          posts.push({x:rackX,y:topH/2,z:zf,h:topH},{x:rackX+RACKW,y:topH/2,z:zf,h:topH},
+                     {x:rackX,y:topH/2,z:zb,h:topH},{x:rackX+RACKW,y:topH/2,z:zb,h:topH});
+          for(let lv=0; lv<=zone.lv; lv++){
+            const by = lv*LEVELH;
+            beams.push({x:rackX+RACKW/2,y:by,z:zf},{x:rackX+RACKW/2,y:by,z:zb});
+            if(lv < zone.lv){
+              for(let p=0;p<PALLETS;p++){
+                const filled = Math.random() < zone.occ;
+                pallets.push({x:rackX+p*PPX+PPX/2, y:by+PH/2+0.05, z:zc, c: filled?zone.c:0xC6CDD8});
+              }
+            }
+          }
+        }
+      }
+    }
+    buildRow(zonesRight, rowZ.far);
+    buildRow(zonesLeft, rowZ.near);
+
+    const dummy = new THREE.Object3D();
+
+    // pallets
+    const palMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(PW,PH,PD), new THREE.MeshLambertMaterial(), pallets.length);
+    const col = new THREE.Color();
+    pallets.forEach((p,i)=>{ dummy.position.set(p.x,p.y,p.z); dummy.scale.set(1,1,1); dummy.updateMatrix(); palMesh.setMatrixAt(i,dummy.matrix); palMesh.setColorAt(i,col.setHex(p.c)); });
+    palMesh.instanceMatrix.needsUpdate=true; if(palMesh.instanceColor) palMesh.instanceColor.needsUpdate=true;
+    scene.add(palMesh);
+
+    // posts (blue uprights)
+    const postMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.1,1,0.1), new THREE.MeshLambertMaterial({color:0x1E5FA8}), posts.length);
+    posts.forEach((p,i)=>{ dummy.position.set(p.x,p.y,p.z); dummy.scale.set(1,p.h,1); dummy.updateMatrix(); postMesh.setMatrixAt(i,dummy.matrix); });
+    postMesh.instanceMatrix.needsUpdate=true; scene.add(postMesh);
+
+    // beams (orange, along X)
+    const beamMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,0.07,0.07), new THREE.MeshLambertMaterial({color:0xC85A1A}), beams.length);
+    beams.forEach((b,i)=>{ dummy.position.set(b.x,b.y,b.z); dummy.scale.set(RACKW,1,1); dummy.updateMatrix(); beamMesh.setMatrixAt(i,dummy.matrix); });
+    beamMesh.instanceMatrix.needsUpdate=true; scene.add(beamMesh);
+
+    // floor + grid
+    const floorW = totalLen+10, floorD = AISLE+2*PD+8;
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(floorW,floorD), new THREE.MeshLambertMaterial({color:0xE7ECF3}));
+    floor.rotation.x = -Math.PI/2; scene.add(floor);
+    const grid = new THREE.GridHelper(Math.max(floorW,floorD), Math.round(Math.max(floorW,floorD)/RACKPITCH), 0xBFC8D6, 0xD8DFE8);
+    grid.position.y = 0.01; scene.add(grid);
+
+    // zone floor tints + labels
+    for(const key of Object.keys(spans)){
+      const s = spans[key], cx = (s.min+s.max)/2;
+      const tint = new THREE.Mesh(new THREE.PlaneGeometry(s.max-s.min, AISLE+2*PD+2), new THREE.MeshBasicMaterial({color:s.c, transparent:true, opacity:0.14}));
+      tint.rotation.x = -Math.PI/2; tint.position.set(cx,0.02,0); scene.add(tint);
+      const label = makeLabel(THREE, 'منطقة '+({1:'١',2:'٢',3:'٣'}[key]), '#'+s.c.toString(16).padStart(6,'0'));
+      label.position.set(cx, s.lv*LEVELH+2.6, 0); scene.add(label);
+    }
+
+    // controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.08;
+    controls.autoRotate = true; controls.autoRotateSpeed = 0.5;
+    controls.minDistance = totalLen*0.12; controls.maxDistance = totalLen*1.4;
+    controls.maxPolarAngle = Math.PI*0.49;
+    controls.target.set(0, 2.5, 0);
+    camera.position.set(-totalLen*0.18, totalLen*0.30, totalLen*0.52);
+    controls.update();
+
+    const btn = document.getElementById('rotBtn');
+    if(btn) btn.addEventListener('click', ()=>{ controls.autoRotate = !controls.autoRotate; btn.textContent = controls.autoRotate ? '⏸ إيقاف الدوران' : '▶ تشغيل الدوران'; });
+
+    window.addEventListener('resize', ()=>{ const w=wrap.clientWidth,h=wrap.clientHeight; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h,false); });
+
+    (function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene,camera); })();
+  }
 })();
 </script>
 </body>
