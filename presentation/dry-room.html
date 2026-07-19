@@ -763,7 +763,28 @@ window.buildFallbackSvg = function(){
       inst(g, F(corbels),GEO.corbel,MAT.corbel,(p,i,m)=>{ dummy.position.set(p.x,p.y-0.19,p.z+p.rz*0.10); dummy.rotation.set(p.rz*0.6,0,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
       inst(g, F(diags),  GEO.diag,  MAT.diag,  (p,i,m)=>{ v0.set(p.x,p.y0,p.z0); v1.set(p.x,p.y1,p.z1); vd.subVectors(v1,v0); const len=vd.length(); q.setFromUnitVectors(upV, vd.clone().normalize()); dummy.position.copy(v0).addScaledVector(vd,0.5); dummy.quaternion.copy(q); dummy.scale.set(1,len,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
 
-      // الستيكر يظهر كـ tooltip عند التحويم فقط — لا أجسام 3D
+      // ستيكرات صغيرة — تظهر فقط في وضع راك قريب
+      const stickerGroup = new THREE.Group(); stickerGroup.visible = false; g.add(stickerGroup);
+      const zDef = ZONE_DEFS[parseInt(zk)];
+      F(pallets).forEach(p=>{
+        const c = document.createElement('canvas'); c.width = 200; c.height = 80;
+        const ctx2 = c.getContext('2d');
+        ctx2.fillStyle = '#FFD600';
+        ctx2.beginPath(); ctx2.roundRect(2,2,196,76,10); ctx2.fill();
+        ctx2.strokeStyle = zDef.color; ctx2.lineWidth = 4;
+        ctx2.beginPath(); ctx2.roundRect(2,2,196,76,10); ctx2.stroke();
+        ctx2.fillStyle = '#111'; ctx2.font = 'bold 36px Arial';
+        ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
+        ctx2.fillText(p.label, 100, 40);
+        const tex = new THREE.CanvasTexture(c);
+        tex.minFilter = THREE.LinearFilter;
+        const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:false, sizeAttenuation:true}));
+        sp.scale.set(0.42, 0.17, 1);
+        sp.position.set(p.x, p.y + PHp*0.38, p.z);
+        stickerGroup.add(sp);
+      });
+      if(!window._stickerGroups) window._stickerGroups = [];
+      window._stickerGroups.push(stickerGroup);
     });
 
     // ---- ROOM SHELL: floor / grid / ceiling / walls / receiving doors ----
@@ -888,12 +909,12 @@ window.buildFallbackSvg = function(){
     // highlight the active view button
     const viewBtns = ['btnIso','btnZ1','btnZ2','btnZ3','btnClose'];
     function setActive(id){ viewBtns.forEach(b=>{ const el=document.getElementById(b); if(el) el.classList.toggle('active', b===id); }); }
-    bind('btnIso',  ()=>{ isolate(null); setActive('btnIso'); frame(-D*0.42, D*0.34, D*0.54, roomH*0.4); });
+    bind('btnIso',  ()=>{ isolate(null); setActive('btnIso'); frame(-D*0.42, D*0.34, D*0.54, roomH*0.4); if(window._stickerGroups) window._stickerGroups.forEach(g=>g.visible=false); dirty=true; });
     bind('btnTop',  ()=> frame(0.001, D*1.15, 0.001, 0));
     bind('btnSide', ()=> frame(0, roomH*0.6, D*0.9, roomH*0.35));
-    bind('btnClose',()=>{ const tx=x0+12, tz=-(AISLE/2+laneDepth*0.5), ty=roomH*0.5; setActive('btnClose'); frame(tx-9, roomH*0.85, tz+15, ty, tx, tz); });   // close-up of one rack
+    bind('btnClose',()=>{ const tx=x0+12, tz=-(AISLE/2+laneDepth*0.5), ty=roomH*0.5; setActive('btnClose'); frame(tx-9, roomH*0.85, tz+15, ty, tx, tz); if(window._stickerGroups) window._stickerGroups.forEach(g=>g.visible=true); dirty=true; });   // close-up of one rack
     // zone-level views — show that zone ONLY (isolated) and focus on it
-    function zoneView(key){ const s=spans[key]; if(!s) return; isolate(key); setActive('btnZ'+key); const cx=(s.min+s.max)/2, w=s.max-s.min, zd=Math.max(w, 2*laneDepth+AISLE)*0.95; frame(cx-zd*0.12, zd*0.5, zd*0.8, roomH*0.42, cx, 0); }
+    function zoneView(key){ const s=spans[key]; if(!s) return; isolate(key); setActive('btnZ'+key); const cx=(s.min+s.max)/2, w=s.max-s.min, zd=Math.max(w, 2*laneDepth+AISLE)*0.95; frame(cx-zd*0.12, zd*0.5, zd*0.8, roomH*0.42, cx, 0); if(window._stickerGroups) window._stickerGroups.forEach(g=>g.visible=false); dirty=true; }
     bind('btnZ1',()=> zoneView('1')); bind('btnZ2',()=> zoneView('2')); bind('btnZ3',()=> zoneView('3'));
     bind('btnReset',()=>{ isolate(null); setActive('btnIso'); controls.target.copy(home.tgt); camera.position.copy(home.pos); controls.update(); dirty=true; });
     const bPal = document.getElementById('btnPallets');
