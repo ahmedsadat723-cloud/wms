@@ -764,7 +764,6 @@ window.buildFallbackSvg = function(){
       // ستيكر أصفر على كل بالت مشغول
       const zDef = ZONE_DEFS[parseInt(zk)];
       F(pallets).forEach(p=>{
-        if(!p.filled) return;
         const stk = makePalletSticker(THREE, p.label, zDef.color);
         stk.position.set(p.x, p.y + PHp/2 + 0.12, p.z);
         g.add(stk);
