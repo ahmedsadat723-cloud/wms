@@ -556,27 +556,27 @@ window.buildFallbackSvg = function(){
   function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 
   function makeLabel(THREE, text, color){
-    const c = document.createElement('canvas'); c.width = 512; c.height = 140;
+    const c = document.createElement('canvas'); c.width = 1024; c.height = 288;
     const ctx = c.getContext('2d');
-    ctx.fillStyle = 'rgba(255,255,255,0.92)'; roundRect(ctx,6,6,500,128,28); ctx.fill();
-    ctx.lineWidth = 5; ctx.strokeStyle = color; roundRect(ctx,6,6,500,128,28); ctx.stroke();
-    ctx.fillStyle = color; ctx.font = 'bold 62px Tajawal, Arial, sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 256, 76);
-    const tex = new THREE.CanvasTexture(c); tex.anisotropy = 4;
+    ctx.fillStyle = 'rgba(255,255,255,0.96)'; roundRect(ctx,12,12,1000,264,56); ctx.fill();
+    ctx.lineWidth = 10; ctx.strokeStyle = color; roundRect(ctx,12,12,1000,264,56); ctx.stroke();
+    ctx.fillStyle = color; ctx.font = '900 132px Tajawal, Arial, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 512, 156);
+    const tex = new THREE.CanvasTexture(c); tex.anisotropy = 8; tex.minFilter = THREE.LinearFilter;
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
-    sp.scale.set(11, 3, 1); return sp;
+    sp.scale.set(11, 3.1, 1); return sp;
   }
 
   function makeChip(THREE, text, accent){
-    const c = document.createElement('canvas'); c.width = 560; c.height = 96;
+    const c = document.createElement('canvas'); c.width = 1120; c.height = 192;
     const ctx = c.getContext('2d');
-    ctx.fillStyle = 'rgba(14,21,32,0.94)'; roundRect(ctx,4,4,552,88,20); ctx.fill();
-    ctx.lineWidth = 4; ctx.strokeStyle = accent; roundRect(ctx,4,4,552,88,20); ctx.stroke();
-    ctx.fillStyle = '#EAF1FA'; ctx.font = 'bold 44px Tajawal, Arial, sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 280, 52);
-    const tex = new THREE.CanvasTexture(c); tex.anisotropy = 4;
+    ctx.fillStyle = 'rgba(14,21,32,0.95)'; roundRect(ctx,8,8,1104,176,40); ctx.fill();
+    ctx.lineWidth = 8; ctx.strokeStyle = accent; roundRect(ctx,8,8,1104,176,40); ctx.stroke();
+    ctx.fillStyle = '#F1F6FC'; ctx.font = '800 92px Tajawal, Arial, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 560, 104);
+    const tex = new THREE.CanvasTexture(c); tex.anisotropy = 8; tex.minFilter = THREE.LinearFilter;
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
-    sp.scale.set(7, 1.2, 1); return sp;
+    sp.scale.set(7.4, 1.27, 1); return sp;
   }
 
   function init(THREE, OrbitControls){
@@ -624,27 +624,27 @@ window.buildFallbackSvg = function(){
           const cx = x + lanePitch/2; x += lanePitch;
           const s = spans[zone.z] || (spans[zone.z]={min:1e9,max:-1e9,c:zone.c,lv:zone.lv});
           s.min=Math.min(s.min,cx-lanePitch/2); s.max=Math.max(s.max,cx+lanePitch/2); s.lv=Math.max(s.lv,zone.lv);
-          const topH = zone.lv*LEVELH;
+          const topH = zone.lv*LEVELH, zn = zone.z;
           for(const sx of [-1,1]){
             const px = cx + sx*sideX;
-            for(let d=0; d<=DEEP; d++) posts.push({x:px, y:topH/2, z:postZ(d), h:topH});          // uprights
-            for(let lv=0; lv<zone.lv; lv++) for(let d=0; d<DEEP; d++){                             // diagonal bracing per level
+            for(let d=0; d<=DEEP; d++) posts.push({x:px, y:topH/2, z:postZ(d), h:topH, zn});          // uprights
+            for(let lv=0; lv<zone.lv; lv++) for(let d=0; d<DEEP; d++){                                 // diagonal bracing per level
               const yb=lv*LEVELH, yt=(lv+1)*LEVELH, up=((lv+d)%2===0);
-              diags.push({x:px, y0:up?yb:yt, z0:postZ(d), y1:up?yt:yb, z1:postZ(d+1)});
+              diags.push({x:px, y0:up?yb:yt, z0:postZ(d), y1:up?yt:yb, z1:postZ(d+1), zn});
             }
-            for(let lv=0; lv<zone.lv; lv++){                                                      // orange support corbels (carry the rails) at both open ends
+            for(let lv=0; lv<zone.lv; lv++){                                                          // orange support corbels at both open ends
               const ay=(lv+1)*LEVELH;
-              corbels.push({x:px, y:ay, z:innerZ, rz:side}, {x:px, y:ay, z:outerZ, rz:-side});
+              corbels.push({x:px, y:ay, z:innerZ, rz:side, zn}, {x:px, y:ay, z:outerZ, rz:-side, zn});
             }
-            guards.push({x:px, z:innerZ}, {x:px, z:outerZ});                                       // floor guards, both ends
+            guards.push({x:px, z:innerZ, zn}, {x:px, z:outerZ, zn});                                   // floor guards, both ends
           }
           for(let lv=0; lv<zone.lv; lv++){
             const railY = lv*LEVELH;
-            for(const sx of [-1,1]) rails.push({x:cx + sx*sideX, y:railY, z:blockCz});             // orange depth rails
-            fbeams.push({x:cx, y:railY+LEVELH, z:innerZ}, {x:cx, y:railY+LEVELH, z:outerZ});        // orange front/back beams
+            for(const sx of [-1,1]) rails.push({x:cx + sx*sideX, y:railY, z:blockCz, zn});             // orange depth rails
+            fbeams.push({x:cx, y:railY+LEVELH, z:innerZ, zn}, {x:cx, y:railY+LEVELH, z:outerZ, zn});    // orange front/back beams
             for(let d=0; d<DEEP; d++){
               const filled = Math.random() < zone.occ;
-              pallets.push({x:cx, y:railY+PHp/2+0.08, z:palletZ(d), c: filled?zone.c:0xC6CDD8});
+              pallets.push({x:cx, y:railY+PHp/2+0.08, z:palletZ(d), c: filled?zone.c:0xC6CDD8, zn});
             }
           }
         }
@@ -654,53 +654,41 @@ window.buildFallbackSvg = function(){
     buildBlock(blockNear, -1);
     buildBlock(blockFar,  +1);
 
-    const dummy = new THREE.Object3D();
-
-    // pallets (colored per zone / grey when empty)
-    const palMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(PW,PHp,PDp), new THREE.MeshLambertMaterial(), pallets.length);
-    const col = new THREE.Color();
-    pallets.forEach((p,i)=>{ dummy.position.set(p.x,p.y,p.z); dummy.scale.set(1,1,1); dummy.updateMatrix(); palMesh.setMatrixAt(i,dummy.matrix); palMesh.setColorAt(i,col.setHex(p.c)); });
-    palMesh.instanceMatrix.needsUpdate=true; if(palMesh.instanceColor) palMesh.instanceColor.needsUpdate=true;
-    palMesh.visible = false;   // rack structure is the hero; goods hidden by default (toggle via 📦)
-    scene.add(palMesh);
-
-    // blue uprights (12cm)
-    const postMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(post,1,post), new THREE.MeshLambertMaterial({color:0x1E73E8}), posts.length);
-    posts.forEach((p,i)=>{ dummy.position.set(p.x,p.y,p.z); dummy.scale.set(1,p.h,1); dummy.updateMatrix(); postMesh.setMatrixAt(i,dummy.matrix); });
-    postMesh.instanceMatrix.needsUpdate=true; scene.add(postMesh);
-
-    // orange depth rails (≈5.7m, run along Z)
-    const railMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.08,0.1,1), new THREE.MeshLambertMaterial({color:0xF26A1E}), rails.length);
-    rails.forEach((b,i)=>{ dummy.position.set(b.x,b.y,b.z); dummy.scale.set(1,1,laneDepth); dummy.updateMatrix(); railMesh.setMatrixAt(i,dummy.matrix); });
-    railMesh.instanceMatrix.needsUpdate=true; scene.add(railMesh);
-
-    // orange floor guards
-    const guardMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.18,0.7,0.18), new THREE.MeshLambertMaterial({color:0xF26A1E}), guards.length);
-    guards.forEach((g,i)=>{ dummy.position.set(g.x,0.35,g.z); dummy.scale.set(1,1,1); dummy.updateMatrix(); guardMesh.setMatrixAt(i,dummy.matrix); });
-    guardMesh.instanceMatrix.needsUpdate=true; scene.add(guardMesh);
-
-    // blue diagonal bracing (per level — the frame lattice from the photos)
+    const dummy = new THREE.Object3D(), col = new THREE.Color();
     const upV=new THREE.Vector3(0,1,0), v0=new THREE.Vector3(), v1=new THREE.Vector3(), vd=new THREE.Vector3(), q=new THREE.Quaternion();
-    const diagMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.05,1,0.05), new THREE.MeshLambertMaterial({color:0x3B8BF2}), diags.length);
-    diags.forEach((d,i)=>{
-      v0.set(d.x,d.y0,d.z0); v1.set(d.x,d.y1,d.z1); vd.subVectors(v1,v0); const len=vd.length();
-      q.setFromUnitVectors(upV, vd.clone().normalize());
-      dummy.position.copy(v0).addScaledVector(vd,0.5); dummy.quaternion.copy(q); dummy.scale.set(1,len,1); dummy.updateMatrix();
-      diagMesh.setMatrixAt(i,dummy.matrix);
+
+    // shared geometries + materials (reused across all zones)
+    const GEO = {
+      pal:new THREE.BoxGeometry(PW,PHp,PDp), post:new THREE.BoxGeometry(post,1,post),
+      rail:new THREE.BoxGeometry(0.08,0.1,1), guard:new THREE.BoxGeometry(0.18,0.7,0.18),
+      diag:new THREE.BoxGeometry(0.05,1,0.05), fbeam:new THREE.BoxGeometry(1,0.12,0.1), corbel:new THREE.BoxGeometry(0.07,0.42,0.1)
+    };
+    const MAT = {
+      post:new THREE.MeshLambertMaterial({color:0x1E73E8}), rail:new THREE.MeshLambertMaterial({color:0xF26A1E}),
+      guard:new THREE.MeshLambertMaterial({color:0xF26A1E}), diag:new THREE.MeshLambertMaterial({color:0x3B8BF2}),
+      fbeam:new THREE.MeshLambertMaterial({color:0xF26A1E}), corbel:new THREE.MeshLambertMaterial({color:0xF26A1E})
+    };
+
+    // build each zone into its OWN group so a single zone can be shown in isolation
+    const zoneGroups = {}, palMeshes = [];
+    const inst = (grp, arr, geo, mat, place)=>{ if(!arr.length) return; const m=new THREE.InstancedMesh(geo, mat, arr.length); arr.forEach((p,i)=>place(p,i,m)); m.instanceMatrix.needsUpdate=true; grp.add(m); };
+
+    ['1','2','3'].forEach(zk=>{
+      const g = new THREE.Group(); zoneGroups[zk]=g; scene.add(g);
+      const F = a => a.filter(o=>String(o.zn)===zk);
+
+      const pf = F(pallets);   // goods (colored, hidden by default)
+      if(pf.length){ const m=new THREE.InstancedMesh(GEO.pal, new THREE.MeshLambertMaterial(), pf.length);
+        pf.forEach((p,i)=>{ dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); m.setColorAt(i,col.setHex(p.c)); });
+        m.instanceMatrix.needsUpdate=true; if(m.instanceColor) m.instanceColor.needsUpdate=true; m.visible=false; g.add(m); palMeshes.push(m); }
+
+      inst(g, F(posts),  GEO.post,  MAT.post,  (p,i,m)=>{ dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,0); dummy.scale.set(1,p.h,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
+      inst(g, F(rails),  GEO.rail,  MAT.rail,  (p,i,m)=>{ dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,0); dummy.scale.set(1,1,laneDepth); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
+      inst(g, F(guards), GEO.guard, MAT.guard, (p,i,m)=>{ dummy.position.set(p.x,0.35,p.z); dummy.rotation.set(0,0,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
+      inst(g, F(fbeams), GEO.fbeam, MAT.fbeam, (p,i,m)=>{ dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,0); dummy.scale.set(laneClear+post,1,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
+      inst(g, F(corbels),GEO.corbel,MAT.corbel,(p,i,m)=>{ dummy.position.set(p.x,p.y-0.19,p.z+p.rz*0.10); dummy.rotation.set(p.rz*0.6,0,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
+      inst(g, F(diags),  GEO.diag,  MAT.diag,  (p,i,m)=>{ v0.set(p.x,p.y0,p.z0); v1.set(p.x,p.y1,p.z1); vd.subVectors(v1,v0); const len=vd.length(); q.setFromUnitVectors(upV, vd.clone().normalize()); dummy.position.copy(v0).addScaledVector(vd,0.5); dummy.quaternion.copy(q); dummy.scale.set(1,len,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
     });
-    diagMesh.instanceMatrix.needsUpdate=true; scene.add(diagMesh);
-    dummy.quaternion.set(0,0,0,1);
-
-    // orange front/back load beams
-    const fbeamMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,0.12,0.1), new THREE.MeshLambertMaterial({color:0xF26A1E}), fbeams.length);
-    fbeams.forEach((b,i)=>{ dummy.position.set(b.x,b.y,b.z); dummy.scale.set(laneClear+post,1,1); dummy.updateMatrix(); fbeamMesh.setMatrixAt(i,dummy.matrix); });
-    fbeamMesh.instanceMatrix.needsUpdate=true; scene.add(fbeamMesh);
-
-    // orange support corbels — angled brackets under each rail at the open ends (drive-in signature)
-    const corbelMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.07,0.42,0.1), new THREE.MeshLambertMaterial({color:0xF26A1E}), corbels.length);
-    corbels.forEach((c,i)=>{ dummy.position.set(c.x, c.y-0.19, c.z + c.rz*0.10); dummy.rotation.set(c.rz*0.6,0,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); corbelMesh.setMatrixAt(i,dummy.matrix); });
-    corbelMesh.instanceMatrix.needsUpdate=true; scene.add(corbelMesh);
-    dummy.rotation.set(0,0,0);
 
     // ---- ROOM SHELL: floor / grid / ceiling / walls / receiving doors ----
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(roomL,roomW), new THREE.MeshLambertMaterial({color:0x1B2430}));
@@ -732,16 +720,16 @@ window.buildFallbackSvg = function(){
     const zoneName = {1:'الاستلام',2:'الطوارئ',3:'النهاية'};
     const keys = Object.keys(spans);
     keys.forEach((key,i)=>{
-      const s = spans[key], cx=(s.min+s.max)/2;
+      const s = spans[key], cx=(s.min+s.max)/2, G = zoneGroups[key] || scene;
       const tint = new THREE.Mesh(new THREE.PlaneGeometry(s.max-s.min, 2*laneDepth+AISLE), new THREE.MeshBasicMaterial({color:s.c, transparent:true, opacity:0.14}));
-      tint.rotation.x=-Math.PI/2; tint.position.set(cx,0.03,0); scene.add(tint);
+      tint.rotation.x=-Math.PI/2; tint.position.set(cx,0.03,0); G.add(tint);
       const label = makeLabel(THREE, 'منطقة '+({1:'١',2:'٢',3:'٣'}[key])+' · '+zoneName[key], '#'+s.c.toString(16).padStart(6,'0'));
-      label.scale.set(13,2.2,1); label.position.set(cx, s.lv*LEVELH+1.7, 0); scene.add(label);
+      label.scale.set(13,2.2,1); label.position.set(cx, s.lv*LEVELH+1.7, 0); G.add(label);
       if(i < keys.length-1){
         const gapX = s.max + ZONEGAP/2;
         const gap = new THREE.Mesh(new THREE.PlaneGeometry(ZONEGAP, 2*laneDepth+AISLE), new THREE.MeshBasicMaterial({color:0xF2C230, transparent:true, opacity:0.22}));
-        gap.rotation.x=-Math.PI/2; gap.position.set(gapX,0.05,0); scene.add(gap);
-        const gl = makeChip(THREE, 'باب طوارئ 2.3م', '#F2C230'); gl.position.set(gapX, 1.5, roomW/2-1.5); gl.scale.set(6.5,1.3,1); scene.add(gl);
+        gap.rotation.x=-Math.PI/2; gap.position.set(gapX,0.05,0); G.add(gap);
+        const gl = makeChip(THREE, 'باب طوارئ 2.3م', '#F2C230'); gl.position.set(gapX, 1.5, roomW/2-1.5); gl.scale.set(6.5,1.3,1); G.add(gl);
       }
     });
 
@@ -776,16 +764,21 @@ window.buildFallbackSvg = function(){
     const bind=(id,fn)=>{ const b=document.getElementById(id); if(b) b.addEventListener('click',fn); };
     bind('btnZoomIn',  ()=> dolly(0.82));
     bind('btnZoomOut', ()=> dolly(1.22));
-    bind('btnIso',  ()=> frame(-D*0.5, D*0.42, D*0.62));
+    // isolate(): show only the chosen zone (null = show all) — the rest is hidden
+    function isolate(key){ ['1','2','3'].forEach(zk=>{ if(zoneGroups[zk]) zoneGroups[zk].visible = (key===null || zk===key); }); dirty=true; }
+    // highlight the active view button
+    const viewBtns = ['btnIso','btnZ1','btnZ2','btnZ3','btnClose'];
+    function setActive(id){ viewBtns.forEach(b=>{ const el=document.getElementById(b); if(el) el.classList.toggle('active', b===id); }); }
+    bind('btnIso',  ()=>{ isolate(null); setActive('btnIso'); frame(-D*0.42, D*0.34, D*0.54, roomH*0.4); });
     bind('btnTop',  ()=> frame(0.001, D*1.15, 0.001, 0));
     bind('btnSide', ()=> frame(0, roomH*0.6, D*0.9, roomH*0.35));
-    bind('btnClose',()=>{ const tx=x0+12, tz=-(AISLE/2+laneDepth*0.5), ty=roomH*0.5; frame(tx-9, roomH*0.85, tz+15, ty, tx, tz); });   // close-up of one rack
-    // zone-level views (focus each zone on its own, beside the overall view)
-    function zoneView(key){ const s=spans[key]; if(!s) return; const cx=(s.min+s.max)/2, w=s.max-s.min, zd=Math.max(w, 2*laneDepth+AISLE)*0.9; frame(cx-zd*0.12, zd*0.52, zd*0.82, roomH*0.42, cx, 0); }
+    bind('btnClose',()=>{ const tx=x0+12, tz=-(AISLE/2+laneDepth*0.5), ty=roomH*0.5; setActive('btnClose'); frame(tx-9, roomH*0.85, tz+15, ty, tx, tz); });   // close-up of one rack
+    // zone-level views — show that zone ONLY (isolated) and focus on it
+    function zoneView(key){ const s=spans[key]; if(!s) return; isolate(key); setActive('btnZ'+key); const cx=(s.min+s.max)/2, w=s.max-s.min, zd=Math.max(w, 2*laneDepth+AISLE)*0.95; frame(cx-zd*0.12, zd*0.5, zd*0.8, roomH*0.42, cx, 0); }
     bind('btnZ1',()=> zoneView('1')); bind('btnZ2',()=> zoneView('2')); bind('btnZ3',()=> zoneView('3'));
-    bind('btnReset',()=>{ controls.target.copy(home.tgt); camera.position.copy(home.pos); controls.update(); dirty=true; });
+    bind('btnReset',()=>{ isolate(null); setActive('btnIso'); controls.target.copy(home.tgt); camera.position.copy(home.pos); controls.update(); dirty=true; });
     const bPal = document.getElementById('btnPallets');
-    if(bPal) bPal.addEventListener('click', ()=>{ palMesh.visible=!palMesh.visible; bPal.classList.toggle('active', palMesh.visible); dirty=true; });
+    if(bPal) bPal.addEventListener('click', ()=>{ const v=!(palMeshes[0]&&palMeshes[0].visible); palMeshes.forEach(m=>m.visible=v); bPal.classList.toggle('active', v); dirty=true; });
     const bAuto = document.getElementById('btnAuto');
     if(bAuto) bAuto.addEventListener('click', ()=>{ controls.autoRotate=!controls.autoRotate; bAuto.classList.toggle('active', controls.autoRotate); dirty=true; });
 
