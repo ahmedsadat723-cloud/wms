@@ -410,7 +410,10 @@ body {
       <div class="viz3d__tools">
         <button class="viz3d__btn" id="btnZoomIn"  title="تقريب">＋ تقريب</button>
         <button class="viz3d__btn" id="btnZoomOut" title="تبعيد">－ تبعيد</button>
-        <button class="viz3d__btn" id="btnIso"  title="منظور ثلاثي">⬗ منظور</button>
+        <button class="viz3d__btn" id="btnIso"  title="المنظر الإجمالي">⬗ إجمالي</button>
+        <button class="viz3d__btn" id="btnZ1" title="منظر منطقة 1">① م1</button>
+        <button class="viz3d__btn" id="btnZ2" title="منظر منطقة 2">② م2</button>
+        <button class="viz3d__btn" id="btnZ3" title="منظر منطقة 3">③ م3</button>
         <button class="viz3d__btn" id="btnClose" title="راك قريب">🔍 راك قريب</button>
         <button class="viz3d__btn" id="btnTop"  title="من أعلى">⬒ أعلى</button>
         <button class="viz3d__btn" id="btnSide" title="جانبي">▭ جانبي</button>
@@ -584,7 +587,7 @@ window.buildFallbackSvg = function(){
     scene.fog = new THREE.Fog(0x0E1520, 70, 340);
     const camera = new THREE.PerspectiveCamera(42, W/H, 0.1, 3000);
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.setPixelRatio(Math.min(2.5, window.devicePixelRatio || 1));
     renderer.setSize(W, H, false);
 
     scene.add(new THREE.HemisphereLight(0xdfeaff, 0x223047, 1.2));
@@ -759,8 +762,8 @@ window.buildFallbackSvg = function(){
     controls.autoRotate=false; controls.autoRotateSpeed=0.45;   // manual only (per spec) — toggle via ⟳ button
     controls.minDistance=dist*0.16; controls.maxDistance=dist*2.2;
     controls.maxPolarAngle=Math.PI*0.49;
-    controls.target.set(0, roomH*0.35, 0);
-    camera.position.set(-dist*0.5, dist*0.42, dist*0.62);
+    controls.target.set(0, roomH*0.4, 0);
+    camera.position.set(-dist*0.42, dist*0.34, dist*0.54);
     controls.update();
 
     // ---- interactive controls: zoom / preset views / reset / optional auto-spin ----
@@ -777,6 +780,9 @@ window.buildFallbackSvg = function(){
     bind('btnTop',  ()=> frame(0.001, D*1.15, 0.001, 0));
     bind('btnSide', ()=> frame(0, roomH*0.6, D*0.9, roomH*0.35));
     bind('btnClose',()=>{ const tx=x0+12, tz=-(AISLE/2+laneDepth*0.5), ty=roomH*0.5; frame(tx-9, roomH*0.85, tz+15, ty, tx, tz); });   // close-up of one rack
+    // zone-level views (focus each zone on its own, beside the overall view)
+    function zoneView(key){ const s=spans[key]; if(!s) return; const cx=(s.min+s.max)/2, w=s.max-s.min, zd=Math.max(w, 2*laneDepth+AISLE)*0.9; frame(cx-zd*0.12, zd*0.52, zd*0.82, roomH*0.42, cx, 0); }
+    bind('btnZ1',()=> zoneView('1')); bind('btnZ2',()=> zoneView('2')); bind('btnZ3',()=> zoneView('3'));
     bind('btnReset',()=>{ controls.target.copy(home.tgt); camera.position.copy(home.pos); controls.update(); dirty=true; });
     const bPal = document.getElementById('btnPallets');
     if(bPal) bPal.addEventListener('click', ()=>{ palMesh.visible=!palMesh.visible; bPal.classList.toggle('active', palMesh.visible); dirty=true; });
