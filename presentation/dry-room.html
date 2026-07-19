@@ -558,7 +558,7 @@ window.buildFallbackSvg = function(){
   function makeLabel(THREE, text, color){
     const c = document.createElement('canvas'); c.width = 1024; c.height = 288;
     const ctx = c.getContext('2d');
-    ctx.fillStyle = 'rgba(255,255,255,0.96)'; roundRect(ctx,12,12,1000,264,56); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.98)'; roundRect(ctx,12,12,1000,264,56); ctx.fill();
     ctx.lineWidth = 10; ctx.strokeStyle = color; roundRect(ctx,12,12,1000,264,56); ctx.stroke();
     ctx.fillStyle = color; ctx.font = '900 132px Tajawal, Arial, sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 512, 156);
@@ -570,7 +570,7 @@ window.buildFallbackSvg = function(){
   function makeChip(THREE, text, accent){
     const c = document.createElement('canvas'); c.width = 1120; c.height = 192;
     const ctx = c.getContext('2d');
-    ctx.fillStyle = 'rgba(14,21,32,0.95)'; roundRect(ctx,8,8,1104,176,40); ctx.fill();
+    ctx.fillStyle = 'rgba(10,15,30,0.93)'; roundRect(ctx,8,8,1104,176,40); ctx.fill();
     ctx.lineWidth = 8; ctx.strokeStyle = accent; roundRect(ctx,8,8,1104,176,40); ctx.stroke();
     ctx.fillStyle = '#F1F6FC'; ctx.font = '800 92px Tajawal, Arial, sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 560, 104);
@@ -583,16 +583,16 @@ window.buildFallbackSvg = function(){
     const W = wrap.clientWidth, H = wrap.clientHeight;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xEEF2F7);
+    scene.background = new THREE.Color(0xEEF2F7); scene.fog = null;
     scene.fog = new THREE.Fog(0x0E1520, 70, 340);
     const camera = new THREE.PerspectiveCamera(42, W/H, 0.1, 3000);
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setPixelRatio(Math.min(2.5, window.devicePixelRatio || 1));
     renderer.setSize(W, H, false);
 
-    scene.add(new THREE.HemisphereLight(0xdfeaff, 0x223047, 1.2));
-    const dir = new THREE.DirectionalLight(0xffffff, 1.1); dir.position.set(-70,140,90); scene.add(dir);
-    const dir2 = new THREE.DirectionalLight(0xbcd4ff, 0.4); dir2.position.set(90,50,-70); scene.add(dir2);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xc0cce0, 2.2));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.8); dir.position.set(-70,140,90); scene.add(dir);
+    const dir2 = new THREE.DirectionalLight(0xffffff, 0.8); dir2.position.set(90,50,-70); scene.add(dir2);
 
     // ==== DRIVE-THROUGH racking — REAL SCALE (1 unit = 1 metre) ====
     // مقاسات ميدانية: بالتة 1200mm عرض × ~950mm عمق، دور 2.45م، قائم 12سم، عارضة 5.7م، فاصل مناطق 2.3م.
