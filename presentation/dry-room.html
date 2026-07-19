@@ -604,8 +604,9 @@ window.buildFallbackSvg = function(){
     while(ctx.measureText(code).width > 230 && fs > 28){ fs -= 4; ctx.font = 'bold '+fs+'px Arial, sans-serif'; }
     ctx.fillText(code, 128, 64);
     const tex = new THREE.CanvasTexture(c); tex.anisotropy = 8; tex.minFilter = THREE.LinearFilter;
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
-    sp.scale.set(1.4, 0.7, 1); return sp;
+    const geo = new THREE.PlaneGeometry(0.58, 0.26);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthTest: true, side: THREE.DoubleSide });
+    return new THREE.Mesh(geo, mat);
   }
 
   function makeSticker(THREE, code, accent){
@@ -765,8 +766,7 @@ window.buildFallbackSvg = function(){
       const zDef = ZONE_DEFS[parseInt(zk)];
       F(pallets).forEach(p=>{
         const stk = makePalletSticker(THREE, p.label, zDef.color);
-        stk.scale.set(0.55, 0.25, 1);
-        stk.position.set(p.x, p.y, p.z + PDp/2 + 0.01);
+        stk.position.set(p.x, p.y, p.z + PDp/2 + 0.02);
         g.add(stk);
       });
     });
