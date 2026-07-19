@@ -866,40 +866,55 @@ window.buildFallbackSvg = function(){
       inst(g, F(corbels),GEO.corbel,MAT.corbel,(p,i,m)=>{ dummy.position.set(p.x,p.y-0.19,p.z+p.rz*0.10); dummy.rotation.set(p.rz*0.6,0,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
       inst(g, F(diags),  GEO.diag,  MAT.diag,  (p,i,m)=>{ v0.set(p.x,p.y0,p.z0); v1.set(p.x,p.y1,p.z1); vd.subVectors(v1,v0); const len=vd.length(); q.setFromUnitVectors(upV, vd.clone().normalize()); dummy.position.copy(v0).addScaledVector(vd,0.5); dummy.quaternion.copy(q); dummy.scale.set(1,len,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
 
-      // ستيكرات صغيرة — تظهر فقط في وضع راك قريب
+      // ستيكر لكل بالت — PlaneGeometry ثابت على وجه البالت بدون تراكب
       const stickerGroup = new THREE.Group(); stickerGroup.visible = true; g.add(stickerGroup);
       const zDef = ZONE_DEFS[parseInt(zk)];
       const ZONE_ICON = {1:'📦', 2:'🌾🫘🌽', 3:'🧂'};
       const zIcon = ZONE_ICON[parseInt(zk)] || '';
-      F(pallets).forEach(p=>{
-        const c = document.createElement('canvas'); c.width = 256; c.height = 110;
-        const ctx2 = c.getContext('2d');
+
+      // دالة تصنع texture فريدة لكل بالت بنصه الخاص
+      function makeStickerTex(label){
+        const cv = document.createElement('canvas'); cv.width = 256; cv.height = 128;
+        const cx = cv.getContext('2d');
         // خلفية صفراء
-        ctx2.fillStyle = '#FFD600';
-        ctx2.beginPath(); ctx2.roundRect(2,2,252,106,12); ctx2.fill();
-        // حد ملون حسب المنطقة
-        ctx2.strokeStyle = zDef.color; ctx2.lineWidth = 5;
-        ctx2.beginPath(); ctx2.roundRect(2,2,252,106,12); ctx2.stroke();
+        cx.fillStyle = '#FFD600';
+        cx.beginPath(); cx.roundRect(3,3,250,122,14); cx.fill();
         // شريط علوي ملون
-        ctx2.fillStyle = zDef.color;
-        ctx2.beginPath(); ctx2.roundRect(2,2,252,32,{upperLeft:10,upperRight:10,lowerLeft:0,lowerRight:0}); ctx2.fill();
-        // أيقونة + كود في الشريط
-        ctx2.font = '16px Arial'; ctx2.fillStyle = '#fff';
-        ctx2.textAlign = 'right'; ctx2.textBaseline = 'middle';
-        ctx2.fillText(zIcon, 238, 18);
-        ctx2.font = 'bold 14px Arial'; ctx2.fillStyle = '#fff';
-        ctx2.textAlign = 'left'; ctx2.textBaseline = 'middle';
-        ctx2.fillText(zDef.code, 14, 18);
-        // رقم البالت في المنتصف
-        ctx2.fillStyle = '#111'; ctx2.font = 'bold 38px Arial';
-        ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
-        ctx2.fillText(p.label, 128, 74);
-        const tex = new THREE.CanvasTexture(c);
-        tex.minFilter = THREE.LinearFilter;
-        const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:false, sizeAttenuation:true}));
-        sp.scale.set(0.58, 0.26, 1);
-        sp.position.set(p.x, p.y + PHp*0.30, p.z);
-        stickerGroup.add(sp);
+        cx.fillStyle = zDef.color;
+        cx.fillRect(3,3,250,36);
+        cx.beginPath(); cx.roundRect(3,3,250,36,{upperLeft:14,upperRight:14,lowerLeft:0,lowerRight:0}); cx.fill();
+        // حد
+        cx.strokeStyle = zDef.color; cx.lineWidth = 4;
+        cx.beginPath(); cx.roundRect(3,3,250,122,14); cx.stroke();
+        // كود المنطقة في الشريط
+        cx.font = 'bold 20px Arial'; cx.fillStyle = '#fff';
+        cx.textAlign = 'left'; cx.textBaseline = 'middle';
+        cx.fillText(zDef.code, 12, 21);
+        // أيقونة في الشريط
+        cx.font = '18px Arial'; cx.textAlign = 'right';
+        cx.fillText(zIcon.split('').slice(0,1).join(''), 244, 21);
+        // رقم البالت
+        cx.fillStyle = '#111'; cx.font = 'bold 46px Arial';
+        cx.textAlign = 'center'; cx.textBaseline = 'middle';
+        const fontSize = label.length > 7 ? 34 : 46;
+        cx.font = `bold ${fontSize}px Arial`;
+        cx.fillText(label, 128, 86);
+        const t = new THREE.CanvasTexture(cv);
+        t.minFilter = THREE.LinearFilter; t.magFilter = THREE.LinearFilter;
+        return t;
+      }
+
+      F(pallets).forEach(p=>{
+        const tex = makeStickerTex(p.label);
+        // Plane مثبت على وجه البالت الأمامي
+        const geo = new THREE.PlaneGeometry(PW*0.82, PHp*0.28);
+        const mat = new THREE.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false, side:THREE.DoubleSide});
+        const mesh = new THREE.Mesh(geo, mat);
+        // يواجه الكاميرا (Z موجب = أمام)
+        const faceZ = p.z > 0 ? 1 : -1;
+        mesh.position.set(p.x, p.y + PHp*0.1, p.z + faceZ*(PDp/2 + 0.015));
+        if(faceZ < 0) mesh.rotation.y = Math.PI;
+        stickerGroup.add(mesh);
       });
       if(!window._stickerGroups) window._stickerGroups = [];
       window._stickerGroups.push(stickerGroup);
