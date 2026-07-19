@@ -589,6 +589,36 @@ window.buildFallbackSvg = function(){
     sp.scale.set(10, 1.25, 1); return sp;
   }
 
+  function makeSticker(THREE, code, accent){
+    const c = document.createElement('canvas'); c.width = 512; c.height = 512;
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0,0,512,512);
+    // خلفية صفراء
+    ctx.fillStyle = '#FFD600';
+    roundRect(ctx,16,16,480,480,48); ctx.fill();
+    // حد ملون
+    ctx.lineWidth = 16; ctx.strokeStyle = accent;
+    roundRect(ctx,16,16,480,480,48); ctx.stroke();
+    // رمز الكود
+    ctx.fillStyle = '#111111';
+    ctx.font = 'bold 148px Arial, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    // قياس وتصغير لو كبير
+    let fs = 148;
+    while(ctx.measureText(code).width > 440 && fs > 60){ fs -= 6; ctx.font = 'bold '+fs+'px Arial, sans-serif'; }
+    ctx.fillText(code, 256, 230);
+    // خط فاصل
+    ctx.fillStyle = accent;
+    ctx.fillRect(60, 310, 392, 8);
+    // نص ZONE
+    ctx.fillStyle = '#333333';
+    ctx.font = 'bold 72px Arial, sans-serif';
+    ctx.fillText('ZONE', 256, 400);
+    const tex = new THREE.CanvasTexture(c); tex.anisotropy = 16; tex.minFilter = THREE.LinearFilter;
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+    sp.scale.set(2.8, 2.8, 1); return sp;
+  }
+
   function init(THREE, OrbitControls){
     const W = wrap.clientWidth, H = wrap.clientHeight;
 
@@ -613,8 +643,16 @@ window.buildFallbackSvg = function(){
     const laneClear=1.45, lanePitch=1.69;      // inner clear 145cm, pitch (external) 169cm
     const sideX=laneClear/2+post/2;            // upright offset from lane centre
     const AISLE=4.0, ZONEGAP=2.3;              // central drive aisle; 230cm emergency-door gap between zones
-    const blockNear = [{z:1,c:0xC9A84C,n:19,lv:5,occ:0.68},{z:2,c:0x4A8FBF,n:19,lv:5,occ:0.80},{z:3,c:0x6FBF8B,n:15,lv:5,occ:0.55}];
-    const blockFar  = [{z:1,c:0xC9A84C,n:19,lv:5,occ:0.68},{z:2,c:0x4A8FBF,n:20,lv:5,occ:0.80},{z:3,c:0x6FBF8B,n:15,lv:4,occ:0.55}];
+    // المنطقة 1: تغليف وكراتين (PKG) — أطول راك — أزرق
+    // المنطقة 2: تشكيل وتحضير (FORM + PREP) — برتقالي
+    // المنطقة 3: بهارات وتطهير (SPIC + SANIT) — أخضر
+    const ZONE_DEFS = {
+      1: { code:'PKG',  nameAr:'تغليف وكراتين',   nameEn:'Packaging & Cartons',  color:'#1565C0', items:43 },
+      2: { code:'FORM', nameAr:'تشكيل وتحضير',    nameEn:'Forming & Prep',       color:'#E65100', items:19 },
+      3: { code:'SPIC', nameAr:'بهارات وتطهير',   nameEn:'Spices & Sanitation',  color:'#2E7D32', items:19 }
+    };
+    const blockNear = [{z:1,c:0x1565C0,n:19,lv:5,occ:0.68},{z:2,c:0xE65100,n:19,lv:5,occ:0.80},{z:3,c:0x2E7D32,n:15,lv:5,occ:0.55}];
+    const blockFar  = [{z:1,c:0x1565C0,n:19,lv:5,occ:0.68},{z:2,c:0xE65100,n:20,lv:5,occ:0.80},{z:3,c:0x2E7D32,n:15,lv:4,occ:0.55}];
     const rr = zs => zs.reduce((a,z)=>a+z.n,0);
     const maxLanes = Math.max(rr(blockNear), rr(blockFar));
     const totalLen = maxLanes*lanePitch + (blockNear.length-1)*ZONEGAP;   // rack run incl. zone gaps
@@ -727,7 +765,8 @@ window.buildFallbackSvg = function(){
     { const al = makeChip(THREE, 'الممر الرئيسي — Drive-Through', '#25D0C4'); al.position.set(0, 0.9, 0); al.scale.set(12,1.8,1); scene.add(al); }
 
     // ---- zone tints + named labels + emergency-door gap corridors ----
-    const zoneName = {1:'الاستلام',2:'الطوارئ',3:'النهاية'};
+    const zoneName = {1:'تغليف وكراتين — PKG',2:'تشكيل وتحضير — FORM',3:'بهارات وتطهير — SPIC'};
+    const zoneCode = {1:'PKG-CTN',2:'FORM-PREP',3:'SPIC-SANIT'};
     const keys = Object.keys(spans);
     keys.forEach((key,i)=>{
       const s = spans[key], cx=(s.min+s.max)/2, G = zoneGroups[key] || scene;
@@ -735,6 +774,9 @@ window.buildFallbackSvg = function(){
       tint.rotation.x=-Math.PI/2; tint.position.set(cx,0.03,0); G.add(tint);
       const label = makeLabel(THREE, 'منطقة '+({1:'١',2:'٢',3:'٣'}[key])+' · '+zoneName[key], '#'+s.c.toString(16).padStart(6,'0'));
       label.scale.set(13,2.2,1); label.position.set(cx, s.lv*LEVELH+1.7, 0); G.add(label);
+      // ستيكر أصفر بالكود على كل راك
+      const sticker = makeSticker(THREE, zoneCode[key], '#'+s.c.toString(16).padStart(6,'0'));
+      sticker.position.set(cx, 1.2, 0); G.add(sticker);
       if(i < keys.length-1){
         const gapX = s.max + ZONEGAP/2;
         const gap = new THREE.Mesh(new THREE.PlaneGeometry(ZONEGAP, 2*laneDepth+AISLE), new THREE.MeshBasicMaterial({color:0xF2C230, transparent:true, opacity:0.22}));
