@@ -403,10 +403,12 @@ body {
   <section style="margin-bottom:28px">
     <div class="sh">
       <span class="sh__eye">ترميز المناطق</span>
-      <span class="sh__title">رمز كل منطقة ومكوناتها</span>
+      <span class="sh__title">التقسيم المعتمد للراكات والاستيكرات والأقسام</span>
       <div class="sh__line"></div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;direction:rtl">
+
+    <!-- البطاقات الثلاث -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;direction:rtl;margin-bottom:18px">
 
       <!-- منطقة 1 -->
       <div style="background:#fff;border-radius:12px;border:0.5px solid #e0e0e0;overflow:hidden">
@@ -415,23 +417,22 @@ body {
             <span style="font-size:22px">📦</span>
             <span style="color:#fff;font-weight:700;font-size:15px;font-family:monospace">PKG</span>
           </div>
-          <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:3px 10px;border-radius:20px">المنطقة الأولى</span>
+          <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:3px 10px;border-radius:20px">منطقة ١</span>
         </div>
         <div style="padding:14px 16px">
           <div style="font-size:13px;color:#555;margin-bottom:10px;font-weight:600">تغليف وكراتين — ناحية الاستلام</div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">الراكات</span><span style="font-size:12px;font-weight:600;color:#1565C0">19 + 19 راك</span></div>
+          <div style="display:flex;flex-direction:column;gap:0">
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">الراكات</span><span style="font-size:12px;font-weight:600;color:#1565C0">38 راك (19+19)</span></div>
             <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">الأدوار</span><span style="font-size:12px;font-weight:600;color:#1565C0">5 أدوار</span></div>
             <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">بالتات / راك</span><span style="font-size:12px;font-weight:600;color:#1565C0">6 بالت</span></div>
-            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">ارتفاع الدور</span><span style="font-size:12px;font-weight:600;color:#1565C0">175 سم</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">إجمالي المواقع</span><span style="font-size:12px;font-weight:600;color:#1565C0">1,140 موقع</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">نوع التخزين</span><span style="font-size:12px;font-weight:600;color:#1565C0">🪵 بالتات</span></div>
             <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="font-size:12px;color:#888">إشغال تقديري</span><span style="font-size:12px;font-weight:600;color:#1565C0">68%</span></div>
           </div>
-          <div style="margin-top:12px;background:#EBF3FB;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px">
-            <span style="font-size:18px">📦</span>
-            <span style="font-size:11px;color:#0C4475;font-weight:600">مواد تغليف — كراتين — أشرطة — ملصقات</span>
-          </div>
-          <div style="margin-top:8px;text-align:center">
-            <span style="background:#FFD600;color:#111;font-family:monospace;font-size:13px;font-weight:700;padding:4px 14px;border-radius:6px;border:2px solid #1565C0">PKG-001 ← PKG-570</span>
+          <div style="margin-top:10px;background:#EBF3FB;border-radius:8px;padding:7px 12px;font-size:11px;color:#0C4475;font-weight:600">📦 مواد تغليف — كراتين — أشرطة — ملصقات</div>
+          <div style="margin-top:8px;background:#FFD600;border-radius:6px;border:2px solid #1565C0;overflow:hidden">
+            <div style="background:#1565C0;padding:3px 8px;display:flex;justify-content:space-between"><span style="font-size:10px;font-weight:700;color:#fff;font-family:monospace">PKG</span><span style="font-size:10px;color:#fff">📦</span></div>
+            <div style="padding:5px;text-align:center;font-family:monospace;font-size:13px;font-weight:700;color:#111">PKG-001 ← PKG-570</div>
           </div>
         </div>
       </div>
@@ -443,23 +444,22 @@ body {
             <span style="font-size:22px">🌾</span>
             <span style="color:#fff;font-weight:700;font-size:15px;font-family:monospace">FORM</span>
           </div>
-          <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:3px 10px;border-radius:20px">المنطقة الثانية</span>
+          <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:3px 10px;border-radius:20px">منطقة ٢</span>
         </div>
         <div style="padding:14px 16px">
           <div style="font-size:13px;color:#555;margin-bottom:10px;font-weight:600">تشكيل وتحضير — ناحية الطوارئ</div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">الراكات</span><span style="font-size:12px;font-weight:600;color:#E65100">19 + 20 راك</span></div>
+          <div style="display:flex;flex-direction:column;gap:0">
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">الراكات</span><span style="font-size:12px;font-weight:600;color:#E65100">39 راك (19+20)</span></div>
             <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">الأدوار</span><span style="font-size:12px;font-weight:600;color:#E65100">5 أدوار</span></div>
             <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">بالتات / راك</span><span style="font-size:12px;font-weight:600;color:#E65100">6 بالت</span></div>
-            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">ارتفاع يمين / يسار</span><span style="font-size:12px;font-weight:600;color:#E65100">175 / 195 سم</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">إجمالي المواقع</span><span style="font-size:12px;font-weight:600;color:#E65100">1,170 موقع</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">نوع التخزين</span><span style="font-size:12px;font-weight:600;color:#E65100">🪵 بالتات</span></div>
             <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="font-size:12px;color:#888">إشغال تقديري</span><span style="font-size:12px;font-weight:600;color:#E65100">80%</span></div>
           </div>
-          <div style="margin-top:12px;background:#FFF3E0;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px">
-            <span style="font-size:18px">🌾🫘🌽</span>
-            <span style="font-size:11px;color:#7A3B00;font-weight:600">دقيق — حبوب — مواد خام للتشكيل</span>
-          </div>
-          <div style="margin-top:8px;text-align:center">
-            <span style="background:#FFD600;color:#111;font-family:monospace;font-size:13px;font-weight:700;padding:4px 14px;border-radius:6px;border:2px solid #E65100">FORM-001 ← FORM-585</span>
+          <div style="margin-top:10px;background:#FFF3E0;border-radius:8px;padding:7px 12px;font-size:11px;color:#7A3B00;font-weight:600">🌾🫘🌽 دقيق — حبوب — مواد خام للتشكيل</div>
+          <div style="margin-top:8px;background:#FFD600;border-radius:6px;border:2px solid #E65100;overflow:hidden">
+            <div style="background:#E65100;padding:3px 8px;display:flex;justify-content:space-between"><span style="font-size:10px;font-weight:700;color:#fff;font-family:monospace">FORM</span><span style="font-size:10px;color:#fff">🌾</span></div>
+            <div style="padding:5px;text-align:center;font-family:monospace;font-size:13px;font-weight:700;color:#111">FORM-001 ← FORM-585</div>
           </div>
         </div>
       </div>
@@ -471,27 +471,72 @@ body {
             <span style="font-size:22px">🧂</span>
             <span style="color:#fff;font-weight:700;font-size:15px;font-family:monospace">SPIC</span>
           </div>
-          <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:3px 10px;border-radius:20px">المنطقة الثالثة</span>
+          <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:3px 10px;border-radius:20px">منطقة ٣</span>
         </div>
         <div style="padding:14px 16px">
           <div style="font-size:13px;color:#555;margin-bottom:10px;font-weight:600">بهارات وتطهير — نهاية الغرفة</div>
-          <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;flex-direction:column;gap:0">
             <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">يمين — بالتات</span><span style="font-size:12px;font-weight:600;color:#2E7D32">15 راك × 5 أدوار</span></div>
             <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">يسار — كراتين مباشرة</span><span style="font-size:12px;font-weight:600;color:#B45309">15 راك × 4 أدوار</span></div>
             <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">ارتفاع يمين</span><span style="font-size:12px;font-weight:600;color:#2E7D32">175 سم</span></div>
-            <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="font-size:12px;color:#888">ارتفاع يسار (كراتين)</span><span style="font-size:12px;font-weight:600;color:#B45309">246 سم</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0"><span style="font-size:12px;color:#888">ارتفاع يسار (كراتين)</span><span style="font-size:12px;font-weight:600;color:#B45309">246 سم</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="font-size:12px;color:#888">إجمالي المواقع</span><span style="font-size:12px;font-weight:600;color:#2E7D32">810+ موقع</span></div>
           </div>
-          <div style="margin-top:12px;background:#E8F5EE;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px">
-            <span style="font-size:18px">🧂🧹</span>
-            <span style="font-size:11px;color:#1A5C35;font-weight:600">بهارات — مواد تطهير — منظفات</span>
-          </div>
-          <div style="margin-top:8px;text-align:center">
-            <span style="background:#FFD600;color:#111;font-family:monospace;font-size:13px;font-weight:700;padding:4px 14px;border-radius:6px;border:2px solid #2E7D32">SPIC-001 ← SPIC-450</span>
+          <div style="margin-top:10px;background:#E8F5EE;border-radius:8px;padding:7px 12px;font-size:11px;color:#1A5C35;font-weight:600">🧂🧹 بهارات — مواد تطهير — منظفات</div>
+          <div style="margin-top:8px;background:#FFD600;border-radius:6px;border:2px solid #2E7D32;overflow:hidden">
+            <div style="background:#2E7D32;padding:3px 8px;display:flex;justify-content:space-between"><span style="font-size:10px;font-weight:700;color:#fff;font-family:monospace">SPIC</span><span style="font-size:10px;color:#fff">🧂</span></div>
+            <div style="padding:5px;text-align:center;font-family:monospace;font-size:13px;font-weight:700;color:#111">SPIC-001 ← SPIC-450</div>
           </div>
         </div>
       </div>
 
     </div>
+
+    <!-- جدول نظام الترقيم -->
+    <div style="background:#fff;border-radius:12px;border:0.5px solid #e0e0e0;overflow:hidden;margin-bottom:14px">
+      <div style="background:#F8F9FA;padding:9px 16px;display:grid;grid-template-columns:1fr 1.2fr 1.8fr 0.8fr 0.5fr;gap:8px;border-bottom:0.5px solid #e0e0e0">
+        <span style="font-size:11px;font-weight:600;color:#888">المنطقة</span>
+        <span style="font-size:11px;font-weight:600;color:#888">تنسيق الرقم</span>
+        <span style="font-size:11px;font-weight:600;color:#888">النطاق</span>
+        <span style="font-size:11px;font-weight:600;color:#888">اللون</span>
+        <span style="font-size:11px;font-weight:600;color:#888">أيقونة</span>
+      </div>
+      <div style="padding:9px 16px;display:grid;grid-template-columns:1fr 1.2fr 1.8fr 0.8fr 0.5fr;gap:8px;border-bottom:0.5px solid #f0f0f0;align-items:center">
+        <span style="font-size:12px;font-weight:600;color:#0C447C">منطقة ١ — PKG</span>
+        <span style="font-size:12px;font-family:monospace;color:#555">PKG-XXX</span>
+        <span style="font-size:12px;font-family:monospace">PKG-001 ← PKG-570</span>
+        <span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:12px;height:12px;background:#1565C0;border-radius:3px"></span><span style="font-size:11px;color:#888">أزرق</span></span>
+        <span>📦</span>
+      </div>
+      <div style="padding:9px 16px;display:grid;grid-template-columns:1fr 1.2fr 1.8fr 0.8fr 0.5fr;gap:8px;border-bottom:0.5px solid #f0f0f0;align-items:center">
+        <span style="font-size:12px;font-weight:600;color:#7A3B00">منطقة ٢ — FORM</span>
+        <span style="font-size:12px;font-family:monospace;color:#555">FORM-XXX</span>
+        <span style="font-size:12px;font-family:monospace">FORM-001 ← FORM-585</span>
+        <span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:12px;height:12px;background:#E65100;border-radius:3px"></span><span style="font-size:11px;color:#888">برتقالي</span></span>
+        <span>🌾</span>
+      </div>
+      <div style="padding:9px 16px;display:grid;grid-template-columns:1fr 1.2fr 1.8fr 0.8fr 0.5fr;gap:8px;align-items:center">
+        <span style="font-size:12px;font-weight:600;color:#1A5C35">منطقة ٣ — SPIC</span>
+        <span style="font-size:12px;font-family:monospace;color:#555">SPIC-XXX</span>
+        <span style="font-size:12px;font-family:monospace">SPIC-001 ← SPIC-450</span>
+        <span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:12px;height:12px;background:#2E7D32;border-radius:3px"></span><span style="font-size:11px;color:#888">أخضر</span></span>
+        <span>🧂</span>
+      </div>
+    </div>
+
+    <!-- مفتاح الألوان -->
+    <div style="background:#fff;border-radius:12px;border:0.5px solid #e0e0e0;padding:14px 16px">
+      <div style="font-size:11px;font-weight:600;color:#888;margin-bottom:10px;letter-spacing:.04em">مفتاح الألوان</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        <div style="display:flex;align-items:flex-start;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:#1565C0;flex-shrink:0;margin-top:3px"></div><div><div style="font-size:12px;font-weight:600;color:#333">أزرق — PKG</div><div style="font-size:11px;color:#888">تغليف، كراتين، أشرطة</div></div></div>
+        <div style="display:flex;align-items:flex-start;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:#E65100;flex-shrink:0;margin-top:3px"></div><div><div style="font-size:12px;font-weight:600;color:#333">برتقالي — FORM</div><div style="font-size:11px;color:#888">دقيق، حبوب، مواد خام</div></div></div>
+        <div style="display:flex;align-items:flex-start;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:#2E7D32;flex-shrink:0;margin-top:3px"></div><div><div style="font-size:12px;font-weight:600;color:#333">أخضر — SPIC</div><div style="font-size:11px;color:#888">بهارات، منظفات، تطهير</div></div></div>
+        <div style="display:flex;align-items:flex-start;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:#FFD600;border:1px solid #ccc;flex-shrink:0;margin-top:3px"></div><div><div style="font-size:12px;font-weight:600;color:#333">أصفر — الاستيكر</div><div style="font-size:11px;color:#888">خلفية ثابتة لجميع الأرقام</div></div></div>
+        <div style="display:flex;align-items:flex-start;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:#F5E6C8;border:1px solid #BBA97A;flex-shrink:0;margin-top:3px"></div><div><div style="font-size:12px;font-weight:600;color:#333">بيج — بالت مشغول</div><div style="font-size:11px;color:#888">لون فاتح شفاف</div></div></div>
+        <div style="display:flex;align-items:flex-start;gap:8px"><div style="width:10px;height:10px;border-radius:50%;background:#EEF1F5;border:1px solid #ccc;flex-shrink:0;margin-top:3px"></div><div><div style="font-size:12px;font-weight:600;color:#333">رمادي — بالت فارغ</div><div style="font-size:11px;color:#888">موقع متاح بدون استيكر</div></div></div>
+      </div>
+    </div>
+
   </section>
 
   <!-- 3D -->
