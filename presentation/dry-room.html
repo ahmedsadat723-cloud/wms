@@ -407,6 +407,7 @@ body {
     </div>
     <div class="viz3d" id="viz3d">
       <canvas id="rackCanvas"></canvas>
+      <div id="pal-tip" style="position:absolute;display:none;background:#FFD600;color:#111;font:bold 13px Arial,sans-serif;padding:4px 10px;border-radius:6px;pointer-events:none;border:2px solid #333;z-index:99;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>
       <div class="viz3d__tools">
         <button class="viz3d__btn" id="btnZoomIn"  title="تقريب">＋ تقريب</button>
         <button class="viz3d__btn" id="btnZoomOut" title="تبعيد">－ تبعيد</button>
@@ -753,7 +754,7 @@ window.buildFallbackSvg = function(){
       const pf = F(pallets);   // goods (colored, hidden by default)
       if(pf.length){ const m=new THREE.InstancedMesh(GEO.pal, new THREE.MeshLambertMaterial(), pf.length);
         pf.forEach((p,i)=>{ dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); m.setColorAt(i,col.setHex(p.c)); });
-        m.instanceMatrix.needsUpdate=true; if(m.instanceColor) m.instanceColor.needsUpdate=true; m.visible=false; g.add(m); palMeshes.push(m); }
+        m.instanceMatrix.needsUpdate=true; if(m.instanceColor) m.instanceColor.needsUpdate=true; m.visible=true; g.add(m); palMeshes.push(m); }
 
       inst(g, F(posts),  GEO.post,  MAT.post,  (p,i,m)=>{ dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,0); dummy.scale.set(1,p.h,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
       inst(g, F(rails),  GEO.rail,  MAT.rail,  (p,i,m)=>{ dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,0); dummy.scale.set(1,1,laneDepth); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
@@ -762,13 +763,7 @@ window.buildFallbackSvg = function(){
       inst(g, F(corbels),GEO.corbel,MAT.corbel,(p,i,m)=>{ dummy.position.set(p.x,p.y-0.19,p.z+p.rz*0.10); dummy.rotation.set(p.rz*0.6,0,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
       inst(g, F(diags),  GEO.diag,  MAT.diag,  (p,i,m)=>{ v0.set(p.x,p.y0,p.z0); v1.set(p.x,p.y1,p.z1); vd.subVectors(v1,v0); const len=vd.length(); q.setFromUnitVectors(upV, vd.clone().normalize()); dummy.position.copy(v0).addScaledVector(vd,0.5); dummy.quaternion.copy(q); dummy.scale.set(1,len,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
 
-      // ستيكر أصفر على كل بالت مشغول
-      const zDef = ZONE_DEFS[parseInt(zk)];
-      F(pallets).forEach(p=>{
-        const stk = makePalletSticker(THREE, p.label, zDef.color);
-        stk.position.set(p.x, p.y, p.z + PDp/2 + 0.02);
-        g.add(stk);
-      });
+      // الستيكر يظهر كـ tooltip عند التحويم فقط — لا أجسام 3D
     });
 
     // ---- ROOM SHELL: floor / grid / ceiling / walls / receiving doors ----
@@ -838,6 +833,45 @@ window.buildFallbackSvg = function(){
     controls.target.set(0, roomH*0.4, 0);
     camera.position.set(-dist*0.42, dist*0.34, dist*0.54);
     controls.update();
+
+    // ---- tooltip raycaster ----
+    const _ray = new THREE.Raycaster();
+    const _mouse = new THREE.Vector2();
+    const _tip = document.getElementById('pal-tip');
+    const _palObjs = []; // {mesh, pallets array ref}
+    // نجمع كل meshes البالتات
+    palMeshes.forEach(m => _palObjs.push(m));
+
+    renderer.domElement.addEventListener('mousemove', ev => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      _mouse.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+      _mouse.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+      _ray.setFromCamera(_mouse, camera);
+      const hits = _ray.intersectObjects(_palObjs, false);
+      if(hits.length){
+        const idx = hits[0].instanceId;
+        const mesh = hits[0].object;
+        // ابحث في pallets array عن هذا الـ instanceId
+        let lbl = '';
+        let counter = 0;
+        for(const p of pallets){
+          if(p.filled){
+            if(counter === idx){ lbl = p.label; break; }
+            counter++;
+          }
+        }
+        if(lbl){
+          _tip.textContent = lbl;
+          _tip.style.display = 'block';
+          _tip.style.left = (ev.clientX - rect.left + 12) + 'px';
+          _tip.style.top  = (ev.clientY - rect.top  - 10) + 'px';
+          dirty = true;
+          return;
+        }
+      }
+      _tip.style.display = 'none';
+    });
+    renderer.domElement.addEventListener('mouseleave', () => { _tip.style.display='none'; });
 
     // ---- interactive controls: zoom / preset views / reset / optional auto-spin ----
     let dirty = true;
