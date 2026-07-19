@@ -590,9 +590,9 @@ window.buildFallbackSvg = function(){
     renderer.setPixelRatio(Math.min(2.5, window.devicePixelRatio || 1));
     renderer.setSize(W, H, false);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xc0cce0, 2.2));
-    const dir = new THREE.DirectionalLight(0xffffff, 1.8); dir.position.set(-70,140,90); scene.add(dir);
-    const dir2 = new THREE.DirectionalLight(0xffffff, 0.8); dir2.position.set(90,50,-70); scene.add(dir2);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xffffff, 3.5));
+    const dir = new THREE.DirectionalLight(0xffffff, 2.5); dir.position.set(-70,140,90); scene.add(dir);
+    const dir2 = new THREE.DirectionalLight(0xffffff, 1.5); dir2.position.set(90,50,-70); scene.add(dir2);
 
     // ==== DRIVE-THROUGH racking — REAL SCALE (1 unit = 1 metre) ====
     // مقاسات ميدانية: بالتة 1200mm عرض × ~950mm عمق، دور 2.45م، قائم 12سم، عارضة 5.7م، فاصل مناطق 2.3م.
@@ -664,9 +664,9 @@ window.buildFallbackSvg = function(){
       diag:new THREE.BoxGeometry(0.05,1,0.05), fbeam:new THREE.BoxGeometry(1,0.12,0.1), corbel:new THREE.BoxGeometry(0.07,0.42,0.1)
     };
     const MAT = {
-      post:new THREE.MeshLambertMaterial({color:0x7C3AED}), rail:new THREE.MeshLambertMaterial({color:0xF26A1E}),
-      guard:new THREE.MeshLambertMaterial({color:0xF26A1E}), diag:new THREE.MeshLambertMaterial({color:0x9F67F5}),
-      fbeam:new THREE.MeshLambertMaterial({color:0xF26A1E}), corbel:new THREE.MeshLambertMaterial({color:0xF26A1E})
+      post:new THREE.MeshPhongMaterial({color:0x5B21B6, shininess:80}), rail:new THREE.MeshPhongMaterial({color:0xEA580C, shininess:80}),
+      guard:new THREE.MeshPhongMaterial({color:0xEA580C, shininess:80}), diag:new THREE.MeshPhongMaterial({color:0x7C3AED, shininess:80}),
+      fbeam:new THREE.MeshPhongMaterial({color:0xEA580C, shininess:80}), corbel:new THREE.MeshPhongMaterial({color:0xEA580C, shininess:80})
     };
 
     // build each zone into its OWN group so a single zone can be shown in isolation
