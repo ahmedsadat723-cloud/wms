@@ -904,15 +904,13 @@ window.buildFallbackSvg = function(){
         return t;
       }
 
-      F(pallets).forEach(p=>{
+      F(pallets).filter(p=>p.filled).forEach(p=>{
         const tex = makeStickerTex(p.label);
-        // Plane مثبت على وجه البالت الأمامي
-        const geo = new THREE.PlaneGeometry(PW*0.82, PHp*0.28);
+        const geo = new THREE.PlaneGeometry(PW*0.80, PHp*0.30);
         const mat = new THREE.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false, side:THREE.DoubleSide});
         const mesh = new THREE.Mesh(geo, mat);
-        // يواجه الكاميرا (Z موجب = أمام)
         const faceZ = p.z > 0 ? 1 : -1;
-        mesh.position.set(p.x, p.y + PHp*0.1, p.z + faceZ*(PDp/2 + 0.015));
+        mesh.position.set(p.x, p.y + PHp*0.08, p.z + faceZ*(PDp/2 + 0.02));
         if(faceZ < 0) mesh.rotation.y = Math.PI;
         stickerGroup.add(mesh);
       });
