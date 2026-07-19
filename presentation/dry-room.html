@@ -584,7 +584,7 @@ window.buildFallbackSvg = function(){
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xEEF2F7); scene.fog = null;
-    scene.fog = new THREE.Fog(0x0E1520, 70, 340);
+    // fog removed for light background
     const camera = new THREE.PerspectiveCamera(42, W/H, 0.1, 3000);
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setPixelRatio(Math.min(2.5, window.devicePixelRatio || 1));
