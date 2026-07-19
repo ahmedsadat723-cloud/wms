@@ -766,20 +766,35 @@ window.buildFallbackSvg = function(){
       // ستيكرات صغيرة — تظهر فقط في وضع راك قريب
       const stickerGroup = new THREE.Group(); stickerGroup.visible = false; g.add(stickerGroup);
       const zDef = ZONE_DEFS[parseInt(zk)];
+      const ZONE_ICON = {1:'📦', 2:'⚙️', 3:'🧂'};
+      const zIcon = ZONE_ICON[parseInt(zk)] || '';
       F(pallets).forEach(p=>{
-        const c = document.createElement('canvas'); c.width = 200; c.height = 80;
+        const c = document.createElement('canvas'); c.width = 256; c.height = 110;
         const ctx2 = c.getContext('2d');
+        // خلفية صفراء
         ctx2.fillStyle = '#FFD600';
-        ctx2.beginPath(); ctx2.roundRect(2,2,196,76,10); ctx2.fill();
-        ctx2.strokeStyle = zDef.color; ctx2.lineWidth = 4;
-        ctx2.beginPath(); ctx2.roundRect(2,2,196,76,10); ctx2.stroke();
-        ctx2.fillStyle = '#111'; ctx2.font = 'bold 36px Arial';
+        ctx2.beginPath(); ctx2.roundRect(2,2,252,106,12); ctx2.fill();
+        // حد ملون حسب المنطقة
+        ctx2.strokeStyle = zDef.color; ctx2.lineWidth = 5;
+        ctx2.beginPath(); ctx2.roundRect(2,2,252,106,12); ctx2.stroke();
+        // شريط علوي ملون
+        ctx2.fillStyle = zDef.color;
+        ctx2.beginPath(); ctx2.roundRect(2,2,252,32,{upperLeft:10,upperRight:10,lowerLeft:0,lowerRight:0}); ctx2.fill();
+        // أيقونة + كود في الشريط
+        ctx2.font = '16px Arial'; ctx2.fillStyle = '#fff';
+        ctx2.textAlign = 'right'; ctx2.textBaseline = 'middle';
+        ctx2.fillText(zIcon, 238, 18);
+        ctx2.font = 'bold 14px Arial'; ctx2.fillStyle = '#fff';
+        ctx2.textAlign = 'left'; ctx2.textBaseline = 'middle';
+        ctx2.fillText(zDef.code, 14, 18);
+        // رقم البالت في المنتصف
+        ctx2.fillStyle = '#111'; ctx2.font = 'bold 38px Arial';
         ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
-        ctx2.fillText(p.label, 100, 40);
+        ctx2.fillText(p.label, 128, 74);
         const tex = new THREE.CanvasTexture(c);
         tex.minFilter = THREE.LinearFilter;
         const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:false, sizeAttenuation:true}));
-        sp.scale.set(0.42, 0.17, 1);
+        sp.scale.set(0.50, 0.22, 1);
         sp.position.set(p.x, p.y + PHp*0.38, p.z);
         stickerGroup.add(sp);
       });
