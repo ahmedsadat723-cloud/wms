@@ -583,7 +583,7 @@ window.buildFallbackSvg = function(){
     const W = wrap.clientWidth, H = wrap.clientHeight;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0E1520);
+    scene.background = new THREE.Color(0xEEF2F7);
     scene.fog = new THREE.Fog(0x0E1520, 70, 340);
     const camera = new THREE.PerspectiveCamera(42, W/H, 0.1, 3000);
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -664,8 +664,8 @@ window.buildFallbackSvg = function(){
       diag:new THREE.BoxGeometry(0.05,1,0.05), fbeam:new THREE.BoxGeometry(1,0.12,0.1), corbel:new THREE.BoxGeometry(0.07,0.42,0.1)
     };
     const MAT = {
-      post:new THREE.MeshLambertMaterial({color:0x1E73E8}), rail:new THREE.MeshLambertMaterial({color:0xF26A1E}),
-      guard:new THREE.MeshLambertMaterial({color:0xF26A1E}), diag:new THREE.MeshLambertMaterial({color:0x3B8BF2}),
+      post:new THREE.MeshLambertMaterial({color:0x7C3AED}), rail:new THREE.MeshLambertMaterial({color:0xF26A1E}),
+      guard:new THREE.MeshLambertMaterial({color:0xF26A1E}), diag:new THREE.MeshLambertMaterial({color:0x9F67F5}),
       fbeam:new THREE.MeshLambertMaterial({color:0xF26A1E}), corbel:new THREE.MeshLambertMaterial({color:0xF26A1E})
     };
 
@@ -691,13 +691,13 @@ window.buildFallbackSvg = function(){
     });
 
     // ---- ROOM SHELL: floor / grid / ceiling / walls / receiving doors ----
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(roomL,roomW), new THREE.MeshLambertMaterial({color:0x1B2430}));
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(roomL,roomW), new THREE.MeshLambertMaterial({color:0xD0D8E4}));
     floor.rotation.x=-Math.PI/2; scene.add(floor);
     const grid = new THREE.GridHelper(Math.max(roomL,roomW), Math.round(Math.max(roomL,roomW)/lanePitch), 0x3A4A5E, 0x28323F);
     grid.position.y=0.02; scene.add(grid);
-    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(roomL,roomW), new THREE.MeshLambertMaterial({color:0x2A3A52, transparent:true, opacity:0.10, side:THREE.DoubleSide}));
+    const ceil = new THREE.Mesh(new THREE.PlaneGeometry(roomL,roomW), new THREE.MeshLambertMaterial({color:0xC8D3E0, transparent:true, opacity:0.20, side:THREE.DoubleSide}));
     ceil.rotation.x=Math.PI/2; ceil.position.y=roomH; scene.add(ceil);
-    const wallMat = new THREE.MeshLambertMaterial({color:0x33465F, transparent:true, opacity:0.14, side:THREE.DoubleSide});
+    const wallMat = new THREE.MeshLambertMaterial({color:0xB0BED0, transparent:true, opacity:0.25, side:THREE.DoubleSide});
     function wall(w,h,x,y,z,ry){ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h), wallMat); m.position.set(x,y,z); m.rotation.y=ry; scene.add(m); }
     wall(roomL, roomH, 0, roomH/2, -roomW/2, 0);          // back long wall
     wall(roomL, roomH, 0, roomH/2,  roomW/2, 0);          // front long wall
