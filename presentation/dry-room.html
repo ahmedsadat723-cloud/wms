@@ -716,7 +716,7 @@ window.buildFallbackSvg = function(){
               const zCode = ZONE_DEFS[zone.z].code;
               const palNum = String(palletCounter++).padStart(3,'0');
               const palLabel = zCode+'-'+palNum;
-              pallets.push({x:cx, y:railY+PHp/2+0.08, z:palletZ(d), c: filled?zone.c:0xC6CDD8, zn, label:palLabel, filled});
+              pallets.push({x:cx, y:railY+PHp/2+0.08, z:palletZ(d), c: filled?0xF5E6C8:0xEEF1F5, zn, label:palLabel, filled, zc:zone.c});
             }
           }
         }
@@ -752,9 +752,16 @@ window.buildFallbackSvg = function(){
       const F = a => a.filter(o=>String(o.zn)===zk);
 
       const pf = F(pallets);   // goods (colored, hidden by default)
-      if(pf.length){ const m=new THREE.InstancedMesh(GEO.pal, new THREE.MeshLambertMaterial(), pf.length);
+      if(pf.length){
+        // بالتات مشغولة — لون فاتح شفاف
+        const m=new THREE.InstancedMesh(GEO.pal, new THREE.MeshLambertMaterial({transparent:true, opacity:0.55}), pf.length);
         pf.forEach((p,i)=>{ dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); m.setColorAt(i,col.setHex(p.c)); });
-        m.instanceMatrix.needsUpdate=true; if(m.instanceColor) m.instanceColor.needsUpdate=true; m.visible=true; g.add(m); palMeshes.push(m); }
+        m.instanceMatrix.needsUpdate=true; if(m.instanceColor) m.instanceColor.needsUpdate=true; m.visible=true; g.add(m); palMeshes.push(m);
+        // حد خفيف على كل بالت
+        const wf=new THREE.InstancedMesh(new THREE.EdgesGeometry(GEO.pal), new THREE.LineBasicMaterial({color:0xBBA97A, transparent:true, opacity:0.6}), pf.length);
+        pf.forEach((p,i)=>{ dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,0); dummy.scale.set(1,1,1); dummy.updateMatrix(); wf.setMatrixAt(i,dummy.matrix); });
+        wf.instanceMatrix.needsUpdate=true; g.add(wf);
+      }
 
       inst(g, F(posts),  GEO.post,  MAT.post,  (p,i,m)=>{ dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,0); dummy.scale.set(1,p.h,1); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
       inst(g, F(rails),  GEO.rail,  MAT.rail,  (p,i,m)=>{ dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,0); dummy.scale.set(1,1,laneDepth); dummy.updateMatrix(); m.setMatrixAt(i,dummy.matrix); });
@@ -794,8 +801,8 @@ window.buildFallbackSvg = function(){
         const tex = new THREE.CanvasTexture(c);
         tex.minFilter = THREE.LinearFilter;
         const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:tex, transparent:true, depthTest:false, sizeAttenuation:true}));
-        sp.scale.set(0.50, 0.22, 1);
-        sp.position.set(p.x, p.y + PHp*0.38, p.z);
+        sp.scale.set(0.58, 0.26, 1);
+        sp.position.set(p.x, p.y + PHp*0.30, p.z);
         stickerGroup.add(sp);
       });
       if(!window._stickerGroups) window._stickerGroups = [];
