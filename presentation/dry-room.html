@@ -608,7 +608,7 @@ window.buildFallbackSvg = function(){
     // مقاسات ميدانية: بالتة 1200mm عرض × ~950mm عمق، دور 2.45م، قائم 12سم، عارضة 5.7م، فاصل مناطق 2.3م.
     const PW=1.20, PDp=0.85, PHp=1.55;         // pallet face(X)=1200mm, depth(Z) visual, loaded height
     const DEEP=6, LEVELH=2.45;                 // 6 deep; level 2.45m → 5×2.45 = 12.25m (room height)
-    const post=0.12;                           // upright 12cm
+    const post=0.22;                           // upright 12cm
     const palletPitchZ=0.95, laneDepth=DEEP*palletPitchZ;   // posts 95cm apart → lane depth 5.70m ≈ 572cm rail
     const laneClear=1.45, lanePitch=1.69;      // inner clear 145cm, pitch (external) 169cm
     const sideX=laneClear/2+post/2;            // upright offset from lane centre
@@ -670,8 +670,8 @@ window.buildFallbackSvg = function(){
     // shared geometries + materials (reused across all zones)
     const GEO = {
       pal:new THREE.BoxGeometry(PW,PHp,PDp), post:new THREE.BoxGeometry(post,1,post),
-      rail:new THREE.BoxGeometry(0.08,0.1,1), guard:new THREE.BoxGeometry(0.18,0.7,0.18),
-      diag:new THREE.BoxGeometry(0.05,1,0.05), fbeam:new THREE.BoxGeometry(1,0.12,0.1), corbel:new THREE.BoxGeometry(0.07,0.42,0.1)
+      rail:new THREE.BoxGeometry(0.15,0.18,1), guard:new THREE.BoxGeometry(0.22,0.7,0.22),
+      diag:new THREE.BoxGeometry(0.10,1,0.10), fbeam:new THREE.BoxGeometry(1,0.18,0.15), corbel:new THREE.BoxGeometry(0.12,0.42,0.12)
     };
     const MAT = {
       post:new THREE.MeshPhongMaterial({color:0x1565C0, shininess:100}), rail:new THREE.MeshPhongMaterial({color:0xE65100, shininess:100}),
