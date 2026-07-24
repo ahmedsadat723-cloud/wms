@@ -1831,6 +1831,7 @@ tr:hover td{background:var(--brand-soft)}
       <input class="quick-search" id="headerSearch" placeholder="🔎" oninput="quickSearch(this.value)" style="width:140px;padding:8px 10px;font-size:11px">
       <button class="icon-btn" onclick="shareViaWhatsApp()" title="مشاركة واتساب" style="background:rgba(37,211,102,.15);color:#25d366;font-weight:900">📱</button>
       <button class="icon-btn" onclick="showMobileQrModal()" title="QR تثبيت تطبيق الموبايل" style="background:rgba(96,165,250,.15);color:#60a5fa;font-weight:900">📷</button>
+      <button class="icon-btn" onclick="enterKiosk()" title="وضع العرض الكامل — Kiosk Mode" style="font-size:16px">⛶</button>
       <button class="icon-btn" id="expTabBtn" onclick="openExpDrawer()" title="الصلاحية" style="position:relative">⏰<span id="expBadge" style="display:none;position:absolute;top:-8px;left:-8px;background:#ef4444;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:900;line-height:16px;text-align:center"></span></button>
       <button class="icon-btn" onclick="toggleSidebar()" id="sidebarToggleBtn" title="إخفاء/إظهار الشريط الجانبي" style="color:var(--brand);font-weight:900">≡</button>
       <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="وضع ليلي">🌙</button>
@@ -7810,7 +7811,6 @@ function printWithdraw(loc){
     '</table>',
     '<div class="footer">مصنع المنجم · نظام إدارة المستودع · طُبع: '+new Date().toLocaleString('ar-EG')+'</div>',
     '<scr'+'ipt>window.onload=function(){window.print();}<\/scr'+'ipt>',
-    '</body></html>'
   ].join('');
   w.document.write(html);
   w.document.close();
@@ -10475,7 +10475,77 @@ h2{color:#d44623;border-bottom:3px solid #facc15;padding-bottom:8px;margin-botto
 @media print{body{padding:0}}
 </style></head><body><h2>${title}</h2><div class="content">${content}</div>
 <div class="footer">طُبع من: مصنع المنجم · نظام إدارة المستودع · ${new Date().toLocaleString('ar-EG')}</div>
-\x3cscript\x3ewindow.onload=function(){window.print();}\x3c/script\x3e</body></html>`;
+\x3cscript\x3ewindow.onload=function(){window.print();}\x3c/script\x3e
+
+<!-- KIOSK MODE -->
+<style>
+.kiosk-overlay{position:fixed;inset:0;background:#060a14;z-index:99999;display:none;flex-direction:column;}
+.kiosk-overlay.active{display:flex;}
+.kiosk-topbar{background:#1a237e;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.kiosk-title{color:white;font-size:18px;font-weight:900;}
+.kiosk-time{color:#f9a825;font-size:14px;font-weight:700;font-family:monospace;}
+.kiosk-exit{background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:6px;padding:6px 14px;cursor:pointer;font-size:12px;}
+.kiosk-exit:hover{background:rgba(255,0,0,0.3);}
+.kiosk-body{flex:1;overflow:auto;padding:16px;}
+.kiosk-confirm{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100000;display:none;align-items:center;justify-content:center;}
+.kiosk-confirm.active{display:flex;}
+.kiosk-confirm-box{background:#1a237e;border-radius:12px;padding:32px;text-align:center;color:white;max-width:340px;}
+.kiosk-confirm-box h3{font-size:20px;margin-bottom:12px;}
+.kiosk-confirm-box p{font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:24px;}
+.kiosk-confirm-btns{display:flex;gap:12px;justify-content:center;}
+.kiosk-confirm-btns button{padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:700;cursor:pointer;}
+.kbtn-yes{background:#ef4444;color:white;}
+.kbtn-no{background:rgba(255,255,255,0.15);color:white;}
+</style>
+<div class="kiosk-overlay" id="kioskOverlay">
+  <div class="kiosk-topbar">
+    <div class="kiosk-title">🏭 مصنع المنجم للأغذية — لوحة التحكم المباشرة</div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div class="kiosk-time" id="kioskClock"></div>
+      <button class="kiosk-exit" onclick="askExitKiosk()">✕ خروج (ESC)</button>
+    </div>
+  </div>
+  <div class="kiosk-body" id="kioskBody"></div>
+</div>
+<div class="kiosk-confirm" id="kioskConfirm">
+  <div class="kiosk-confirm-box">
+    <h3>🔒 الخروج من وضع العرض</h3>
+    <p>هل تريد الخروج من Kiosk Mode؟</p>
+    <div class="kiosk-confirm-btns">
+      <button class="kbtn-yes" onclick="exitKiosk()">نعم، خروج</button>
+      <button class="kbtn-no" onclick="document.getElementById('kioskConfirm').classList.remove('active')">إلغاء</button>
+    </div>
+  </div>
+</div>
+<script>
+var _kioskInterval = null;
+function enterKiosk(){
+  var overlay = document.getElementById('kioskOverlay');
+  var body    = document.getElementById('kioskBody');
+  var dash    = document.getElementById('dashSection') || document.querySelector('.dashboard-wrap') || document.querySelector('[id*="dash"]');
+  if(dash){ body.innerHTML = '<div style="pointer-events:none;">' + dash.innerHTML + '</div>'; }
+  else { body.innerHTML = '<div style="color:white;text-align:center;margin-top:80px;font-size:24px;">لوحة التحكم غير متاحة</div>'; }
+  overlay.classList.add('active');
+  function tickKiosk(){
+    var el = document.getElementById('kioskClock');
+    if(el){ var n=new Date(); el.textContent=n.toLocaleDateString('ar-SA')+'  '+n.toLocaleTimeString('ar-SA'); }
+  }
+  tickKiosk();
+  _kioskInterval = setInterval(tickKiosk, 1000);
+  document.addEventListener('keydown', _kioskEscHandler);
+}
+function _kioskEscHandler(e){ if(e.key==='Escape'){ askExitKiosk(); } }
+function askExitKiosk(){ document.getElementById('kioskConfirm').classList.add('active'); }
+function exitKiosk(){
+  document.getElementById('kioskOverlay').classList.remove('active');
+  document.getElementById('kioskConfirm').classList.remove('active');
+  document.getElementById('kioskBody').innerHTML = '';
+  if(_kioskInterval){ clearInterval(_kioskInterval); _kioskInterval=null; }
+  document.removeEventListener('keydown', _kioskEscHandler);
+}
+</script>
+
+</body></html>`;
   w.document.write(html);
   w.document.close();
 }
@@ -10789,8 +10859,10 @@ function deductFromInventory(components){
 }
 function clearProductionForm(){document.getElementById('prodRecipe').value='';document.getElementById('prodStart').value='';document.getElementById('prodEnd').value='';document.getElementById('prodOperator').value='';document.getElementById('prodLine').value='';document.getElementById('prodPlanned').value='';document.getElementById('prodActual').value='';document.getElementById('prodWaste').value='';document.getElementById('prodLoss').value='';document.getElementById('prodDeviation').value='';document.getElementById('prodRecipeDisplay').style.display='none';}
 function renderProdRecords(){var records=JSON.parse(localStorage.getItem('almanjam_prod_records')||'[]');var html='';records.forEach((rec,idx)=>{var dev=rec.planned>0?((rec.actual-rec.planned)/rec.planned*100).toFixed(2):0;html+='<tr><td>'+(idx+1)+'</td><td>'+rec.id+'</td><td>'+rec.product+'</td><td>'+rec.planned+'</td><td>'+rec.actual+'</td><td>'+dev+'%</td><td>'+rec.created+'</td><td>'+rec.operator+'</td><td><button class="btn btn-sm" onclick="printProdRecord(\''+rec.id+'\')" style="background:#f59e0b;color:#fff">🖨️</button></td></tr>';});document.getElementById('prodRecordsBody').innerHTML=html;}
-function printProductionRecord(){var pc=document.getElementById('prodRecipe').value;if(!pc){alert('اختر منتج أولاً');return;}var records=JSON.parse(localStorage.getItem('almanjam_prod_records')||'[]');var rec=records.length>0?records[records.length-1]:null;if(!rec){alert('لا توجد سجلات إنتاج');return;}var html='<html><head><meta charset="UTF-8"><title>سجل الإنتاج</title><style>body{font-family:Arial;direction:rtl;margin:20px}h1{color:#6d28d9;text-align:center}table{width:100%;border-collapse:collapse;margin:20px 0}.header{background:#6d28d9;color:#fff;padding:10px;font-weight:bold}.cell{border:1px solid #ddd;padding:8px}th{background:#ede9fe;color:#6d28d9;padding:10px;text-align:right}</style></head><body><h1>📊 سجل الإنتاج التفصيلي</h1><table><tr><td class="header">رقم العملية</td><td class="cell">'+rec.id+'</td><td class="header">المنتج</td><td class="cell">'+rec.product+'</td></tr><tr><td class="header">البدء</td><td class="cell">'+rec.start+'</td><td class="header">الانتهاء</td><td class="cell">'+rec.end+'</td></tr><tr><td class="header">المشغل</td><td class="cell">'+rec.operator+'</td><td class="header">الخط</td><td class="cell">'+rec.line+'</td></tr><tr><td class="header">الكمية المخططة</td><td class="cell">'+rec.planned+'</td><td class="header">الكمية الفعلية</td><td class="cell">'+rec.actual+'</td></tr><tr><td class="header">الهدر</td><td class="cell">'+rec.waste+'</td><td class="header">الفاقد</td><td class="cell">'+rec.loss+'</td></tr></table><h3>المكونات المصروفة:</h3><table><thead><tr><th>المكون</th><th>الكمية المطلوبة</th><th>الفعلية</th><th>الموقع</th><th>Batch</th></tr></thead><tbody>';rec.components.forEach(comp=>{html+='<tr><td class="cell">'+comp.name+'</td><td class="cell">'+comp.needed.toFixed(2)+'</td><td class="cell">'+comp.actualUsed.toFixed(2)+'</td><td class="cell">'+comp.location+'</td><td class="cell">'+comp.batch+'</td></tr>';});html+='</tbody></table><br><br><p>تم الطباعة: '+new Date().toLocaleString('ar-EG')+'</p></body></html>';var w=window.open('','','width=900,height=600');w.document.write(html);w.document.close();w.print();}
-function printProdRecord(id){var records=JSON.parse(localStorage.getItem('almanjam_prod_records')||'[]');var rec=records.find(r=>r.id===id);if(!rec){alert('السجل غير موجود');return;}var html='<html><head><meta charset="UTF-8"><title>سجل الإنتاج</title><style>body{font-family:Arial;direction:rtl;margin:20px}h1{color:#6d28d9;text-align:center}table{width:100%;border-collapse:collapse;margin:20px 0}.header{background:#6d28d9;color:#fff;padding:10px;font-weight:bold}.cell{border:1px solid #ddd;padding:8px}th{background:#ede9fe;color:#6d28d9;padding:10px;text-align:right}</style></head><body><h1>📊 سجل الإنتاج: '+rec.id+'</h1><table><tr><td class="header">رقم العملية</td><td class="cell">'+rec.id+'</td><td class="header">المنتج</td><td class="cell">'+rec.product+'</td></tr><tr><td class="header">البدء</td><td class="cell">'+rec.start+'</td><td class="header">الانتهاء</td><td class="cell">'+rec.end+'</td></tr><tr><td class="header">المشغل</td><td class="cell">'+rec.operator+'</td><td class="header">الخط</td><td class="cell">'+rec.line+'</td></tr><tr><td class="header">الكمية المخططة</td><td class="cell">'+rec.planned+'</td><td class="header">الكمية الفعلية</td><td class="cell">'+rec.actual+'</td></tr><tr><td class="header">الهدر</td><td class="cell">'+rec.waste+'</td><td class="header">الفاقد</td><td class="cell">'+rec.loss+'</td></tr></table><h3>المكونات المصروفة:</h3><table><thead><tr><th>المكون</th><th>الكمية المطلوبة</th><th>الفعلية</th><th>الموقع</th><th>Batch</th></tr></thead><tbody>';rec.components.forEach(comp=>{html+='<tr><td class="cell">'+comp.name+'</td><td class="cell">'+comp.needed.toFixed(2)+'</td><td class="cell">'+comp.actualUsed.toFixed(2)+'</td><td class="cell">'+comp.location+'</td><td class="cell">'+comp.batch+'</td></tr>';});html+='</tbody></table><br><br><p>تم الطباعة: '+new Date().toLocaleString('ar-EG')+'</p></body></html>';var w=window.open('','','width=900,height=600');w.document.write(html);w.document.close();w.print();}
+function printProductionRecord(){var pc=document.getElementById('prodRecipe').value;if(!pc){alert('اختر منتج أولاً');return;}var records=JSON.parse(localStorage.getItem('almanjam_prod_records')||'[]');var rec=records.length>0?records[records.length-1]:null;if(!rec){alert('لا توجد سجلات إنتاج');return;}var html='<html><head><meta charset="UTF-8"><title>سجل الإنتاج</title><style>body{font-family:Arial;direction:rtl;margin:20px}h1{color:#6d28d9;text-align:center}table{width:100%;border-collapse:collapse;margin:20px 0}.header{background:#6d28d9;color:#fff;padding:10px;font-weight:bold}.cell{border:1px solid #ddd;padding:8px}th{background:#ede9fe;color:#6d28d9;padding:10px;text-align:right}</style></head><body><h1>📊 سجل الإنتاج التفصيلي</h1><table><tr><td class="header">رقم العملية</td><td class="cell">'+rec.id+'</td><td class="header">المنتج</td><td class="cell">'+rec.product+'</td></tr><tr><td class="header">البدء</td><td class="cell">'+rec.start+'</td><td class="header">الانتهاء</td><td class="cell">'+rec.end+'</td></tr><tr><td class="header">المشغل</td><td class="cell">'+rec.operator+'</td><td class="header">الخط</td><td class="cell">'+rec.line+'</td></tr><tr><td class="header">الكمية المخططة</td><td class="cell">'+rec.planned+'</td><td class="header">الكمية الفعلية</td><td class="cell">'+rec.actual+'</td></tr><tr><td class="header">الهدر</td><td class="cell">'+rec.waste+'</td><td class="header">الفاقد</td><td class="cell">'+rec.loss+'</td></tr></table><h3>المكونات المصروفة:</h3><table><thead><tr><th>المكون</th><th>الكمية المطلوبة</th><th>الفعلية</th><th>الموقع</th><th>Batch</th></tr></thead><tbody>';rec.components.forEach(comp=>{html+='<tr><td class="cell">'+comp.name+'</td><td class="cell">'+comp.needed.toFixed(2)+'</td><td class="cell">'+comp.actualUsed.toFixed(2)+'</td><td class="cell">'+comp.location+'</td><td class="cell">'+comp.batch+'</td></tr>';});html+='</tbody></table><br><br><p>تم الطباعة: '+new Date().toLocaleString('ar-EG')+'</p>
+</body></html>';var w=window.open('','','width=900,height=600');w.document.write(html);w.document.close();w.print();}
+function printProdRecord(id){var records=JSON.parse(localStorage.getItem('almanjam_prod_records')||'[]');var rec=records.find(r=>r.id===id);if(!rec){alert('السجل غير موجود');return;}var html='<html><head><meta charset="UTF-8"><title>سجل الإنتاج</title><style>body{font-family:Arial;direction:rtl;margin:20px}h1{color:#6d28d9;text-align:center}table{width:100%;border-collapse:collapse;margin:20px 0}.header{background:#6d28d9;color:#fff;padding:10px;font-weight:bold}.cell{border:1px solid #ddd;padding:8px}th{background:#ede9fe;color:#6d28d9;padding:10px;text-align:right}</style></head><body><h1>📊 سجل الإنتاج: '+rec.id+'</h1><table><tr><td class="header">رقم العملية</td><td class="cell">'+rec.id+'</td><td class="header">المنتج</td><td class="cell">'+rec.product+'</td></tr><tr><td class="header">البدء</td><td class="cell">'+rec.start+'</td><td class="header">الانتهاء</td><td class="cell">'+rec.end+'</td></tr><tr><td class="header">المشغل</td><td class="cell">'+rec.operator+'</td><td class="header">الخط</td><td class="cell">'+rec.line+'</td></tr><tr><td class="header">الكمية المخططة</td><td class="cell">'+rec.planned+'</td><td class="header">الكمية الفعلية</td><td class="cell">'+rec.actual+'</td></tr><tr><td class="header">الهدر</td><td class="cell">'+rec.waste+'</td><td class="header">الفاقد</td><td class="cell">'+rec.loss+'</td></tr></table><h3>المكونات المصروفة:</h3><table><thead><tr><th>المكون</th><th>الكمية المطلوبة</th><th>الفعلية</th><th>الموقع</th><th>Batch</th></tr></thead><tbody>';rec.components.forEach(comp=>{html+='<tr><td class="cell">'+comp.name+'</td><td class="cell">'+comp.needed.toFixed(2)+'</td><td class="cell">'+comp.actualUsed.toFixed(2)+'</td><td class="cell">'+comp.location+'</td><td class="cell">'+comp.batch+'</td></tr>';});html+='</tbody></table><br><br><p>تم الطباعة: '+new Date().toLocaleString('ar-EG')+'</p>
+</body></html>';var w=window.open('','','width=900,height=600');w.document.write(html);w.document.close();w.print();}
 // =============== SFDA & ALLERGENS FUNCTIONS ===============
 
 function renderSFDASection() {
@@ -13212,7 +13284,8 @@ function printEmailLog() {
           `).join('')}
         </tbody>
       </table>
-    </body>
+    
+</body>
     </html>
   `;
   
@@ -13632,7 +13705,8 @@ function export3DSelectionCSV(){
 }
 function print3DSelection(){
   var rows=sel3DManifestRows();
-  var h='<html dir="rtl"><head><meta charset="utf-8"><title>سحب جماعي</title></head><body style="font-family:Tahoma"><h3>بالتات محددة للسحب</h3><table border="1" cellpadding="6" style="border-collapse:collapse">'+rows.map(function(r,i){return '<tr>'+r.map(function(c){return (i===0?'<th>':'<td>')+c+(i===0?'</th>':'</td>');}).join('')+'</tr>';}).join('')+'</table></body></html>';
+  var h='<html dir="rtl"><head><meta charset="utf-8"><title>سحب جماعي</title></head><body style="font-family:Tahoma"><h3>بالتات محددة للسحب</h3><table border="1" cellpadding="6" style="border-collapse:collapse">'+rows.map(function(r,i){return '<tr>'+r.map(function(c){return (i===0?'<th>':'<td>')+c+(i===0?'</th>':'</td>');}).join('')+'</tr>';}).join('')+'</table>
+</body></html>';
   var w=window.open('','','width=800,height=600');w.document.write(h);w.document.close();w.print();
 }
 function share3DSelection(){
@@ -14600,4 +14674,5 @@ window.p3dInit=api.init;
   }
 })();
 </script>
-<button style="position: fixed; bottom: 16px; left: 16px; z-index: 99998; background: linear-gradient(120deg, rgb(8, 145, 178), rgb(79, 70, 229)); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 12px; padding: 11px 16px; font: 700 13px &quot;Segoe UI&quot;, Tahoma; cursor: pointer; box-shadow: rgb(0, 0, 0) 0px 8px 24px -8px;">🧪 اختبارات</button></body></html>
+<button style="position: fixed; bottom: 16px; left: 16px; z-index: 99998; background: linear-gradient(120deg, rgb(8, 145, 178), rgb(79, 70, 229)); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 12px; padding: 11px 16px; font: 700 13px &quot;Segoe UI&quot;, Tahoma; cursor: pointer; box-shadow: rgb(0, 0, 0) 0px 8px 24px -8px;">🧪 اختبارات</button>
+</body></html>
