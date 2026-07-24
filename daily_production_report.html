@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تقرير الإنتاج اليومي — مصنع المنجم</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+Arabic:wght@400;600;700;800;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans Arabic','Inter',Arial,sans-serif;background:#dde1ec;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:30px 16px 40px;direction:rtl;}
+
+  .controls{width:100%;max-width:580px;background:#1a237e;border-radius:12px 12px 0 0;padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .ctrl-grp{display:flex;flex-direction:column;gap:5px;}
+  .ctrl-grp label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.55);direction:rtl;text-align:right;}
+  .ctrl-full{grid-column:1/-1;}
+  .controls select,.controls input[type=number]{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:7px;color:white;font-size:13px;font-weight:600;padding:9px 12px;font-family:'Noto Sans Arabic',Arial,sans-serif;outline:none;width:100%;direction:rtl;text-align:right;}
+  .controls select option{background:#1a237e;color:white;}
+  .controls input::placeholder{color:rgba(255,255,255,0.35);}
+  .controls select:focus,.controls input:focus{border-color:#f9a825;}
+  .auto-badge{font-size:9px;color:#f9a825;font-weight:700;margin-top:2px;min-height:14px;}
+  .readonly-field{background:rgba(249,168,37,0.15)!important;border-color:rgba(249,168,37,0.5)!important;color:#f9a825!important;font-family:'Courier New',monospace!important;font-weight:800!important;}
+
+  .card{width:100%;max-width:580px;background:white;border-radius:0 0 12px 12px;box-shadow:0 12px 40px rgba(0,0,0,0.18);overflow:hidden;}
+  .c-head{background:#1a237e;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;direction:rtl;}
+  .c-logo{display:flex;align-items:center;gap:10px;}
+  .logo-circle{width:44px;height:44px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .logo-circle svg{width:30px;height:30px;}
+  .co-name{color:white;font-size:15px;font-weight:800;}
+  .co-sub{color:rgba(255,255,255,0.5);font-size:10px;margin-top:2px;direction:ltr;}
+  .head-left{text-align:left;direction:ltr;}
+  .dpr-title{color:white;font-size:13px;font-weight:700;}
+  .dpr-num{display:inline-block;margin-top:4px;background:#f9a825;color:#1a237e;font-size:11px;font-weight:900;padding:3px 10px;border-radius:4px;font-family:'Courier New',monospace;letter-spacing:1px;}
+
+  .sticker{background:#f0f2ff;border:2px solid #1a237e;margin:14px 18px;border-radius:8px;display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;padding:10px 0;direction:ltr;}
+  .st-item{padding:0 10px;}
+  .st-item+.st-item{border-right:1px solid #c5caf5;}
+  .st-lbl{font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;font-family:'Inter',sans-serif;}
+  .st-val{font-size:14px;font-weight:900;color:#1a237e;font-family:'Courier New',monospace;margin-top:3px;}
+  .st-val.red{color:#c62828;}
+
+  .c-body{padding:0 18px 18px;direction:rtl;}
+  .info-row{display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid #e0e4f0;border-radius:8px;overflow:hidden;margin-bottom:12px;}
+  .info-cell{padding:9px 12px;background:#f8f9ff;border-left:1px solid #e0e4f0;direction:rtl;text-align:right;}
+  .info-cell:last-child{border-left:none;}
+  .ic-en{font-size:9px;font-weight:700;color:#3949ab;text-transform:uppercase;font-family:'Inter',sans-serif;direction:ltr;text-align:left;}
+  .ic-ar{font-size:10px;font-weight:700;color:#888;}
+  .ic-val{font-size:14px;font-weight:800;color:#1a237e;margin-top:4px;font-family:'Courier New',monospace;direction:ltr;text-align:center;}
+
+  .line-row{background:#1a237e;border-radius:8px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;direction:rtl;}
+  .lr-lbl{font-size:9px;font-weight:700;color:rgba(255,255,255,0.5);font-family:'Inter',sans-serif;text-transform:uppercase;direction:ltr;}
+  .lr-ar{font-size:13px;font-weight:700;color:rgba(255,255,255,0.85);}
+  .lr-val{font-size:18px;font-weight:900;color:#f9a825;font-family:'Courier New',monospace;letter-spacing:2px;direction:ltr;}
+
+  .prod-box{border:1.5px solid #c5caf5;border-radius:8px;padding:10px 14px;margin-bottom:12px;background:#f5f6ff;direction:rtl;}
+  .pb-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+  .pb-ar{font-size:11px;font-weight:700;color:#3949ab;}
+  .pb-en{font-size:10px;font-weight:700;color:#3949ab;direction:ltr;font-family:'Inter',sans-serif;text-transform:uppercase;}
+  .pb-name{font-size:13px;font-weight:800;color:#1a237e;line-height:1.4;direction:ltr;font-family:'Inter',sans-serif;}
+  .pb-code{font-size:10px;color:#888;font-family:'Courier New',monospace;margin-top:3px;direction:ltr;}
+
+  /* شبكة الأرقام: 2 في الصف الأول + 2 في الصف الثاني */
+  .qty-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+  .qty-box{border:1px solid #e0e4f0;border-radius:8px;padding:10px 14px;text-align:center;background:#fafbff;direction:rtl;}
+  .qty-box.auto{border-color:#c5caf5;background:#f0f2ff;}
+  .qty-box.total-wt{border-color:#f9a825;background:#fffbf0;}
+  .qb-top{display:flex;justify-content:space-between;margin-bottom:6px;}
+  .qb-ar{font-size:10px;font-weight:700;color:#888;}
+  .qb-en{font-size:9px;font-weight:600;color:#aaa;direction:ltr;font-family:'Inter',sans-serif;}
+  .qb-val{font-size:26px;font-weight:900;color:#1a237e;line-height:1;font-family:'Inter',sans-serif;}
+  .qty-box.auto .qb-val{color:#3949ab;}
+  .qty-box.total-wt .qb-val{color:#e65100;font-size:22px;}
+  .qb-unit{font-size:10px;color:#aaa;margin-top:4px;}
+
+  .dates-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+  .date-box{border-radius:8px;padding:10px 14px;border:1.5px solid;direction:rtl;}
+  .date-box.prod{background:#e8f5e9;border-color:#a5d6a7;}
+  .date-box.exp{background:#ffebee;border-color:#ef9a9a;}
+  .db-top{display:flex;justify-content:space-between;margin-bottom:5px;}
+  .db-ar{font-size:11px;font-weight:700;}
+  .db-en{font-size:9px;font-weight:700;direction:ltr;font-family:'Inter',sans-serif;text-transform:uppercase;}
+  .date-box.prod .db-ar,.date-box.prod .db-en{color:#2e7d32;}
+  .date-box.exp .db-ar,.date-box.exp .db-en{color:#c62828;}
+  .db-val{font-size:17px;font-weight:900;font-family:'Courier New',monospace;direction:ltr;text-align:center;}
+  .date-box.prod .db-val{color:#1b5e20;}
+  .date-box.exp .db-val{color:#c62828;}
+
+  .pkg-section{margin-bottom:14px;direction:rtl;}
+  .pkg-label{display:flex;justify-content:space-between;margin-bottom:8px;}
+  .pkg-label .lbl-ar{font-size:12px;font-weight:700;color:#555;}
+  .pkg-label .lbl-en{font-size:10px;font-weight:600;color:#999;font-family:'Inter',sans-serif;}
+  .pkg-row{display:flex;gap:10px;}
+  .pkg-opt{flex:1;padding:10px 14px;border-radius:8px;border:1.5px solid #e0e4f0;background:#fafafa;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:8px;direction:rtl;}
+  .pkg-opt.on{background:#1a237e;border-color:#1a237e;}
+  .pkg-chk{font-size:18px;color:#ccc;flex-shrink:0;}
+  .pkg-opt.on .pkg-chk{color:#f9a825;}
+  .pkg-opt-ar{font-size:13px;font-weight:700;color:#777;display:block;}
+  .pkg-opt-en{font-size:11px;font-weight:600;color:#aaa;display:block;direction:ltr;font-family:'Inter',sans-serif;}
+  .pkg-opt.on .pkg-opt-ar{color:white;}
+  .pkg-opt.on .pkg-opt-en{color:rgba(255,255,255,0.6);}
+
+  .sig-row{display:flex;justify-content:space-between;padding-top:14px;border-top:1px dashed #ddd;direction:rtl;}
+  .sig-cell{text-align:center;}
+  .sig-line{width:85px;height:1px;background:#bbb;margin:10px auto 4px;}
+  .sig-ar{font-size:10px;font-weight:700;color:#666;display:block;}
+  .sig-en{font-size:9px;font-weight:600;color:#aaa;display:block;direction:ltr;font-family:'Inter',sans-serif;margin-top:2px;}
+
+  .c-foot{background:#1a237e;padding:8px 20px;display:flex;justify-content:space-between;align-items:center;direction:ltr;margin-top:4px;}
+  .cf-batch{font-size:9px;color:rgba(255,255,255,0.45);font-family:'Courier New';}
+  .cf-brand{font-size:9px;color:rgba(255,255,255,0.45);}
+
+  .btn-print{width:100%;max-width:580px;margin-top:16px;padding:14px;background:#f9a825;color:#1a237e;border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Noto Sans Arabic',Arial,sans-serif;transition:background 0.2s;}
+  .btn-print:hover{background:#ffca28;}
+
+  @media print{
+    @page{size:A4 portrait;margin:0;}
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+    html,body{height:100%;margin:0;padding:0;background:white;display:block;font-size:10px;}
+    .controls,.btn-print{display:none!important;}
+    /* البطاقة تملأ الصفحة كاملة */
+    .card{
+      border-radius:0;box-shadow:none;border:none;
+      width:210mm;max-width:210mm;min-height:297mm;
+      page-break-inside:avoid;
+      display:flex;flex-direction:column;
+    }
+    .c-body{flex:1;}
+    .extra-copy{page-break-before:always;}
+    #extraCopies{display:block!important;}
+    .extra-copy{page-break-before:always;}
+    /* تصغير الخطوط للطباعة */
+    .co-name{font-size:12px!important;}
+    .dpr-title{font-size:11px!important;}
+    .dpr-num{font-size:10px!important;}
+    .st-lbl{font-size:8px!important;}
+    .st-val{font-size:12px!important;}
+    .ic-en,.ic-ar{font-size:8px!important;}
+    .ic-val{font-size:12px!important;}
+    .lr-ar{font-size:11px!important;}
+    .lr-val{font-size:15px!important;}
+    .pb-name{font-size:11px!important;}
+    .pb-code{font-size:9px!important;}
+    .qb-ar,.qb-en{font-size:8px!important;}
+    .qb-val{font-size:20px!important;}
+    .qb-unit{font-size:8px!important;}
+    .db-ar,.db-en{font-size:9px!important;}
+    .db-val{font-size:14px!important;}
+    .pkg-opt-ar{font-size:11px!important;}
+    .sig-ar,.sig-en{font-size:8px!important;}
+    .sig-line{width:70px!important;}
+    /* تضييق المسافات */
+    .sticker{margin:8px 14px!important;padding:7px 0!important;}
+    .c-body{padding:0 14px 14px!important;}
+    .info-row{margin-bottom:8px!important;}
+    .line-row{margin-bottom:8px!important;padding:7px 12px!important;}
+    .prod-box{margin-bottom:8px!important;padding:7px 10px!important;}
+    .qty-grid{gap:7px!important;margin-bottom:8px!important;}
+    .qty-box{padding:7px 10px!important;}
+    .dates-row{gap:7px!important;margin-bottom:8px!important;}
+    .date-box{padding:7px 10px!important;}
+    .pkg-section{margin-bottom:8px!important;}
+    .pkg-opt{padding:7px 10px!important;}
+    .c-head{padding:10px 16px!important;}
+    .logo-circle{width:36px!important;height:36px!important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <div class="ctrl-grp">
+    <label>خط الإنتاج / Production Line</label>
+    <select id="selLine" onchange="upd()">
+      <option value="1">خط 1 / Line 1</option>
+      <option value="2">خط 2 / Line 2</option>
+      <option value="3">خط 3 / Line 3</option>
+    </select>
+  </div>
+  <div class="ctrl-grp">
+    <label>الوردية / Shift</label>
+    <select id="selShift" onchange="upd()">
+      <option value="1">A1 — صباحي / Morning</option>
+      <option value="2">A2 — مسائي / Evening</option>
+      <option value="3">B1 — صباحي / Morning</option>
+      <option value="4">B2 — مسائي / Evening</option>
+      <option value="5">C1 — صباحي / Morning</option>
+      <option value="6">C2 — مسائي / Evening</option>
+    </select>
+  </div>
+  <div class="ctrl-grp ctrl-full">
+    <label>اسم المنتج / Product Name</label>
+    <select id="selProd" onchange="onProdChange()">
+      <option value="">— اختر المنتج / Select Product —</option>
+    </select>
+  </div>
+  <div class="ctrl-grp">
+    <label>عدد الأكياس للكرتونة / Bags per Carton</label>
+    <input type="number" id="inBags" class="readonly-field" readonly>
+    <div class="auto-badge">✅ تلقائي من الكتالوج</div>
+  </div>
+  <div class="ctrl-grp">
+    <label>كرتون / طبلية — Cartons per Pallet</label>
+    <input type="number" id="inCPP" class="readonly-field" readonly>
+    <div class="auto-badge">✅ تلقائي من الكتالوج</div>
+  </div>
+  <div class="ctrl-grp">
+    <label>التغليف / Packaging</label>
+    <select id="selPkg" onchange="upd()">
+      <option value="Manual">يدوي / Manual</option>
+      <option value="Automatic">آلي / Automatic</option>
+    </select>
+  </div>
+  <div class="ctrl-grp ctrl-full">
+    <label>عدد الطبليات للطباعة / No. of Pallets to Print</label>
+    <input type="number" id="inCopies" value="1" min="1" max="50" oninput="upd()">
+  </div>
+</div>
+
+<div class="card">
+  <div class="c-head">
+    <div class="c-logo">
+      <div class="logo-circle">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="14" cy="20" rx="9" ry="13" stroke="#1a237e" stroke-width="2.5" fill="none"/>
+          <ellipse cx="26" cy="20" rx="9" ry="13" stroke="#1a237e" stroke-width="2.5" fill="none"/>
+        </svg>
+      </div>
+      <div>
+        <div class="co-name">مصنع المنجم للأغذية</div>
+        <div class="co-sub">Al Munajem Foods Factory</div>
+      </div>
+    </div>
+    <div class="head-left">
+      <div class="dpr-title">تقرير الإنتاج اليومي</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.5);font-family:'Inter',sans-serif;direction:ltr;margin-bottom:3px;">Daily Production Report</div>
+      <div class="dpr-num" id="hDPR">DPR-—</div>
+    </div>
+  </div>
+
+  <div class="sticker">
+    <div class="st-item"><div class="st-lbl">Pro Date / تاريخ الإنتاج</div><div class="st-val" id="sProd">—</div></div>
+    <div class="st-item"><div class="st-lbl">Batch No / رقم الدفعة</div><div class="st-val red" id="sBatch">—</div></div>
+    <div class="st-item"><div class="st-lbl">Exp Date / تاريخ الانتهاء</div><div class="st-val" id="sExp">—</div></div>
+  </div>
+
+  <div class="c-body">
+    <div class="info-row">
+      <div class="info-cell"><div class="ic-ar">يوم</div><div class="ic-en">Day</div><div class="ic-val" id="cDay">—</div></div>
+      <div class="info-cell"><div class="ic-ar">التاريخ</div><div class="ic-en">Date</div><div class="ic-val" id="cDate">—</div></div>
+      <div class="info-cell"><div class="ic-ar">وقت</div><div class="ic-en">Time</div><div class="ic-val" id="cTime">—</div></div>
+    </div>
+
+    <div class="line-row">
+      <div><div class="lr-ar">خط الإنتاج</div><div class="lr-lbl">Production Line</div></div>
+      <div class="lr-val" id="cLine">—</div>
+    </div>
+
+    <div class="prod-box">
+      <div class="pb-top"><span class="pb-ar">اسم المنتج</span><span class="pb-en">Product Name</span></div>
+      <div class="pb-name" id="cName">اختر المنتج</div>
+      <div class="pb-code" id="cCode">—</div>
+    </div>
+
+    <!-- بيانات الطبلية الواحدة — كلها تلقائية -->
+    <div class="qty-grid">
+      <div class="qty-box auto">
+        <div class="qb-top"><span class="qb-ar">أكياس / كرتونة</span><span class="qb-en">Bags / Carton</span></div>
+        <div class="qb-val" id="cBags">—</div>
+        <div class="qb-unit">أكياس — bags</div>
+      </div>
+      <div class="qty-box auto">
+        <div class="qb-top"><span class="qb-ar">وزن الكيس</span><span class="qb-en">Bag Weight</span></div>
+        <div class="qb-val" id="cBagWt">—</div>
+        <div class="qb-unit">جرام — gram</div>
+      </div>
+      <div class="qty-box auto">
+        <div class="qb-top"><span class="qb-ar">وزن الكرتونة</span><span class="qb-en">Carton Weight</span></div>
+        <div class="qb-val" id="cCartonWtG">—</div>
+        <div class="qb-unit">جرام — gram</div>
+      </div>
+      <div class="qty-box auto">
+        <div class="qb-top"><span class="qb-ar">وزن الكرتونة</span><span class="qb-en">Carton Weight</span></div>
+        <div class="qb-val" id="cCartonWtK">—</div>
+        <div class="qb-unit">كجم — kg</div>
+      </div>
+      <div class="qty-box auto">
+        <div class="qb-top"><span class="qb-ar">كرتون / طبلية</span><span class="qb-en">Cartons / Pallet</span></div>
+        <div class="qb-val" id="cCPP">—</div>
+        <div class="qb-unit">كرتون — cartons</div>
+      </div>
+      <div class="qty-box total-wt">
+        <div class="qb-top"><span class="qb-ar">إجمالي وزن الطبلية</span><span class="qb-en">Total Pallet Weight</span></div>
+        <div class="qb-val" id="cTotalWt">—</div>
+        <div class="qb-unit">كجم — kg</div>
+      </div>
+    </div>
+
+    <div class="dates-row">
+      <div class="date-box prod">
+        <div class="db-top"><span class="db-ar">تاريخ الإنتاج</span><span class="db-en">Production Date</span></div>
+        <div class="db-val" id="cProdDate">—</div>
+      </div>
+      <div class="date-box exp">
+        <div class="db-top"><span class="db-ar">تاريخ الانتهاء</span><span class="db-en">Expiry Date</span></div>
+        <div class="db-val" id="cExpDate">—</div>
+      </div>
+    </div>
+
+    <div class="pkg-section">
+      <div class="pkg-label"><span class="lbl-ar">التغليف</span><span class="lbl-en">Packaging</span></div>
+      <div class="pkg-row">
+        <div class="pkg-opt" id="poM" onclick="setPkg('Manual')">
+          <span class="pkg-chk" id="ckM">☐</span>
+          <div><span class="pkg-opt-ar">يدوي</span><span class="pkg-opt-en">Manual</span></div>
+        </div>
+        <div class="pkg-opt" id="poA" onclick="setPkg('Automatic')">
+          <span class="pkg-chk" id="ckA">☐</span>
+          <div><span class="pkg-opt-ar">آلي</span><span class="pkg-opt-en">Automatic</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sig-row" style="margin-top:40px;">
+      <div class="sig-cell"><div class="sig-line"></div><span class="sig-ar">المشرف</span><span class="sig-en">Supervisor</span></div>
+      <div class="sig-cell"><div class="sig-line"></div><span class="sig-ar">الجودة</span><span class="sig-en">QC</span></div>
+      <div class="sig-cell"><div class="sig-line"></div><span class="sig-ar">مسؤول الوردية</span><span class="sig-en">Shift Leader</span></div>
+    </div>
+  </div>
+
+  <div class="c-foot">
+    <span class="cf-batch" id="cfBatch">BATCH: —</span>
+    <span class="cf-brand">SFDA Compliant | Al Munajem Foods</span>
+  </div>
+</div>
+
+<button class="btn-print" onclick="doPrint()">🖨️ طباعة التقرير / Print Report</button>
+
+<script>
+// bags = عدد الأكياس/كرتونة
+// wt   = وزن الكيس الواحد بالجرام
+// cpp  = كرتون/طبلية
+var PRODUCTS = [
+  {code:"FG-0001", name:"BEEF MINCE ANAME SAUDI 20*400",           bags:20, wt:400, cpp:108},
+  {code:"FG-0002", name:"MUTTON MINCE ANAM SAUDI AL HABRA 20*400", bags:20, wt:400, cpp:108},
+  {code:"FG-0003", name:"MUTTON MINCE ANAM SAUDI AL 20*400",       bags:20, wt:400, cpp:108},
+  {code:"FG-0004", name:"MUTTON MINCE DARI 20*400",                bags:20, wt:400, cpp:108},
+  {code:"FG-0005", name:"CHICKEN MINCE DARI 20*400",               bags:20, wt:400, cpp:108},
+  {code:"FG-0006", name:"CHICKEN BREAST TENDERIZED DARI 10*1 KG",  bags:10, wt:1000,cpp:60},
+  {code:"FG-0007", name:"CHICKEN BREAST TENDERIZED DARI 5*2 KG",   bags:5,  wt:2000,cpp:60},
+  {code:"FG-0008", name:"CHICKEN BREAST TENDERIZED DOUX 10*1 KG",  bags:10, wt:1000,cpp:60},
+  {code:"FG-0009", name:"CHICKEN BREAST TENDERIZED DOUX 5*2 KG",   bags:5,  wt:2000,cpp:60},
+  {code:"FG-0010", name:"DOUX REGULAR CHICKEN STRIPS 12*700 GM",   bags:12, wt:700, cpp:60},
+  {code:"FG-0011", name:"DOUX SPICY CHICKEN STRIPS 12*700 GM",     bags:12, wt:700, cpp:60},
+  {code:"FG-0012", name:"CHICKEN BREADED BURGER AL HABRA 8*855",   bags:8,  wt:855, cpp:70},
+  {code:"FG-0013", name:"CHICKEN BURGER DOUX 12*660 GM",           bags:12, wt:660, cpp:63},
+  {code:"FG-0014", name:"CHICKEN BREADED BURGER DOUX 12*660 GM",   bags:12, wt:660, cpp:63},
+  {code:"FG-0015", name:"CHICKEN BREADED NUGGETS DOUX 10*1",       bags:10, wt:1000,cpp:60},
+  {code:"FG-0016", name:"CHICKEN BREADED NUGGETS DOUX 12*500",     bags:12, wt:500, cpp:63},
+  {code:"FG-0017", name:"CHICKEN NUGGETS DOUX 1 KG",               bags:1,  wt:1000,cpp:null},
+  {code:"FG-0018", name:"CHICKEN BREADED FINGERS DOUX 12*500 GM",  bags:12, wt:500, cpp:63},
+  {code:"FG-0019", name:"CHICKEN BREADED STEAK DOUX 12*600 GM",    bags:12, wt:600, cpp:63}
+];
+
+var DAYS_AR=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+var DAYS_EN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+var ps=document.getElementById('selProd');
+PRODUCTS.forEach(function(p){
+  var o=document.createElement('option');
+  o.value=p.code;
+  o.textContent=p.code+' — '+p.name;
+  ps.appendChild(o);
+});
+
+function z(n){return String(n).padStart(2,'0');}
+function fmtDate(d){return z(d.getDate())+'-'+z(d.getMonth()+1)+'-'+d.getFullYear();}
+function fmtTime(d){
+  var h=d.getHours(),m=d.getMinutes();
+  var s=h>=12?'مساءً':'صباحاً';
+  h=h%12||12;
+  return z(h)+':'+z(m)+' '+s;
+}
+var SHIFTS = {1:'A1',2:'A2',3:'B1',4:'B2',5:'C1',6:'C2'};
+function getBatch(line,shift){
+  var n=new Date();
+  return z(n.getDate())+z(n.getMonth()+1)+'/'+SHIFTS[shift];
+}
+function setPkg(v){document.getElementById('selPkg').value=v;upd();}
+
+function onProdChange(){
+  var code=document.getElementById('selProd').value;
+  var prod=null;
+  for(var i=0;i<PRODUCTS.length;i++){if(PRODUCTS[i].code===code){prod=PRODUCTS[i];break;}}
+  if(prod){
+    document.getElementById('inBags').value = prod.bags||'';
+    document.getElementById('inCPP').value  = prod.cpp||'';
+  } else {
+    document.getElementById('inBags').value = '';
+    document.getElementById('inCPP').value  = '';
+  }
+  upd();
+}
+
+function upd(){
+  var now=new Date();
+  var exp=new Date(now); exp.setFullYear(exp.getFullYear()+1);
+  var dateStr=fmtDate(now), expStr=fmtDate(exp), timeStr=fmtTime(now);
+  var dayIdx=now.getDay();
+  var dayStr=DAYS_AR[dayIdx]+' / '+DAYS_EN[dayIdx];
+  var line=document.getElementById('selLine').value;
+  var shift=document.getElementById('selShift').value;
+  var batch=getBatch(line,shift);
+  var code=document.getElementById('selProd').value;
+  var prod=null;
+  for(var i=0;i<PRODUCTS.length;i++){if(PRODUCTS[i].code===code){prod=PRODUCTS[i];break;}}
+  var pkg=document.getElementById('selPkg').value;
+
+  // حسابات الطبلية الواحدة
+  var bags   = prod ? prod.bags : null;
+  var cpp    = prod ? prod.cpp  : null;
+  var wtGram = prod ? prod.wt   : null;
+
+  // Sticker
+  document.getElementById('sProd').textContent  = dateStr;
+  document.getElementById('sBatch').textContent = batch;
+  document.getElementById('sExp').textContent   = expStr;
+  document.getElementById('hDPR').textContent   = 'DPR-'+batch.replace(/\//g,'-');
+
+  // Info
+  document.getElementById('cDay').textContent  = dayStr;
+  document.getElementById('cDate').textContent = dateStr;
+  document.getElementById('cTime').textContent = timeStr;
+  document.getElementById('cLine').textContent = 'خط '+line+' / وردية '+SHIFTS[shift];
+
+  // Product
+  document.getElementById('cName').textContent = prod ? prod.name : 'اختر المنتج';
+  document.getElementById('cCode').textContent = prod ? prod.code : '—';
+
+  // وزن الكرتونة بالجرام = أكياس × وزن الكيس
+  var cartonWtG = (bags && wtGram) ? (bags * wtGram) : null;
+  // وزن الكرتونة بالكيلو
+  var cartonWtK = cartonWtG ? (cartonWtG / 1000) : null;
+  // إجمالي وزن الطبلية = كرتون/طبلية × وزن الكرتونة بالكيلو
+  var palletWt  = (cpp && cartonWtK) ? (cpp * cartonWtK) : null;
+
+  // الأرقام التلقائية للطبلية
+  document.getElementById('cBags').textContent      = bags       ? bags                    : '—';
+  document.getElementById('cBagWt').textContent     = wtGram     ? wtGram                  : '—';
+  document.getElementById('cCartonWtG').textContent = cartonWtG  ? cartonWtG               : '—';
+  document.getElementById('cCartonWtK').textContent = cartonWtK  ? cartonWtK.toFixed(2)    : '—';
+  document.getElementById('cCPP').textContent       = cpp        ? cpp                     : '—';
+  document.getElementById('cTotalWt').textContent   = palletWt   ? palletWt.toFixed(1)     : '—';
+
+  // Dates
+  document.getElementById('cProdDate').textContent = dateStr;
+  document.getElementById('cExpDate').textContent  = expStr;
+  document.getElementById('cfBatch').textContent   = 'BATCH: '+batch;
+
+  // Packaging
+  var isM=(pkg==='Manual'),isA=(pkg==='Automatic');
+  document.getElementById('poM').className='pkg-opt'+(isM?' on':'');
+  document.getElementById('poA').className='pkg-opt'+(isA?' on':'');
+  document.getElementById('ckM').textContent=isM?'☑':'☐';
+  document.getElementById('ckA').textContent=isA?'☑':'☐';
+}
+
+upd();
+setInterval(upd,60000);
+
+function doPrint(){
+  var copies = parseInt(document.getElementById('inCopies').value) || 1;
+  // أضف class للـ card بعدد النسخ عبر CSS counter
+  var card = document.querySelector('.card');
+  card.setAttribute('data-copies', copies);
+  // إنشاء نسخ مخفية للطباعة فقط
+  var old = document.getElementById('extraCopies');
+  if(old) old.parentNode.removeChild(old);
+  if(copies > 1){
+    var wrap = document.createElement('div');
+    wrap.id = 'extraCopies';
+    var cardHTML = card.outerHTML;
+    for(var i=1; i<copies; i++){
+      var div = document.createElement('div');
+      div.className = 'extra-copy';
+      div.innerHTML = cardHTML;
+      wrap.appendChild(div);
+    }
+    card.parentNode.insertBefore(wrap, card.nextSibling);
+  }
+  window.print();
+  // إزالة النسخ الإضافية بعد الطباعة
+  setTimeout(function(){
+    var el = document.getElementById('extraCopies');
+    if(el) el.parentNode.removeChild(el);
+  }, 2000);
+}
+</script>
+</body>
+</html>
