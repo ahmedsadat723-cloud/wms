@@ -676,112 +676,128 @@
     "cat": "لحم مفروم بقري الأنعام سعودي 400 جرام",
     "supplier": "",
     "oracle": "BFRMASSA001",
-    "nameUr": "بیف قیمہ انعام سعودی 20x400"
+    "nameUr": "بیف قیمہ انعام سعودی 20x400",
+    "cartonsPerPallet": 108
   },
   "FG-0002": {
     "nameEn": "MUTTON MINCE ANAM SAUDI AL HABRA 20*400",
     "cat": "لحم مفروم غنم الأنعام الهبرة سعودي 400 جرام",
     "supplier": "",
     "oracle": "MTRMHBSA001",
-    "nameUr": "مٹن قیمہ انعام سعودی الھبرہ 20x400"
+    "nameUr": "مٹن قیمہ انعام سعودی الھبرہ 20x400",
+    "cartonsPerPallet": 108
   },
   "FG-0003": {
     "nameEn": "MUTTON MINCE ANAM SAUDI AL 20*400",
     "cat": "لحم مفروم غنم الأنعام سعودي 400 جرام",
     "supplier": "",
     "oracle": "MTRMASSA001",
-    "nameUr": "مٹن قیمہ انعام سعودی 20x400"
+    "nameUr": "مٹن قیمہ انعام سعودی 20x400",
+    "cartonsPerPallet": 108
   },
   "FG-0004": {
     "nameEn": "MUTTON MINCE DARI 20*400",
     "cat": "لحم مفروم غنم داري 400 جرام",
     "supplier": "",
     "oracle": "CHRMDRSA01T",
-    "nameUr": "مٹن قیمہ داری 20x400"
+    "nameUr": "مٹن قیمہ داری 20x400",
+    "cartonsPerPallet": 108
   },
   "FG-0005": {
     "nameEn": "CHICKEN MINCE DARI 20*400",
     "cat": "لحم مفروم دجاج داري 400 جرام",
     "supplier": "",
     "oracle": "CHRMDRSA01T",
-    "nameUr": "چکن قیمہ داری 20x400"
+    "nameUr": "چکن قیمہ داری 20x400",
+    "cartonsPerPallet": 108
   },
   "FG-0006": {
     "nameEn": "CHICKEN BREAST TENDERIZED DARI 10*1 KG - MF",
     "cat": "صدور دجاج طرية داري اكيلو",
     "supplier": "",
     "oracle": "CHPKDRSA002",
-    "nameUr": "چکن بریسٹ ٹینڈرائزڈ داری 10x1 کلو"
+    "nameUr": "چکن بریسٹ ٹینڈرائزڈ داری 10x1 کلو",
+    "cartonsPerPallet": 60
   },
   "FG-0007": {
     "nameEn": "CHICKEN BREAST TENDERIZED DARI 5*2 KG - MF",
     "cat": "صدور دجاج طرية داري2 كيلو",
     "supplier": "",
     "oracle": "CHPKDRSA001",
-    "nameUr": "چکن بریسٹ ٹینڈرائزڈ داری 5x2 کلو"
+    "nameUr": "چکن بریسٹ ٹینڈرائزڈ داری 5x2 کلو",
+    "cartonsPerPallet": 60
   },
   "FG-0008": {
     "nameEn": "CHICKEN BREAST TENDERIZED DOUX 10*1 KG",
     "cat": "صدور دجاج طرية دو1 كيلو",
     "supplier": "",
     "oracle": "CHPKDXSA002",
-    "nameUr": "چکن بریسٹ ٹینڈرائزڈ دو 10x1 کلو"
+    "nameUr": "چکن بریسٹ ٹینڈرائزڈ دو 10x1 کلو",
+    "cartonsPerPallet": 60
   },
   "FG-0009": {
     "nameEn": "CHICKEN BREAST TENDERIZED DOUX 5*2 KG - MF",
     "cat": "صدور دجاج طرية دو2 كيلو",
     "supplier": "",
     "oracle": "CHPKDXSA001",
-    "nameUr": "چکن بریسٹ ٹینڈرائزڈ دو 5x2 کلو"
+    "nameUr": "چکن بریسٹ ٹینڈرائزڈ دو 5x2 کلو",
+    "cartonsPerPallet": 60
   },
   "FG-0010": {
     "nameEn": "DOUX REGULAR CHICKEN STRIPS 12*700 GM",
     "cat": "ستريبس دجاج دو العادي 700 جرام",
     "supplier": "",
     "oracle": "CHPPDXSA006",
-    "nameUr": "چکن سٹرپس ریگولر دو 12x700 گرام"
+    "nameUr": "چکن سٹرپس ریگولر دو 12x700 گرام",
+    "cartonsPerPallet": 60
   },
   "FG-0011": {
     "nameEn": "DOUX SPICY CHICKEN STRIPS 12*700 GM",
     "cat": "ستريبس دجاج دو الحار 700 جرام",
     "supplier": "",
     "oracle": "CHPPDXSA005",
-    "nameUr": "چکن سٹرپس مصالحہ دار دو 12x700 گرام"
+    "nameUr": "چکن سٹرپس مصالحہ دار دو 12x700 گرام",
+    "cartonsPerPallet": 60
   },
   "FG-0012": {
     "nameEn": "CHICKEN BREADED BURGER AL HABRA 8*855",
     "cat": "برجر دجاج بالبقسماط الهبرة 855 جرام",
     "supplier": "",
     "oracle": "CHRBHBSA02T",
-    "nameUr": "چکن بریڈڈ برگر الھبرہ 8x855"
+    "nameUr": "چکن بریڈڈ برگر الھبرہ 8x855",
+    "cartonsPerPallet": 70
   },
   "FG-0013": {
     "nameEn": "CHICKEN BURGER -DOUX 660 GM",
     "cat": "برجر دجاج دو    660 جرام",
     "supplier": "",
     "oracle": "CHPUDXSA001",
-    "nameUr": "چکن برگر دو 660 گرام"
+    "nameUr": "چکن برگر دو 660 گرام",
+    "cartonsPerPallet": 63
   },
   "FG-0014": {
     "nameEn": "CIIICKEN BREADED BURGER -DOUX 660 GM",
     "cat": "برجر دجاج بالبقسماط دو660 جرام",
     "supplier": "",
     "oracle": "CHPUDXSA002",
-    "nameUr": "چکن بریڈڈ برگر دو 660 گرام"
+    "nameUr": "چکن بریڈڈ برگر دو 660 گرام",
+    "cartonsPerPallet": 63
   },
   "FG-0015": {
     "nameEn": "CHICKEN BREADED NUGETS DOUX 10*1",
     "cat": "ناجت دجاج دو بالبقسماط  اكيلو",
     "supplier": "",
     "oracle": "CHPTDXSA001",
-    "nameUr": "چکن بریڈڈ ناگٹس دو 10x1"
+    "nameUr": "چکن بریڈڈ ناگٹس دو 10x1",
+    "cartonsPerPallet": 60
   },
   "FG-0016": {
     "nameEn": "CHICKEN BREADED NUGGETS -DOUX 12*500",
     "cat": "ناجت دجاج بالبقسماط دو 500 جرام",
     "supplier": "",
     "oracle": "CHPTDXSA002",
-    "nameUr": "چکن بریڈڈ ناگٹس دو 12x500"
+    "nameUr": "چکن بریڈڈ ناگٹس دو 12x500",
+    "cartonsPerPallet": 63
   },
   "FG-0017": {
     "nameEn": "CHICKEN NUGGETS -DOUX 1 KG",
@@ -795,13 +811,15 @@
     "cat": "أصابع دجاج بالبقسماط دو  500 جرام",
     "supplier": "",
     "oracle": "CHPWDXSA001",
-    "nameUr": "چکن بریڈڈ فنگرز دو 12x500 گرام"
+    "nameUr": "چکن بریڈڈ فنگرز دو 12x500 گرام",
+    "cartonsPerPallet": 63
   },
   "FG-0019": {
     "nameEn": "CHICKEN BREADED STEAK DOUX 12*600 GM - A",
     "cat": "ستيك دجاج بالبقسماط دو   600 جرام",
     "supplier": "",
     "oracle": "CHPWDXSA002",
-    "nameUr": "چکن بریڈڈ سٹیک دو 12x600 گرام"
+    "nameUr": "چکن بریڈڈ سٹیک دو 12x600 گرام",
+    "cartonsPerPallet": 63
   }
 }
