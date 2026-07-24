@@ -4099,9 +4099,24 @@ async function afterLoginSuccess(authUser, opts){
     }
     CURRENT_ORG_ID = profile.organization_id;
     currentUser = { id: authUser.id, username: authUser.email, fullName: profile.full_name || authUser.email, role: profile.role || 'worker' };
-    // ✅ إخفاء تاب سعات الطبالي (إداري) عن أي حد مش admin
+    // ✅ إخفاء التابز حسب الدور
     const capTabBtn = document.querySelector('[onclick*="switchTab(27)"]');
     if(capTabBtn) capTabBtn.style.display = hasRole(['admin']) ? '' : 'none';
+    // إخفاء تاب الإعدادات عن غير admin
+    const settingsTab = document.querySelector('[onclick*="switchTab(26)"]');
+    if(settingsTab) settingsTab.style.display = hasRole(['admin']) ? '' : 'none';
+    // إخفاء تصدير Oracle عن worker و qc
+    const oracleBtn = document.querySelector('[onclick*="exportOracle"]');
+    if(oracleBtn) oracleBtn.style.display = hasRole(['admin','manager']) ? '' : 'none';
+    // QC: إظهار تاب Hold فقط
+    if(hasRole(['qc']) && !hasRole(['admin','manager','worker'])){
+      document.querySelectorAll('.tab-btn').forEach(function(btn){
+        var oc = btn.getAttribute('onclick') || '';
+        var allowed = ['switchTab(1)','switchTab(8)','switchTab(9)'];
+        var show = allowed.some(function(a){ return oc.includes(a); });
+        btn.style.display = show ? '' : 'none';
+      });
+    }
     await hydrateFromSupabase();
     const overlay = document.getElementById('loginOverlay');
     if(overlay) overlay.classList.add('hidden');
@@ -6163,6 +6178,7 @@ function showBradGuide(roomsUsed,placed,num){
 function closeBradGuide(){ var b=document.getElementById('tnkGuide'); if(b){ b.style.display='none'; b.innerHTML=''; } }
 
 function confirmReceipt(p){
+  if(!requireRole(['admin','manager','worker'], 'Receipt')) return;
   let num=document.getElementById(p+'Num').value.trim();
   const date=document.getElementById(p+'Date').value||today();
   const depart=document.getElementById(p+'Depart').value||'';
@@ -7734,6 +7750,7 @@ function withdrawOne(loc, source){
 }
 /* executeBulkWithdraw: المصدر الموحّد لكل سحب جماعي — يمنع تكرار/تعارض الشيفرة ويعمل عبر أصناف مختلفة */
 function executeBulkWithdraw(locs, source){
+  if(!requireRole(['admin','manager','worker'], 'BulkWithdraw')) return;
   const list = (locs||[]).filter(l => INVENTORY[l]); /* استبعاد الفارغ/المسحوب */
   if(!list.length){ showToast('⚠️ لا توجد بالتات صالحة للسحب','error'); return []; }
   // v183: توحيد فعلي — كانت تدّعي "المصدر الموحّد" لكنها ترتّب بتاريخ الدخول فقط بمعزل
@@ -8827,6 +8844,7 @@ function clearExecuteManual(){
   clearConfirm(targets,'يدوي',scope);
 }
 function clearThisRoom(){
+  if(!requireRole(['admin','manager'], 'clearThisRoom')) return;
   var rid=CURROOM;
   var targets=(ROOM_SLOTS[rid]||[]).filter(function(l){return INVENTORY[l];});
   if(!targets.length){showToast('الغرفة '+rid+' فارغة بالفعل','info');return;}
@@ -8985,6 +9003,7 @@ function renderReceipts(){
 function toggleReceiptDetails(gi){var r=document.getElementById('rcptDet'+gi);if(r)r.style.display=(r.style.display==='none'?'table-row':'none');}
 
 function deleteReceipt(gi){
+  if(!requireRole(['admin','manager'], 'deleteReceipt')) return;
   if(!confirm('⚠️ هل تريد حذف هذا السجل؟ لا يمكن التراجع عن هذا الإجراء.')) return;
   
   const batch = BATCHES[gi];
@@ -9752,6 +9771,7 @@ function renderWithdrawTotals(){
     ${infoMsg}`;
 }
 function confirmWithdrawBrad(){
+  if(!requireRole(['admin','manager','worker'], 'WithdrawBrad')) return;
   let num=document.getElementById('withdrawNum').value.trim();
   const date=document.getElementById('withdrawDate').value||today();
   const depart=document.getElementById('withdrawDepart').value||'';
@@ -10416,6 +10436,7 @@ function exportWithdrawnExcel(){
 
 /* ===== حذف سطر واحد من سجل السحب ===== */
 function deleteWithdrawnRecord(loc, ts){
+  if(!requireRole(['admin','manager'], 'deleteWithdrawnRecord')) return;
   if(!confirm('⚠️ حذف هذا القيد من سجل السحب نهائياً؟')) return;
   const idx = WITHDRAWN.findIndex(x => x.loc===loc && x.ts===ts);
   if(idx===-1){ showToast('❌ القيد غير موجود','error'); return; }
@@ -10427,6 +10448,7 @@ function deleteWithdrawnRecord(loc, ts){
 
 /* ===== تفريغ كل سجل السحب — يصدّر أرشيف Excel كامل أولاً كأمان قبل المسح ===== */
 function clearAllWithdrawnLog(){
+  if(!requireRole(['admin'], 'clearAllWithdrawnLog')) return;
   if(!WITHDRAWN.length){ showToast('⚠️ السجل فارغ أصلاً','error'); return; }
   if(!confirm('⚠️ سيتم تصدير نسخة Excel كاملة من السجل أولاً كأرشيف، ثم مسح كل القيود نهائياً من النظام.\n\nهل تريد المتابعة؟')) return;
   const ws_data=[['الوقت','التاريخ','النوع','الكود','الصنف','الموقع','البالت','كراتين','المصدر'],...WITHDRAWN.map(x=>[x.time||'',x.date||'',x.itemType==='dry'?'جاف':x.itemType==='frozen'?'مجمد':'نهائي',x.code,x.name||'',x.loc,x.palLabel,x.cartons,x.source])];
@@ -10515,6 +10537,7 @@ function exportOracleReceipts() {
 }
 
 function exportOracleWithdrawals() {
+  if(!requireRole(['admin','manager'], 'تصدير OracleWithdrawals')) return;
   if(!window.XLSX){ showToast('❌ مكتبة Excel غير متوفرة','error'); return; }
   var withdrawals = getWithdrawals();
   if(!withdrawals.length){ showToast('❌ لا توجد بيانات سحب','error'); return; }
@@ -11857,6 +11880,7 @@ function renderDamageAnalysis() {
 }
 
 function deleteDamaged(id) {
+  if(!requireRole(['admin','manager'], 'deleteDamaged')) return;
   if(!confirm('هل تريد حذف هذا السجل؟')) return;
   
   let damaged = getDamagedItems();
@@ -12970,6 +12994,7 @@ function renderSFDAInspTable() {
 }
 
 function deleteSFDARecord(id) {
+  if(!requireRole(['admin','manager'], 'deleteSFDARecord')) return;
   if (!confirm('حذف هذا الفحص؟')) return;
   var records = getSFDAInspections().filter(function(r){ return r.id !== id; });
   saveSFDAInspections(records);
@@ -13426,12 +13451,14 @@ function _emailCopied(toEmail, subject, statusEl) {
   
   // ===== دوال تقرير المخزون =====
   function deleteInvItemConfirm(loc) {
+  if(!requireRole(['admin'], 'deleteInvItemConfirm')) return;
     if(confirm(`⚠️ هل تريد حذف الموقع ${loc} من المخزون؟\n\nهذا الإجراء لا يمكن التراجع عنه!`)) {
       deleteInvItem(loc);
     }
   }
   
   function deleteInvItem(loc) {
+  if(!requireRole(['admin'], 'deleteInvItem')) return;
     delete INVENTORY[loc];
     EMPTY_SLOTS[loc] = Date.now();
     WITHDRAWN.push({
@@ -13544,6 +13571,7 @@ function _emailCopied(toEmail, subject, statusEl) {
   }
   
   function clearAllInventory() {
+  if(!requireRole(['admin'], 'clearAllInventory')) return;
     const targets = Object.keys(INVENTORY);
     if(!targets.length){ showToast('المخزون فارغ بالفعل','info'); return; }
     clearConfirm(targets, 'يدوي', 'تصفير شامل · من التقارير الموحدة');
