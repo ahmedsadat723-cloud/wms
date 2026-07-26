@@ -2062,12 +2062,14 @@ tr:hover td{background:var(--brand-soft)}
     <div class="dash-section grid-1">
       <div class="card">
         <div class="ptitle" style="display:flex;align-items:center;gap:8px">🔔 آخر العمليات <span class="live"><span class="dot"></span><span style="font-size:9px;color:#10b981;font-weight:800">مباشر</span></span></div>
-        <div id="opsLog" class="items-list muted"><div class="item-chip"><div><b>حذف طبلية</b> <span class="muted">R7-01-A-1: FG-0010 — 10 كرتون (تصحيح بيانات، مش سحب)</span></div><span class="muted" style="font-size:10px">١١‏/٧‏/٢٠٢٦ ٩:٤٨:٥٢ م</span></div><div class="item-chip"><div><b>تعديل طبلية</b> <span class="muted">R7-01-A-1: FG-0010 — قبل: 10 كرتون · 2026-12-11 ← بعد: 10 كرتون · 2026-12-11</span></div><span class="muted" style="font-size:10px">١١‏/٧‏/٢٠٢٦ ٩:٤٨:٣٢ م</span></div><div class="item-chip"><div><b>اعتماد استلام موبايل</b> <span class="muted">R7-01-A-1: FG-0010 — 10 كرتون — باتش 12345</span></div><span class="muted" style="font-size:10px">١١‏/٧‏/٢٠٢٦ ٨:٥٤:٣٣ م</span></div><div class="item-chip"><div><b>📸 استلام موبايل (بانتظار موافقة)</b> <span class="muted">علامة تجريبية REGULAR Demo Item— 10 كرتون — R7-01-A-1 — باتش 12345</span></div><span class="muted" style="font-size:10px">١١‏/٧‏/٢٠٢٦ ٨:٥٣:١٣ م</span></div><div class="item-chip"><div><b>📸 استلام موبايل (بانتظار موافقة)</b> <span class="muted">اختبار كرتون بدون باتش — 3 كرتون — R1-01-A-1 — باتش </span></div><span class="muted" style="font-size:10px">١١‏/٧‏/٢٠٢٦ ٣:١٢:١١ م</span></div><div class="item-chip"><div><b>📸 استلام موبايل (بانتظار موافقة)</b> <span class="muted">CARTON Demo Itemعلامة تجريبية 660 GM — 60 كرتون — R1-01-A-1 — باتش 1234</span></div><span class="muted" style="font-size:10px">١١‏/٧‏/٢٠٢٦ ٢:٥٤:٥٧ م</span></div><div class="item-chip"><div><b>رفض استلام موبايل</b> <span class="muted">R4-01-A-2: TEST-002 — السبب: صورة الليبل مش واضحة — استلام تجريبي هيتلغي</span></div><span class="muted" style="font-size:10px">١١‏/٧‏/٢٠٢٦ ٢:٤٠:٤٦ م</span></div><div class="item-chip"><div><b>اعتماد استلام موبايل</b> <span class="muted">R4-01-A-1: TEST-001 — 5 كرتون — باتش BATCHTEST001</span></div><span class="muted" style="font-size:10px">١١‏/٧‏/٢٠٢٦ ٢:٤٠:٢٠ م</span></div><div class="item-chip"><div><b>📸 استلام موبايل (بانتظار موافقة)</b> <span class="muted">اختبار - منتج تجريبي — 5 كرتون — R4-01-A-1 — باتش BATCHTEST001</span></div><span class="muted" style="font-size:10px">١١‏/٧‏/٢٠٢٦ ٢:٣٨:٥٠ م</span></div><div class="item-chip"><div><b>📸 استلام موبايل</b> <span class="muted">صنف تجريبي</span></div><span class="muted" style="font-size:10px">١١‏/٧‏/٢٠٢٦ ٢:٢٦:٤٣ م</span></div><div class="item-chip"><div><b>تعديل طبلية</b> <span class="muted">R1-01-A-1: PREP-0006 — قبل: 30 كرتون · 2026-09-30 ← بعد: 30 كرتون · 2026-09-30</span></div><span class="muted" style="font-size:10px">١٠‏/٧‏/٢٠٢٦ ١١:١٧:١٩ م</span></div>
+        <div id="opsLog" class="items-list muted">
       </div>
     </div>
   </div>
 
-  <!-- 1: Container -->
+  </div>
+
+<!-- 1: Container -->
   <div class="panel" data-tab="1">
     <div class="card"><div class="btn-back-wrap"><button class="btn-back" onclick="goBack()">← رجوع</button></div>
       <div class="ptitle">
@@ -2892,7 +2894,7 @@ tr:hover td{background:var(--brand-soft)}
     </div>
   </div>
 
-  </div>
+  
 
   <!-- 13: Balance Calculations -->
   <div class="panel" data-tab="13" id="balancePanel">
@@ -6407,7 +6409,7 @@ function renderDashboard(animateEntrance){
   // ===== ⏰ عرض احترافي لأقرب تواريخ الصلاحية =====
   renderDashExpiryPreview();
 
-  document.getElementById('opsLog').innerHTML = OPS.length? OPS.slice(0,12).map(o=>`<div class="item-chip"><div><b>${o.type}</b> <span class="muted">${o.detail}</span></div><span class="muted" style="font-size:10px">${o.ts}</span></div>`).join('') : 'لا توجد عمليات بعد.';
+  document.getElementById('opsLog').innerHTML = OPS.length? OPS.slice(0,12).map(o=>``).join('') : 'لا توجد عمليات بعد.';
 
   // === شريط الطبالي من كل غرفة — بطاقات بتصميم غني (نوع الغرفة + شريط إشغال ملون) ===
   const stripEl = document.getElementById('roomPalletsStrip');
@@ -9756,7 +9758,7 @@ function renderWithdrawDraft(){
   if(!list.length){ box.innerHTML='لم يتم سحب أصناف بعد'; return; }
   box.innerHTML=list.map((x,i)=>{
     const weight=(x.cartons*15/1000).toFixed(2);
-    return `<div class="item-chip"><div><b>${x.code}</b><br><span class="muted" style="font-size:10.5px">${x.name||'—'} · ${x.cartons} كرتون · ${weight} طن<br>${x.loc} · 🟨 ${x.palLabel}</span></div><button class="btn btn-danger btn-sm" onclick="removeFromWithdraw(${i})">حذف</button></div>`;
+    return ``;
   }).join('');
   renderWithdrawTotals();
 }
