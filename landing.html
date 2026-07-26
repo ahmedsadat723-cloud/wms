@@ -716,7 +716,7 @@ footer{
 
 <script>
 (function(){
-  var PUB='DypgyifYb2XneOK_D', SERVICE='service_7tlduhf', TEMPLATE='template_fcndmrb';
+  var PUB='DypgyifYb2XneOK_D', SERVICE='service_7tlduhf', TEMPLATE='template_o67z16k';
   var TO='renowms@proton.me';
   var btn=document.getElementById('trialBtn'), inp=document.getElementById('trialEmail');
   if(!btn||!inp) return;
@@ -761,6 +761,7 @@ footer{
     emailjs.send(SERVICE, TEMPLATE, {
       to_email: TO,
       from_name: v,
+      reply_to: v,
       subject: 'طلب تجربة مجانية — Reno Smart Inventory',
       message: 'طلب تجربة مجانية جديد\n\nالبريد: '+v+'\nالمصدر: صفحة رينو التعريفية\nالوقت: '+new Date().toLocaleString('ar-EG')
     }).then(function(){
