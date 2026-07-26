@@ -474,6 +474,36 @@ nav{
 .demo-shelf ~ div,.hero-visual .muted{color:#9bb5d0}
 .shelf-empty{background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.16)}
 .hero-visual [style*="color:var(--text2)"]{color:#9bb5d0!important}
+
+/* ═══ STATS STRIP — ادعاءات بدل أرقام ═══ */
+.stats-strip{
+  grid-template-columns:repeat(4,1fr);
+  gap:0; padding:0; max-width:1180px;
+  border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+}
+.stat-block{
+  text-align:start; padding:30px 28px;
+  border-inline-start:1px solid var(--border);
+  transition:background .35s ease;
+}
+.stat-block:first-child{border-inline-start:none}
+.stat-block:hover{background:#fff}
+.stat-key{
+  display:block; font-family:'IBM Plex Mono',monospace;
+  font-size:10px; letter-spacing:.18em; color:var(--blue);
+  margin-bottom:12px; opacity:.85;
+}
+.stat-claim{
+  font-size:19px; font-weight:600; color:var(--ink);
+  line-height:1.4; margin-bottom:7px; letter-spacing:-.01em;
+}
+.stat-label{ font-size:12.5px; color:var(--text2); line-height:1.7; font-weight:300 }
+@media(max-width:900px){ .stats-strip{grid-template-columns:1fr 1fr} }
+@media(max-width:560px){
+  .stats-strip{grid-template-columns:1fr}
+  .stat-block{border-inline-start:none;border-top:1px solid var(--border)}
+  .stat-block:first-child{border-top:none}
+}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -569,23 +599,27 @@ nav{
 <!-- STATS -->
 <div style="border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
   <div class="stats-strip">
-    <div class="stat-block">
-      <div class="stat-num">9<span>+</span></div>
-      <div class="stat-label">غرف تخزين مدعومة</div>
+      <div class="stat-block">
+        <span class="stat-key">النشأة</span>
+        <div class="stat-claim">عربيّ من الأساس</div>
+        <div class="stat-label">واجهة مبنية بالعربية، لا نسخة مترجمة</div>
+      </div>
+      <div class="stat-block">
+        <span class="stat-key">الاتصال</span>
+        <div class="stat-claim">يعمل بلا إنترنت</div>
+        <div class="stat-label">التطبيق يسجّل ويزامن عند عودة الشبكة</div>
+      </div>
+      <div class="stat-block">
+        <span class="stat-key">التشغيل</span>
+        <div class="stat-claim">من المتصفح مباشرة</div>
+        <div class="stat-label">بلا تثبيت ولا خوادم عندك</div>
+      </div>
+      <div class="stat-block">
+        <span class="stat-key">الامتثال</span>
+        <div class="stat-claim">SFDA · Oracle ERP</div>
+        <div class="stat-label">تقارير وتصدير جاهزان للتسليم</div>
+      </div>
     </div>
-    <div class="stat-block">
-      <div class="stat-num">168</div>
-      <div class="stat-label">موقع تخزين لكل غرفة — قابل للتوسعة</div>
-    </div>
-    <div class="stat-block">
-      <div class="stat-num">100<span>%</span></div>
-      <div class="stat-label">ويب — لا تثبيت مطلوب</div>
-    </div>
-    <div class="stat-block">
-      <div class="stat-num">SFDA</div>
-      <div class="stat-label">تقارير متوافقة مع الجهات الرقابية</div>
-    </div>
-  </div>
 </div>
 
 <section class="rn-features" id="features">
