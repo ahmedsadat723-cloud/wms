@@ -13114,7 +13114,7 @@ var TAB_GROUPS = {
   'main':        { tabs: [0, 5, 4, 9],      first: 0 },
   'operations':  { tabs: [1, 2, 3, 15],     first: 1 },
   'inventory':   { tabs: [6, 11, 10, 12],   first: 6 },
-  'reports':     { tabs: [13, 7, 8, 14],    first: 13 },
+  'reports':     { tabs: [13, 7, 8, 14, 16], first: 13 },
   'inspection':  { tabs: [18],              first: 18 },
   'analytics':   { tabs: [19],              first: 19 },
   'forecast':    { tabs: [20],              first: 20 }
@@ -13135,7 +13135,7 @@ function showGroup(groupName, addToHistory) {
   var group = TAB_GROUPS[groupName];
 
   /* إظهار/إخفاء أزرار الـ tabs حسب المجموعة — Tab 17 (DOM 16) و Tab 18 (DOM 17) و Tab 19 (DOM 18) دائماً مرئيان */
-  var ALWAYS_VISIBLE = [16, 17, 18, 19, 20];
+  var ALWAYS_VISIBLE = [17];  /* زر «المزيد ⋮» فقط */
   document.querySelectorAll('.tab-btn').forEach(function(btn, idx) {
     if(group.tabs.indexOf(idx) !== -1 || ALWAYS_VISIBLE.indexOf(idx) !== -1) {
       btn.style.display = '';
