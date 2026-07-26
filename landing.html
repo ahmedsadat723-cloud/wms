@@ -405,6 +405,7 @@ footer{
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -715,21 +716,64 @@ footer{
 
 <script>
 (function(){
+  var PUB='DypgyifYb2XneOK_D', SERVICE='service_7tlduhf', TEMPLATE='template_fcndmrb';
+  var TO='renowms@proton.me';
   var btn=document.getElementById('trialBtn'), inp=document.getElementById('trialEmail');
+  if(!btn||!inp) return;
+
   var note=document.createElement('p');
-  note.style.cssText='font-size:13px;margin-top:14px;min-height:20px;font-weight:500';
+  note.setAttribute('role','status');
+  note.setAttribute('aria-live','polite');
+  note.style.cssText='font-size:13px;margin-top:14px;min-height:20px;font-weight:500;line-height:1.7';
   btn.parentNode.parentNode.insertBefore(note, btn.parentNode.nextSibling);
-  function say(t,ok){ note.textContent=t; note.style.color = ok ? '#4caf50' : '#e0a13c'; }
-  function go(){
-    var v=(inp.value||'').trim();
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)){ say('اكتب بريداً إلكترونياً صحيحاً لنرسل لك بيانات التجربة.',false); inp.focus(); return; }
+
+  function say(t,kind){
+    note.textContent=t;
+    note.style.color = kind==='ok' ? '#4caf50' : (kind==='err' ? '#e0a13c' : '#9bb5d0');
+  }
+  function valid(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+
+  function fallback(v){
     var subject='طلب تجربة مجانية — Reno Smart Inventory';
     var body='مرحباً فريق رينو،\n\nأرغب في تجربة النظام لمدة شهر.\n\nالبريد: '+v+'\nالشركة: \nعدد المستودعات: \n\nشكراً.';
-    say('جاري فتح بريدك… لو لم يفتح، راسلنا مباشرة على renowms@proton.me',true);
-    window.location.href='mailto:renowms@proton.me?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+    window.location.href='mailto:'+TO+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
   }
+
+  var sending=false;
+  function go(){
+    if(sending) return;
+    var v=(inp.value||'').trim();
+    if(!valid(v)){ say('اكتب بريداً إلكترونياً صحيحاً لنرسل لك بيانات التجربة.','err'); inp.focus(); return; }
+
+    sending=true; btn.disabled=true;
+    var label=btn.textContent; btn.textContent='جاري الإرسال…';
+    say('','');
+
+    function done(ok,msg,kind){
+      sending=false; btn.disabled=false; btn.textContent=label;
+      say(msg,kind); if(ok) inp.value='';
+    }
+
+    if(!window.emailjs){ done(false,'تعذّر الاتصال. جاري فتح بريدك بدلاً من ذلك…','err'); fallback(v); return; }
+
+    try{ emailjs.init({publicKey:PUB}); }catch(e){}
+
+    emailjs.send(SERVICE, TEMPLATE, {
+      to_email: TO,
+      from_name: v,
+      subject: 'طلب تجربة مجانية — Reno Smart Inventory',
+      message: 'طلب تجربة مجانية جديد\n\nالبريد: '+v+'\nالمصدر: صفحة رينو التعريفية\nالوقت: '+new Date().toLocaleString('ar-EG')
+    }).then(function(){
+      done(true,'✓ وصلنا طلبك. سنراسلك على '+v+' خلال يوم عمل.','ok');
+    }).catch(function(err){
+      console.error('EmailJS:',err);
+      done(false,'تعذّر الإرسال التلقائي. جاري فتح بريدك — أو راسلنا على '+TO,'err');
+      fallback(v);
+    });
+  }
+
   btn.addEventListener('click',go);
-  inp.addEventListener('keydown',function(e){ if(e.key==='Enter') go(); });
+  inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); go(); } });
 })();
 </script>
 </body>
