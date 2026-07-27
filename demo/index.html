@@ -1885,6 +1885,7 @@ tr:hover td{background:var(--brand-soft)}
         <button class="tab-btn" onclick="switchTab(10)" data-label-ar="🔄 نظام FIFO" data-label-en="🔄 FIFO System" style="display: none;">🔄 نظام FIFO</button>
         <button class="tab-btn" onclick="switchTab(11)" data-label-ar="📋 جرد المخزون" data-label-en="📋 Cycle Counting" style="display: none;">📋 جرد المخزون</button>
         <button class="tab-btn" onclick="switchTab(12)" data-label-ar="⚠️ الأصناف التالفة" data-label-en="⚠️ Damaged Stock" style="display: none;">⚠️ الأصناف التالفة</button>
+<button class="tab-btn" onclick="switchTab(29)">🏷️ ترميز البالتات</button>
         <button class="tab-btn tab-balance" onclick="switchTab(13)" data-label-ar="💰 الأرصدة" data-label-en="💰 Balance" style="display: none;">💰 الأرصدة</button>
         <button class="tab-btn" onclick="switchTab(14)" data-label-ar="🗑️ تفريغ البيانات" data-label-en="🗑️ Data Clearing" style="background: linear-gradient(135deg, rgb(124, 45, 18), rgb(220, 38, 38)); color: rgb(255, 255, 255); border-color: transparent; display: none;">🗑️ تفريغ البيانات</button>
         <button class="tab-btn" onclick="switchTab(15)" data-label-ar="📥 سجل الاستلامات" data-label-en="📥 Receipts Log" style="background: linear-gradient(135deg, rgb(15, 110, 86), rgb(16, 185, 129)); color: rgb(255, 255, 255); border-color: transparent; display: none;">📥 سجل الاستلامات</button>
@@ -4025,6 +4026,20 @@ tr:hover td{background:var(--brand-soft)}
     <div id="catImgBody" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
 </div>
+
+<!-- 29: Pallet Labeler -->
+<div class="panel" data-tab="29">
+  <div class="card"><div class="card-h">🟨 ترميز وطباعة ملصقات البالتات</div>
+    <div class="card-b">
+      <p style="font-size:13px;line-height:1.9;color:var(--muted);margin:0">
+        اختر نمط الترميز الذي تتبعه شركتك، ثم اطبع ملصقات البالتات — إما لكل الرفوف دفعة واحدة، أو لرف بعينه.
+        كل ملصق يحمل رقم البالت بخط كبير، الكود المولَّد، الموقع الكامل، بيانات الصنف، ورمز QR للمسح.
+      </p>
+    </div>
+  </div>
+  <div id="labelerPanel"></div>
+</div>
+
 
 </div><!-- /main-panels container -->
 
@@ -10545,6 +10560,22 @@ h2{color:#d44623;border-bottom:3px solid #facc15;padding-bottom:8px;margin-botto
 .brand-head{height:34px;width:auto;object-fit:contain;border-radius:6px;display:block;box-shadow:0 2px 8px rgba(13,27,46,.20)}
 .welcome-logo{height:52px;width:auto;object-fit:contain;border-radius:8px;display:block;margin:0 auto 12px;box-shadow:0 6px 18px rgba(13,27,46,.28)}
 @media(prefers-reduced-motion:reduce){.login-logo-box,.login-logo-box::after{animation:none}}
+
+/* ===== PALLET LABELER ===== */
+.lbl-hint{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.7}
+.lbl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:12px 0}
+.lbl-preview{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;
+  background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.4);border-radius:10px;flex-wrap:wrap}
+.lbl-preview span{font-size:12px;font-weight:700;color:var(--muted)}
+.lbl-preview code{font-family:"Courier New",monospace;font-weight:900;font-size:15px;
+  background:#1a1a00;color:#facc15;padding:5px 12px;border-radius:6px;direction:ltr}
+.lbl-opts{display:flex;flex-wrap:wrap;gap:16px;margin:12px 0 4px}
+.lbl-chk{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;cursor:pointer}
+.lbl-sec{font-size:13px;font-weight:800;margin:20px 0 10px;padding-bottom:7px;
+  border-bottom:1px solid var(--border)}
+.lbl-btn-wide{width:100%;padding:14px;font-size:14px;font-weight:800}
+.lbl-btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.lbl-btn-row button{flex:1;min-width:150px;padding:12px}
 </style>
 <div class="kiosk-overlay" id="kioskOverlay">
   <div class="kiosk-topbar">
@@ -13151,7 +13182,7 @@ function exportInspectionExcel() {
 var TAB_GROUPS = {
   'main':        { tabs: [0, 5, 4, 9],      first: 0 },
   'operations':  { tabs: [1, 2, 3, 15],     first: 1 },
-  'inventory':   { tabs: [6, 11, 10, 12],   first: 6 },
+  'inventory':   { tabs: [6, 11, 10, 12, 29], first: 6 },
   'reports':     { tabs: [13, 7, 8, 14, 16], first: 13 },
   'inspection':  { tabs: [18],              first: 18 },
   'analytics':   { tabs: [19],              first: 19 },
@@ -14718,4 +14749,373 @@ window.p3dInit=api.init;
 })();
 </script>
 <button style="position: fixed; bottom: 16px; left: 16px; z-index: 99998; background: linear-gradient(120deg, rgb(8, 145, 178), rgb(79, 70, 229)); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 12px; padding: 11px 16px; font: 700 13px &quot;Segoe UI&quot;, Tahoma; cursor: pointer; box-shadow: rgb(0, 0, 0) 0px 8px 24px -8px;">🧪 اختبارات</button>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   RENO LABELER — محرك ترميز وطباعة استيكرات البالتات
+   يدعم 5 أنماط ترميز · طباعة جماعية وفردية · QR + باركود
+   ═══════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+var LBL_KEY = 'reno_labeler_cfg';
+
+var LBL_DEFAULTS = {
+  scheme:      'location',       // location | serial | sscc | composite | datetime
+  prefix:      'PAL',
+  companyPrefix:'628000000',     // بادئة GS1 للشركة (SSCC)
+  extDigit:    '0',
+  serialStart: 1,
+  serialPad:   6,
+  separator:   '-',
+  includeYear: true,
+  showQR:      true,
+  qrPayload:   'code',           // code | location | json
+  sheet:       'a4-8',           // a4-8 | a4-12 | a4-24 | roll-100x100 | roll-100x50
+  showLogo:    true,
+  showRoom:    true,
+  showLevel:   true
+};
+
+var LBL_SHEETS = {
+  'a4-8':        {name:'A4 — 8 ملصقات (99×68 مم)',  cols:2, rows:4, w:99,  h:68,  page:'A4'},
+  'a4-12':       {name:'A4 — 12 ملصق (70×67 مم)',   cols:3, rows:4, w:70,  h:67,  page:'A4'},
+  'a4-24':       {name:'A4 — 24 ملصق (70×34 مم)',   cols:3, rows:8, w:70,  h:34,  page:'A4'},
+  'roll-100x100':{name:'رول حراري — 100×100 مم',    cols:1, rows:1, w:100, h:100, page:'100mm 100mm'},
+  'roll-100x50': {name:'رول حراري — 100×50 مم',     cols:1, rows:1, w:100, h:50,  page:'100mm 50mm'}
+};
+
+var LBL_SCHEMES = {
+  location:  {name:'موقعي — الكود من الموقع',        hint:'R1-05-B-3 · الهوية تتبع المكان، تتغير عند النقل'},
+  serial:    {name:'تسلسلي — عداد مستقل',            hint:'PAL-2026-000841 · الهوية تتبع الطبلية طوال عمرها'},
+  sscc:      {name:'SSCC — معيار GS1 دولي (18 رقم)', hint:'مطلوب للتصدير وسلاسل التجزئة الكبرى'},
+  composite: {name:'مركّب — صنف + دفعة + موقع',      hint:'FG0012-2607-B3 · يقرأ منه المحتوى مباشرة'},
+  datetime:  {name:'زمني — تاريخ + وردية + عداد',    hint:'260726-A-014 · مناسب لربط الطبلية بالإنتاج'}
+};
+
+function lblCfg(){
+  try{ return Object.assign({}, LBL_DEFAULTS, JSON.parse(localStorage.getItem(LBL_KEY)||'{}')); }
+  catch(e){ return Object.assign({}, LBL_DEFAULTS); }
+}
+function lblSave(c){ localStorage.setItem(LBL_KEY, JSON.stringify(c)); }
+
+/* ── رقم تحقق GS1 (Modulo-10) ── */
+function gs1Check(d){
+  var sum=0;
+  for(var i=0;i<d.length;i++){
+    sum += parseInt(d[d.length-1-i],10) * (i%2===0 ? 3 : 1);
+  }
+  return String((10 - (sum%10)) % 10);
+}
+
+/* ── توليد كود لطبلية واحدة ── */
+function lblGenerate(loc, item, seq, cfg){
+  cfg = cfg || lblCfg();
+  var p = (loc||'').split('-');
+  var room=p[0]||'', rack=p[1]||'', lvl=p[2]||'', pos=p[3]||'';
+  var S = cfg.separator;
+  var yy = String(new Date().getFullYear());
+  var n  = String(seq||0).padStart(cfg.serialPad,'0');
+
+  switch(cfg.scheme){
+    case 'serial':
+      return cfg.prefix + S + (cfg.includeYear ? yy + S : '') + n;
+
+    case 'sscc': {
+      var base = cfg.extDigit + cfg.companyPrefix;
+      var ref  = String(seq||0).padStart(17-base.length,'0');
+      var body = (base+ref).slice(0,17);
+      return body + gs1Check(body);
+    }
+
+    case 'composite': {
+      var code = (item && item.code) ? String(item.code).replace(/[^A-Za-z0-9]/g,'') : 'ITEM';
+      var d = new Date();
+      var batch = String(d.getDate()).padStart(2,'0') + String(d.getMonth()+1).padStart(2,'0');
+      return code + S + batch + S + lvl + pos;
+    }
+
+    case 'datetime': {
+      var dt = new Date();
+      var stamp = String(dt.getFullYear()).slice(2)
+                + String(dt.getMonth()+1).padStart(2,'0')
+                + String(dt.getDate()).padStart(2,'0');
+      var shift = dt.getHours() < 14 ? 'A' : (dt.getHours() < 22 ? 'B' : 'C');
+      return stamp + S + shift + S + String(seq||0).padStart(3,'0');
+    }
+
+    default: /* location */
+      return loc || (room+S+rack+S+lvl+S+pos);
+  }
+}
+
+/* ── جمع المواقع حسب النطاق ── */
+function lblCollect(scope, roomId, rackNo){
+  var out=[], seq=0;
+  var rooms = (typeof ROOMS!=='undefined' && ROOMS) ? ROOMS : [];
+  rooms.forEach(function(rm){
+    if(scope!=='all' && rm.id!==roomId) return;
+    var racks = rm.rackCount || 8;
+    for(var r=1;r<=racks;r++){
+      if(scope==='rack' && String(r)!==String(rackNo)) continue;
+      ['A','B','C'].forEach(function(lv){
+        for(var p=1;p<=7;p++){
+          var loc = rm.id+'-'+String(r).padStart(2,'0')+'-'+lv+'-'+p;
+          var item = (typeof INVENTORY!=='undefined' && INVENTORY) ? INVENTORY[loc] : null;
+          seq++;
+          out.push({loc:loc, room:rm, rack:r, lvl:lv, pos:p, item:item, seq:seq});
+        }
+      });
+    }
+  });
+  return out;
+}
+
+/* ── بناء ملصق واحد ── */
+function lblCard(x, cfg){
+  var code = lblGenerate(x.loc, x.item, x.seq, cfg);
+  var it = x.item;
+  var name = it ? (it.name||it.code||'') : 'موقع فارغ';
+  var lvlName = x.lvl==='A' ? 'أرضي' : (x.lvl==='B' ? 'وسط' : 'علوي');
+  var exp = (it && it.expDate) ? it.expDate : '';
+  var cartons = (it && it.cartons) ? it.cartons : '';
+
+  var h = '<div class="lbl">';
+  h += '<div class="lbl-top">';
+  h +=   '<div class="lbl-pal">' + x.lvl + x.pos + '</div>';
+  h +=   '<div class="lbl-meta">';
+  if(cfg.showRoom)  h += '<div class="lbl-room">' + (x.room.name||x.room.id) + ' · رف ' + x.rack + '</div>';
+  if(cfg.showLevel) h += '<div class="lbl-lvl">' + lvlName + ' (' + x.lvl + ')</div>';
+  h +=   '</div>';
+  h += '</div>';
+
+  h += '<div class="lbl-code">' + code + '</div>';
+  h += '<div class="lbl-loc">' + x.loc + '</div>';
+
+  if(it){
+    h += '<div class="lbl-item">' + String(name).slice(0,42) + '</div>';
+    h += '<div class="lbl-row">';
+    if(cartons) h += '<span>' + cartons + ' كرتون</span>';
+    if(exp)     h += '<span class="lbl-exp">صلاحية ' + exp + '</span>';
+    h += '</div>';
+  } else {
+    h += '<div class="lbl-empty">— فارغ —</div>';
+  }
+
+  if(cfg.showQR) h += '<div class="lbl-qr" data-code="' + code + '" data-loc="' + x.loc + '"></div>';
+  h += '</div>';
+  return h;
+}
+
+/* ── الطباعة ── */
+function lblPrint(scope, roomId, rackNo){
+  var cfg = lblCfg();
+  var sheet = LBL_SHEETS[cfg.sheet] || LBL_SHEETS['a4-8'];
+  var list = lblCollect(scope, roomId, rackNo);
+  if(!list.length){ if(typeof showToast==='function') showToast('لا توجد مواقع مطابقة','error'); return; }
+
+  var onlyFilled = document.getElementById('lblOnlyFilled');
+  if(onlyFilled && onlyFilled.checked) list = list.filter(function(x){ return !!x.item; });
+  if(!list.length){ if(typeof showToast==='function') showToast('لا توجد طبالي مشغولة في هذا النطاق','error'); return; }
+
+  var title = scope==='all' ? 'كل الرفوف — جميع الغرف'
+            : scope==='room' ? ('غرفة ' + roomId + ' — كل الرفوف')
+            : ('غرفة ' + roomId + ' — رف ' + rackNo);
+
+  var cards = list.map(function(x){ return lblCard(x, cfg); }).join('');
+
+  var css = ''
+  + '@page{size:' + sheet.page + ';margin:' + (sheet.page==='A4' ? '6mm' : '0') + '}'
+  + '*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+  + 'body{margin:0;font-family:"Segoe UI",Tahoma,Arial,sans-serif;direction:rtl;background:#fff}'
+  + '.sheet{display:grid;grid-template-columns:repeat(' + sheet.cols + ',' + sheet.w + 'mm);gap:0}'
+  + '.lbl{width:' + sheet.w + 'mm;height:' + sheet.h + 'mm;padding:3mm;border:0.4mm dashed #bbb;'
+  +   'background:#facc15;color:#1a1a00;display:flex;flex-direction:column;gap:1mm;overflow:hidden;'
+  +   'page-break-inside:avoid;position:relative}'
+  + '.lbl-top{display:flex;align-items:center;gap:2mm;border-bottom:0.4mm solid rgba(0,0,0,.35);padding-bottom:1mm}'
+  + '.lbl-pal{font-size:' + (sheet.h>60?'11mm':'7mm') + ';font-weight:900;line-height:1;letter-spacing:-0.5mm;'
+  +   'background:#1a1a00;color:#facc15;padding:1mm 2.5mm;border-radius:1.5mm;min-width:16mm;text-align:center}'
+  + '.lbl-meta{flex:1;min-width:0}'
+  + '.lbl-room{font-size:2.9mm;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+  + '.lbl-lvl{font-size:2.6mm;opacity:.75;font-weight:600}'
+  + '.lbl-code{font-family:"Courier New",monospace;font-weight:900;font-size:' + (sheet.h>60?'5mm':'3.6mm') + ';'
+  +   'letter-spacing:0.2mm;background:#1a1a00;color:#facc15;padding:1.2mm 2mm;border-radius:1mm;text-align:center;direction:ltr}'
+  + '.lbl-loc{font-family:"Courier New",monospace;font-size:3mm;font-weight:700;text-align:center;direction:ltr;opacity:.8}'
+  + '.lbl-item{font-size:2.9mm;font-weight:700;line-height:1.35;flex:1;overflow:hidden}'
+  + '.lbl-row{display:flex;justify-content:space-between;font-size:2.7mm;font-weight:700;'
+  +   'border-top:0.3mm solid rgba(0,0,0,.3);padding-top:1mm}'
+  + '.lbl-exp{background:#1a1a00;color:#facc15;padding:0.4mm 1.5mm;border-radius:1mm}'
+  + '.lbl-empty{flex:1;display:flex;align-items:center;justify-content:center;font-size:3.2mm;font-weight:700;opacity:.45}'
+  + '.lbl-qr{position:absolute;bottom:2.5mm;left:2.5mm;width:' + (sheet.h>60?'16mm':'11mm') + ';'
+  +   'height:' + (sheet.h>60?'16mm':'11mm') + ';background:#fff;padding:0.6mm;border-radius:1mm}'
+  + '.lbl-qr canvas,.lbl-qr img{width:100%;height:100%;display:block}'
+  + '@media print{.noprint{display:none!important}}'
+  + '.noprint{padding:10px;background:#0d1b2e;color:#fff;font-size:13px;text-align:center;direction:rtl}'
+  + '.noprint b{color:#facc15}';
+
+  var html = '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8">'
+    + '<title>ملصقات البالتات — ' + title + '</title>'
+    + '<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"><\/script>'
+    + '<style>' + css + '</style></head><body>'
+    + '<div class="noprint">🟨 <b>' + list.length + '</b> ملصق · ' + title
+    + ' · نمط: <b>' + (LBL_SCHEMES[cfg.scheme]||{}).name + '</b> · مقاس: <b>' + sheet.name + '</b>'
+    + '<br>راجع المعاينة ثم اطبع (Ctrl+P)</div>'
+    + '<div class="sheet">' + cards + '</div>'
+    + '<script>'
+    + 'window.addEventListener("load",function(){'
+    +   'var q=document.querySelectorAll(".lbl-qr");'
+    +   'if(!window.QRCode||!q.length){window.print();return;}'
+    +   'var done=0;'
+    +   'q.forEach(function(el){'
+    +     'var payload=' + (cfg.qrPayload==='location' ? 'el.dataset.loc'
+                          : cfg.qrPayload==='json' ? 'JSON.stringify({c:el.dataset.code,l:el.dataset.loc})'
+                          : 'el.dataset.code') + ';'
+    +     'QRCode.toCanvas(payload,{width:180,margin:0},function(e,cv){'
+    +       'if(!e&&cv)el.appendChild(cv);'
+    +       'if(++done===q.length)setTimeout(function(){window.print();},350);'
+    +     '});'
+    +   '});'
+    + '});'
+    + '<\/script></body></html>';
+
+  var w = window.open('', '_blank');
+  if(!w){ if(typeof showToast==='function') showToast('المتصفح منع النافذة المنبثقة','error'); return; }
+  w.document.write(html);
+  w.document.close();
+}
+
+/* ── واجهة الإعدادات ── */
+function lblRenderPanel(){
+  var host = document.getElementById('labelerPanel');
+  if(!host) return;
+  var cfg = lblCfg();
+  var rooms = (typeof ROOMS!=='undefined' && ROOMS) ? ROOMS : [];
+
+  var h = '';
+  h += '<div class="card"><div class="card-h">🏷️ نمط الترميز</div><div class="card-b">';
+  h += '<div class="fg"><label>اختر النمط</label><select id="lblScheme" class="inp">';
+  Object.keys(LBL_SCHEMES).forEach(function(k){
+    h += '<option value="'+k+'"'+(cfg.scheme===k?' selected':'')+'>'+LBL_SCHEMES[k].name+'</option>';
+  });
+  h += '</select><div id="lblHint" class="lbl-hint">'+(LBL_SCHEMES[cfg.scheme]||{}).hint+'</div></div>';
+
+  h += '<div class="lbl-grid">';
+  h += '<div class="fg"><label>البادئة</label><input id="lblPrefix" class="inp" value="'+cfg.prefix+'"></div>';
+  h += '<div class="fg"><label>الفاصل</label><input id="lblSep" class="inp" value="'+cfg.separator+'" maxlength="1"></div>';
+  h += '<div class="fg"><label>خانات الترقيم</label><input id="lblPad" type="number" min="3" max="10" class="inp" value="'+cfg.serialPad+'"></div>';
+  h += '<div class="fg"><label>بادئة GS1 (SSCC)</label><input id="lblGs1" class="inp" value="'+cfg.companyPrefix+'" dir="ltr"></div>';
+  h += '</div>';
+
+  h += '<div class="fg"><label>محتوى رمز QR</label><select id="lblQrPayload" class="inp">';
+  [['code','الكود المولَّد'],['location','كود الموقع'],['json','بيانات كاملة (JSON)']].forEach(function(o){
+    h += '<option value="'+o[0]+'"'+(cfg.qrPayload===o[0]?' selected':'')+'>'+o[1]+'</option>';
+  });
+  h += '</select></div>';
+
+  h += '<div class="lbl-preview"><span>معاينة الكود:</span><code id="lblPreview">—</code></div>';
+  h += '</div></div>';
+
+  h += '<div class="card"><div class="card-h">🖨️ الطباعة</div><div class="card-b">';
+  h += '<div class="fg"><label>مقاس الورق / الملصق</label><select id="lblSheet" class="inp">';
+  Object.keys(LBL_SHEETS).forEach(function(k){
+    h += '<option value="'+k+'"'+(cfg.sheet===k?' selected':'')+'>'+LBL_SHEETS[k].name+'</option>';
+  });
+  h += '</select></div>';
+
+  h += '<div class="lbl-opts">';
+  h += '<label class="lbl-chk"><input type="checkbox" id="lblQR"'+(cfg.showQR?' checked':'')+'> رمز QR</label>';
+  h += '<label class="lbl-chk"><input type="checkbox" id="lblRoomChk"'+(cfg.showRoom?' checked':'')+'> اسم الغرفة</label>';
+  h += '<label class="lbl-chk"><input type="checkbox" id="lblLevelChk"'+(cfg.showLevel?' checked':'')+'> المستوى</label>';
+  h += '<label class="lbl-chk"><input type="checkbox" id="lblOnlyFilled"> المشغولة فقط</label>';
+  h += '</div>';
+
+  h += '<div class="lbl-sec">🖨️ طباعة جماعية</div>';
+  h += '<button class="btn-primary lbl-btn-wide" onclick="lblPrint(\'all\')">🟨 كل الرفوف — جميع الغرف</button>';
+
+  h += '<div class="lbl-sec">🖨️ طباعة فردية</div>';
+  h += '<div class="lbl-grid">';
+  h += '<div class="fg"><label>الغرفة</label><select id="lblRoom" class="inp">';
+  rooms.forEach(function(r){ h += '<option value="'+r.id+'">'+r.id+' — '+(r.name||'')+'</option>'; });
+  h += '</select></div>';
+  h += '<div class="fg"><label>الرف</label><select id="lblRack" class="inp"></select></div>';
+  h += '</div>';
+  h += '<div class="lbl-btn-row">';
+  h += '<button class="btn-secondary" onclick="lblPrintRoom()">🏠 كل رفوف الغرفة</button>';
+  h += '<button class="btn-primary" onclick="lblPrintRack()">📋 هذا الرف فقط</button>';
+  h += '</div>';
+  h += '</div></div>';
+
+  host.innerHTML = h;
+  lblFillRacks();
+  lblBind();
+  lblUpdatePreview();
+}
+
+function lblFillRacks(){
+  var rs=document.getElementById('lblRoom'), rk=document.getElementById('lblRack');
+  if(!rs||!rk) return;
+  var rooms=(typeof ROOMS!=='undefined'&&ROOMS)?ROOMS:[];
+  var room=rooms.find(function(r){return r.id===rs.value;});
+  var n=(room&&room.rackCount)||8, h='';
+  for(var i=1;i<=n;i++) h+='<option value="'+i+'">رف '+i+'</option>';
+  rk.innerHTML=h;
+}
+
+function lblUpdatePreview(){
+  var el=document.getElementById('lblPreview');
+  if(!el) return;
+  var cfg=lblReadForm();
+  el.textContent = lblGenerate('R1-05-B-3', {code:'FG-0012'}, 841, cfg);
+  var hint=document.getElementById('lblHint');
+  if(hint) hint.textContent=(LBL_SCHEMES[cfg.scheme]||{}).hint||'';
+}
+
+function lblReadForm(){
+  var g=function(id){var e=document.getElementById(id);return e?e.value:null;};
+  var c=function(id){var e=document.getElementById(id);return e?e.checked:false;};
+  var cfg=lblCfg();
+  if(g('lblScheme')!==null){
+    cfg.scheme=g('lblScheme'); cfg.prefix=g('lblPrefix')||'PAL';
+    cfg.separator=g('lblSep')||'-'; cfg.serialPad=parseInt(g('lblPad'),10)||6;
+    cfg.companyPrefix=g('lblGs1')||'628000000'; cfg.qrPayload=g('lblQrPayload')||'code';
+    cfg.sheet=g('lblSheet')||'a4-8';
+    cfg.showQR=c('lblQR'); cfg.showRoom=c('lblRoomChk'); cfg.showLevel=c('lblLevelChk');
+  }
+  return cfg;
+}
+
+function lblBind(){
+  ['lblScheme','lblPrefix','lblSep','lblPad','lblGs1','lblQrPayload','lblSheet',
+   'lblQR','lblRoomChk','lblLevelChk'].forEach(function(id){
+    var e=document.getElementById(id);
+    if(e) e.addEventListener('change',function(){ lblSave(lblReadForm()); lblUpdatePreview(); });
+    if(e&&e.tagName==='INPUT'&&e.type!=='checkbox') e.addEventListener('input',lblUpdatePreview);
+  });
+  var rs=document.getElementById('lblRoom');
+  if(rs) rs.addEventListener('change',lblFillRacks);
+}
+
+function lblPrintRoom(){
+  var r=document.getElementById('lblRoom');
+  lblPrint('room', r?r.value:'R1');
+}
+function lblPrintRack(){
+  var r=document.getElementById('lblRoom'), k=document.getElementById('lblRack');
+  lblPrint('rack', r?r.value:'R1', k?k.value:'1');
+}
+
+/* تصدير عام */
+window.lblPrint=lblPrint;
+window.lblPrintRoom=lblPrintRoom;
+window.lblPrintRack=lblPrintRack;
+window.lblRenderPanel=lblRenderPanel;
+window.lblGenerate=lblGenerate;
+window.LBL_SCHEMES=LBL_SCHEMES;
+
+document.addEventListener('DOMContentLoaded',function(){
+  setTimeout(lblRenderPanel,600);
+});
+})();
+
+</script>
 </body></html>
