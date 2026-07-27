@@ -1872,6 +1872,17 @@ tr:hover td{background:var(--brand-soft)}
         <button class="tab-btn" onclick="switchTab(14)" data-label-ar="🗑️ تفريغ البيانات" data-label-en="🗑️ Data Clearing" style="background: linear-gradient(135deg, rgb(124, 45, 18), rgb(220, 38, 38)); color: rgb(255, 255, 255); border-color: transparent; display: none;">🗑️ تفريغ البيانات</button>
         <button class="tab-btn" onclick="switchTab(15)" data-label-ar="📥 سجل الاستلامات" data-label-en="📥 Receipts Log" style="background: linear-gradient(135deg, rgb(15, 110, 86), rgb(16, 185, 129)); color: rgb(255, 255, 255); border-color: transparent; display: none;">📥 سجل الاستلامات</button>
         <button class="tab-btn" onclick="switchTab(17)" data-label-ar="📊 التقارير الموحدة" data-label-en="📊 Unified Reports" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border-color:transparent">📊 التقارير الموحدة</button>
+<button class="tab-btn" onclick="switchTab(18)">🧹 سجل التفتيش</button>
+<button class="tab-btn" onclick="switchTab(19)">📈 التحليل الشامل</button>
+<button class="tab-btn" onclick="switchTab(20)">🔮 توقعات الطلب</button>
+<button class="tab-btn" onclick="switchTab(21)">🏭 الإنتاج والجودة</button>
+<button class="tab-btn" onclick="switchTab(23)">❄️ المستودع المجمد</button>
+<button class="tab-btn" onclick="switchTab(24)">🛍️ البضائع النهائية</button>
+<button class="tab-btn" onclick="switchTab(25)">📉 حدود المخزون</button>
+<button class="tab-btn" onclick="switchTab(26)">📊 التحليل المتقدم</button>
+<button class="tab-btn" onclick="switchTab(27)">📦 سعات الطبالي</button>
+<button class="tab-btn" onclick="switchTab(28)">🖼️ صور الكتالوج</button>
+<button class="tab-btn" onclick="switchTab(22)">📧 سجل الإرسالات</button>
 
       </div>
     </div>
@@ -10476,6 +10487,11 @@ h2{color:#d44623;border-bottom:3px solid #facc15;padding-bottom:8px;margin-botto
 </style></head><body><h2>${title}</h2><div class="content">${content}</div>
 <div class="footer">طُبع من: مصنع المنجم · نظام إدارة المستودع · ${new Date().toLocaleString('ar-EG')}</div>
 \x3cscript\x3ewindow.onload=function(){window.print();}\x3c/script\x3e
+</body></html>`;
+  w.document.write(html); w.document.close();
+}
+</script>
+
 
 <!-- KIOSK MODE -->
 <style>
@@ -10859,10 +10875,8 @@ function deductFromInventory(components){
 }
 function clearProductionForm(){document.getElementById('prodRecipe').value='';document.getElementById('prodStart').value='';document.getElementById('prodEnd').value='';document.getElementById('prodOperator').value='';document.getElementById('prodLine').value='';document.getElementById('prodPlanned').value='';document.getElementById('prodActual').value='';document.getElementById('prodWaste').value='';document.getElementById('prodLoss').value='';document.getElementById('prodDeviation').value='';document.getElementById('prodRecipeDisplay').style.display='none';}
 function renderProdRecords(){var records=JSON.parse(localStorage.getItem('almanjam_prod_records')||'[]');var html='';records.forEach((rec,idx)=>{var dev=rec.planned>0?((rec.actual-rec.planned)/rec.planned*100).toFixed(2):0;html+='<tr><td>'+(idx+1)+'</td><td>'+rec.id+'</td><td>'+rec.product+'</td><td>'+rec.planned+'</td><td>'+rec.actual+'</td><td>'+dev+'%</td><td>'+rec.created+'</td><td>'+rec.operator+'</td><td><button class="btn btn-sm" onclick="printProdRecord(\''+rec.id+'\')" style="background:#f59e0b;color:#fff">🖨️</button></td></tr>';});document.getElementById('prodRecordsBody').innerHTML=html;}
-function printProductionRecord(){var pc=document.getElementById('prodRecipe').value;if(!pc){alert('اختر منتج أولاً');return;}var records=JSON.parse(localStorage.getItem('almanjam_prod_records')||'[]');var rec=records.length>0?records[records.length-1]:null;if(!rec){alert('لا توجد سجلات إنتاج');return;}var html='<html><head><meta charset="UTF-8"><title>سجل الإنتاج</title><style>body{font-family:Arial;direction:rtl;margin:20px}h1{color:#6d28d9;text-align:center}table{width:100%;border-collapse:collapse;margin:20px 0}.header{background:#6d28d9;color:#fff;padding:10px;font-weight:bold}.cell{border:1px solid #ddd;padding:8px}th{background:#ede9fe;color:#6d28d9;padding:10px;text-align:right}</style></head><body><h1>📊 سجل الإنتاج التفصيلي</h1><table><tr><td class="header">رقم العملية</td><td class="cell">'+rec.id+'</td><td class="header">المنتج</td><td class="cell">'+rec.product+'</td></tr><tr><td class="header">البدء</td><td class="cell">'+rec.start+'</td><td class="header">الانتهاء</td><td class="cell">'+rec.end+'</td></tr><tr><td class="header">المشغل</td><td class="cell">'+rec.operator+'</td><td class="header">الخط</td><td class="cell">'+rec.line+'</td></tr><tr><td class="header">الكمية المخططة</td><td class="cell">'+rec.planned+'</td><td class="header">الكمية الفعلية</td><td class="cell">'+rec.actual+'</td></tr><tr><td class="header">الهدر</td><td class="cell">'+rec.waste+'</td><td class="header">الفاقد</td><td class="cell">'+rec.loss+'</td></tr></table><h3>المكونات المصروفة:</h3><table><thead><tr><th>المكون</th><th>الكمية المطلوبة</th><th>الفعلية</th><th>الموقع</th><th>Batch</th></tr></thead><tbody>';rec.components.forEach(comp=>{html+='<tr><td class="cell">'+comp.name+'</td><td class="cell">'+comp.needed.toFixed(2)+'</td><td class="cell">'+comp.actualUsed.toFixed(2)+'</td><td class="cell">'+comp.location+'</td><td class="cell">'+comp.batch+'</td></tr>';});html+='</tbody></table><br><br><p>تم الطباعة: '+new Date().toLocaleString('ar-EG')+'</p>
-</body></html>';var w=window.open('','','width=900,height=600');w.document.write(html);w.document.close();w.print();}
-function printProdRecord(id){var records=JSON.parse(localStorage.getItem('almanjam_prod_records')||'[]');var rec=records.find(r=>r.id===id);if(!rec){alert('السجل غير موجود');return;}var html='<html><head><meta charset="UTF-8"><title>سجل الإنتاج</title><style>body{font-family:Arial;direction:rtl;margin:20px}h1{color:#6d28d9;text-align:center}table{width:100%;border-collapse:collapse;margin:20px 0}.header{background:#6d28d9;color:#fff;padding:10px;font-weight:bold}.cell{border:1px solid #ddd;padding:8px}th{background:#ede9fe;color:#6d28d9;padding:10px;text-align:right}</style></head><body><h1>📊 سجل الإنتاج: '+rec.id+'</h1><table><tr><td class="header">رقم العملية</td><td class="cell">'+rec.id+'</td><td class="header">المنتج</td><td class="cell">'+rec.product+'</td></tr><tr><td class="header">البدء</td><td class="cell">'+rec.start+'</td><td class="header">الانتهاء</td><td class="cell">'+rec.end+'</td></tr><tr><td class="header">المشغل</td><td class="cell">'+rec.operator+'</td><td class="header">الخط</td><td class="cell">'+rec.line+'</td></tr><tr><td class="header">الكمية المخططة</td><td class="cell">'+rec.planned+'</td><td class="header">الكمية الفعلية</td><td class="cell">'+rec.actual+'</td></tr><tr><td class="header">الهدر</td><td class="cell">'+rec.waste+'</td><td class="header">الفاقد</td><td class="cell">'+rec.loss+'</td></tr></table><h3>المكونات المصروفة:</h3><table><thead><tr><th>المكون</th><th>الكمية المطلوبة</th><th>الفعلية</th><th>الموقع</th><th>Batch</th></tr></thead><tbody>';rec.components.forEach(comp=>{html+='<tr><td class="cell">'+comp.name+'</td><td class="cell">'+comp.needed.toFixed(2)+'</td><td class="cell">'+comp.actualUsed.toFixed(2)+'</td><td class="cell">'+comp.location+'</td><td class="cell">'+comp.batch+'</td></tr>';});html+='</tbody></table><br><br><p>تم الطباعة: '+new Date().toLocaleString('ar-EG')+'</p>
-</body></html>';var w=window.open('','','width=900,height=600');w.document.write(html);w.document.close();w.print();}
+function printProductionRecord(){var pc=document.getElementById('prodRecipe').value;if(!pc){alert('اختر منتج أولاً');return;}var records=JSON.parse(localStorage.getItem('almanjam_prod_records')||'[]');var rec=records.length>0?records[records.length-1]:null;if(!rec){alert('لا توجد سجلات إنتاج');return;}var html='<html><head><meta charset="UTF-8"><title>سجل الإنتاج</title><style>body{font-family:Arial;direction:rtl;margin:20px}h1{color:#6d28d9;text-align:center}table{width:100%;border-collapse:collapse;margin:20px 0}.header{background:#6d28d9;color:#fff;padding:10px;font-weight:bold}.cell{border:1px solid #ddd;padding:8px}th{background:#ede9fe;color:#6d28d9;padding:10px;text-align:right}</style></head><body><h1>📊 سجل الإنتاج التفصيلي</h1><table><tr><td class="header">رقم العملية</td><td class="cell">'+rec.id+'</td><td class="header">المنتج</td><td class="cell">'+rec.product+'</td></tr><tr><td class="header">البدء</td><td class="cell">'+rec.start+'</td><td class="header">الانتهاء</td><td class="cell">'+rec.end+'</td></tr><tr><td class="header">المشغل</td><td class="cell">'+rec.operator+'</td><td class="header">الخط</td><td class="cell">'+rec.line+'</td></tr><tr><td class="header">الكمية المخططة</td><td class="cell">'+rec.planned+'</td><td class="header">الكمية الفعلية</td><td class="cell">'+rec.actual+'</td></tr><tr><td class="header">الهدر</td><td class="cell">'+rec.waste+'</td><td class="header">الفاقد</td><td class="cell">'+rec.loss+'</td></tr></table><h3>المكونات المصروفة:</h3><table><thead><tr><th>المكون</th><th>الكمية المطلوبة</th><th>الفعلية</th><th>الموقع</th><th>Batch</th></tr></thead><tbody>';rec.components.forEach(comp=>{html+='<tr><td class="cell">'+comp.name+'</td><td class="cell">'+comp.needed.toFixed(2)+'</td><td class="cell">'+comp.actualUsed.toFixed(2)+'</td><td class="cell">'+comp.location+'</td><td class="cell">'+comp.batch+'</td></tr>';});html+='</tbody></table><br><br><p>تم الطباعة: '+new Date().toLocaleString('ar-EG')+'</p></body></html>';var w=window.open('','','width=900,height=600');w.document.write(html);w.document.close();w.print();}
+function printProdRecord(id){var records=JSON.parse(localStorage.getItem('almanjam_prod_records')||'[]');var rec=records.find(r=>r.id===id);if(!rec){alert('السجل غير موجود');return;}var html='<html><head><meta charset="UTF-8"><title>سجل الإنتاج</title><style>body{font-family:Arial;direction:rtl;margin:20px}h1{color:#6d28d9;text-align:center}table{width:100%;border-collapse:collapse;margin:20px 0}.header{background:#6d28d9;color:#fff;padding:10px;font-weight:bold}.cell{border:1px solid #ddd;padding:8px}th{background:#ede9fe;color:#6d28d9;padding:10px;text-align:right}</style></head><body><h1>📊 سجل الإنتاج: '+rec.id+'</h1><table><tr><td class="header">رقم العملية</td><td class="cell">'+rec.id+'</td><td class="header">المنتج</td><td class="cell">'+rec.product+'</td></tr><tr><td class="header">البدء</td><td class="cell">'+rec.start+'</td><td class="header">الانتهاء</td><td class="cell">'+rec.end+'</td></tr><tr><td class="header">المشغل</td><td class="cell">'+rec.operator+'</td><td class="header">الخط</td><td class="cell">'+rec.line+'</td></tr><tr><td class="header">الكمية المخططة</td><td class="cell">'+rec.planned+'</td><td class="header">الكمية الفعلية</td><td class="cell">'+rec.actual+'</td></tr><tr><td class="header">الهدر</td><td class="cell">'+rec.waste+'</td><td class="header">الفاقد</td><td class="cell">'+rec.loss+'</td></tr></table><h3>المكونات المصروفة:</h3><table><thead><tr><th>المكون</th><th>الكمية المطلوبة</th><th>الفعلية</th><th>الموقع</th><th>Batch</th></tr></thead><tbody>';rec.components.forEach(comp=>{html+='<tr><td class="cell">'+comp.name+'</td><td class="cell">'+comp.needed.toFixed(2)+'</td><td class="cell">'+comp.actualUsed.toFixed(2)+'</td><td class="cell">'+comp.location+'</td><td class="cell">'+comp.batch+'</td></tr>';});html+='</tbody></table><br><br><p>تم الطباعة: '+new Date().toLocaleString('ar-EG')+'</p></body></html>';var w=window.open('','','width=900,height=600');w.document.write(html);w.document.close();w.print();}
 // =============== SFDA & ALLERGENS FUNCTIONS ===============
 
 function renderSFDASection() {
@@ -13106,12 +13120,12 @@ function exportInspectionExcel() {
 /* توزيع الـ tabs على 4 مجموعات */
 var TAB_GROUPS = {
   'main':        { tabs: [0, 5, 4, 9],      first: 0 },
-  'operations':  { tabs: [1, 2, 3, 15],     first: 1 },
-  'inventory':   { tabs: [6, 11, 10, 12],   first: 6 },
-  'reports':     { tabs: [13, 7, 8, 14],    first: 13 },
-  'inspection':  { tabs: [18],              first: 18 },
-  'analytics':   { tabs: [19],              first: 19 },
-  'forecast':    { tabs: [20],              first: 20 }
+  'operations':  { tabs: [1, 2, 3, 15, 21, 22],     first: 1 },
+  'inventory':   { tabs: [6, 11, 10, 12, 23, 24],   first: 6 },
+  'reports':     { tabs: [13, 7, 8, 14, 17],    first: 13 },
+  'inspection':  { tabs: [18, 28],              first: 18 },
+  'analytics':   { tabs: [19, 26, 25],              first: 19 },
+  'forecast':    { tabs: [20, 27],              first: 20 }
 };
 
 var CURRENT_GROUP = 'main';
@@ -13129,13 +13143,13 @@ function showGroup(groupName, addToHistory) {
   var group = TAB_GROUPS[groupName];
 
   /* إظهار/إخفاء أزرار الـ tabs حسب المجموعة — Tab 17 (DOM 16) و Tab 18 (DOM 17) و Tab 19 (DOM 18) دائماً مرئيان */
-  var ALWAYS_VISIBLE = [16, 17, 18, 19, 20];
-  document.querySelectorAll('.tab-btn').forEach(function(btn, idx) {
-    if(group.tabs.indexOf(idx) !== -1 || ALWAYS_VISIBLE.indexOf(idx) !== -1) {
-      btn.style.display = '';
-    } else {
-      btn.style.display = 'none';
-    }
+  /* ✅ المقارنة برقم التاب من onclick لا بترتيب الزر في الصفحة —
+     الترتيب يتغيّر مع أي إضافة، ورقم التاب ثابت. */
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    var oc = btn.getAttribute('onclick') || '';
+    var mm = oc.match(/switchTab\((\d+)\)/);
+    if(!mm){ btn.style.display = ''; return; }
+    btn.style.display = (group.tabs.indexOf(+mm[1]) !== -1) ? '' : 'none';
   });
 
   /* تمييز زر المجموعة النشط في الـ sidebar */
@@ -13705,8 +13719,7 @@ function export3DSelectionCSV(){
 }
 function print3DSelection(){
   var rows=sel3DManifestRows();
-  var h='<html dir="rtl"><head><meta charset="utf-8"><title>سحب جماعي</title></head><body style="font-family:Tahoma"><h3>بالتات محددة للسحب</h3><table border="1" cellpadding="6" style="border-collapse:collapse">'+rows.map(function(r,i){return '<tr>'+r.map(function(c){return (i===0?'<th>':'<td>')+c+(i===0?'</th>':'</td>');}).join('')+'</tr>';}).join('')+'</table>
-</body></html>';
+  var h='<html dir="rtl"><head><meta charset="utf-8"><title>سحب جماعي</title></head><body style="font-family:Tahoma"><h3>بالتات محددة للسحب</h3><table border="1" cellpadding="6" style="border-collapse:collapse">'+rows.map(function(r,i){return '<tr>'+r.map(function(c){return (i===0?'<th>':'<td>')+c+(i===0?'</th>':'</td>');}).join('')+'</tr>';}).join('')+'</table></body></html>';
   var w=window.open('','','width=800,height=600');w.document.write(h);w.document.close();w.print();
 }
 function share3DSelection(){
