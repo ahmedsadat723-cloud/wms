@@ -10893,8 +10893,12 @@ function printProdRecord(id){var records=JSON.parse(localStorage.getItem('almanj
 .lbl-preview{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;
   background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.4);border-radius:10px;flex-wrap:wrap}
 .lbl-preview span{font-size:12px;font-weight:700;color:var(--muted)}
-.lbl-preview code{font-family:"Courier New",monospace;font-weight:900;font-size:15px;
-  background:#1a1a00;color:#facc15;padding:5px 12px;border-radius:6px;direction:ltr}
+.lbl-sticker{display:inline-flex;flex-direction:column;width:150px;border-radius:9px;overflow:hidden;
+  border:2px solid #C9A227;box-shadow:0 3px 10px rgba(0,0,0,.18);flex-shrink:0}
+.lbl-sticker-band{height:18px;background:var(--brand)}
+.lbl-sticker-body{background:#FFD600;padding:12px 6px;text-align:center}
+.lbl-sticker-body code{font-family:"Courier New",monospace;font-weight:900;font-size:13px;color:#111;
+  background:transparent;padding:0;direction:ltr;word-break:break-all;line-height:1.3}
 .lbl-opts{display:flex;flex-wrap:wrap;gap:16px;margin:12px 0 4px}
 .lbl-chk{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;cursor:pointer}
 .lbl-sec{font-size:13px;font-weight:800;margin:20px 0 10px;padding-bottom:7px;
@@ -15068,7 +15072,8 @@ function lblRenderPanel(){
   });
   h += '</select></div>';
 
-  h += '<div class="lbl-preview"><span>معاينة الكود:</span><code id="lblPreview">—</code></div>';
+  h += '<div class="lbl-preview"><span>معاينة الكود — زي ما هيظهر بالضبط على الطبلية في الثري دي:</span>'
+     + '<div class="lbl-sticker"><div class="lbl-sticker-band"></div><div class="lbl-sticker-body"><code id="lblPreview">—</code></div></div></div>';
   h += '</div></div>';
 
   h += '<div class="card"><div class="card-h">🖨️ الطباعة</div><div class="card-b">';
