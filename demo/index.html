@@ -1890,6 +1890,17 @@ tr:hover td{background:var(--brand-soft)}
         <button class="tab-btn" onclick="switchTab(14)" data-label-ar="🗑️ تفريغ البيانات" data-label-en="🗑️ Data Clearing" style="background: linear-gradient(135deg, rgb(124, 45, 18), rgb(220, 38, 38)); color: rgb(255, 255, 255); border-color: transparent; display: none;">🗑️ تفريغ البيانات</button>
         <button class="tab-btn" onclick="switchTab(15)" data-label-ar="📥 سجل الاستلامات" data-label-en="📥 Receipts Log" style="background: linear-gradient(135deg, rgb(15, 110, 86), rgb(16, 185, 129)); color: rgb(255, 255, 255); border-color: transparent; display: none;">📥 سجل الاستلامات</button>
         <button class="tab-btn" onclick="switchTab(17)" data-label-ar="📊 التقارير الموحدة" data-label-en="📊 Unified Reports" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border-color:transparent">📊 التقارير الموحدة</button>
+<button class="tab-btn" onclick="switchTab(18)">🧹 سجل التفتيش</button>
+<button class="tab-btn" onclick="switchTab(19)">📈 التحليل الشامل</button>
+<button class="tab-btn" onclick="switchTab(20)">🔮 توقعات الطلب</button>
+<button class="tab-btn" onclick="switchTab(21)">🏭 الإنتاج والجودة</button>
+<button class="tab-btn" onclick="switchTab(23)">❄️ المستودع المجمد</button>
+<button class="tab-btn" onclick="switchTab(24)">🛍️ البضائع النهائية</button>
+<button class="tab-btn" onclick="switchTab(25)">📉 حدود المخزون</button>
+<button class="tab-btn" onclick="switchTab(26)">📊 التحليل المتقدم</button>
+<button class="tab-btn" onclick="switchTab(27)">📦 سعات الطبالي</button>
+<button class="tab-btn" onclick="switchTab(28)">🖼️ صور الكتالوج</button>
+<button class="tab-btn" onclick="switchTab(22)">📧 سجل الإرسالات</button>
 
       </div>
     </div>
@@ -13182,12 +13193,12 @@ function exportInspectionExcel() {
 /* توزيع الـ tabs على 4 مجموعات */
 var TAB_GROUPS = {
   'main':        { tabs: [0, 5, 4, 9],      first: 0 },
-  'operations':  { tabs: [1, 2, 3, 15],     first: 1 },
-  'inventory':   { tabs: [6, 11, 10, 12, 29], first: 6 },
-  'reports':     { tabs: [13, 7, 8, 14, 16], first: 13 },
-  'inspection':  { tabs: [18],              first: 18 },
-  'analytics':   { tabs: [19],              first: 19 },
-  'forecast':    { tabs: [20],              first: 20 }
+  'operations':  { tabs: [1, 2, 3, 15, 21, 22], first: 1 },
+  'inventory':   { tabs: [6, 11, 10, 12, 29, 23, 24], first: 6 },
+  'reports':     { tabs: [13, 7, 8, 14, 17], first: 13 },
+  'inspection':  { tabs: [18, 28],          first: 18 },
+  'analytics':   { tabs: [19, 26, 25],      first: 19 },
+  'forecast':    { tabs: [20, 27],          first: 20 }
 };
 
 var CURRENT_GROUP = 'main';
@@ -13205,13 +13216,13 @@ function showGroup(groupName, addToHistory) {
   var group = TAB_GROUPS[groupName];
 
   /* إظهار/إخفاء أزرار الـ tabs حسب المجموعة — Tab 17 (DOM 16) و Tab 18 (DOM 17) و Tab 19 (DOM 18) دائماً مرئيان */
-  var ALWAYS_VISIBLE = [17];  /* زر «المزيد ⋮» فقط */
-  document.querySelectorAll('.tab-btn').forEach(function(btn, idx) {
-    if(group.tabs.indexOf(idx) !== -1 || ALWAYS_VISIBLE.indexOf(idx) !== -1) {
-      btn.style.display = '';
-    } else {
-      btn.style.display = 'none';
-    }
+  /* ✅ المقارنة برقم التاب من onclick لا بترتيب الزر في الصفحة —
+     الترتيب يتغيّر مع أي إضافة، ورقم التاب ثابت. */
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    var oc = btn.getAttribute('onclick') || '';
+    var m  = oc.match(/switchTab\((\d+)\)/);
+    if(!m){ btn.style.display = ''; return; }   /* زر «المزيد ⋮» بلا رقم — يبقى ظاهرًا */
+    btn.style.display = (group.tabs.indexOf(+m[1]) !== -1) ? '' : 'none';
   });
 
   /* تمييز زر المجموعة النشط في الـ sidebar */
