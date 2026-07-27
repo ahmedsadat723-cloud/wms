@@ -1071,7 +1071,7 @@ document.addEventListener('DOMContentLoaded',function(){
   var map={'__IMG0':__IMG0,'__IMG1':__IMG1,'__IMG2':__IMG2,'__IMG3':__IMG3,'__IMG4':__IMG4,'__IMG5':__IMG5,'__IMG6':__IMG6};
   document.querySelectorAll('img[src^="__PLACEHOLDER_"],link[href^="__PLACEHOLDER_"]').forEach(function(el){
     var a = el.tagName==='IMG' ? 'src' : 'href';
-    var k = el.getAttribute(a).replace('__PLACEHOLDER_','').replace('__','');
+    var k = el.getAttribute(a).replace('__PLACEHOLDER_','').replace(/__$/,'');
     if(map[k]) el.setAttribute(a, map[k]);
   });
 });
