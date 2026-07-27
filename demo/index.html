@@ -1494,18 +1494,18 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg
 .live .dot{width:9px;height:9px;border-radius:50%;background:#7CFC9E;box-shadow:0 0 0 0 rgba(124,252,158,.7);animation:beat 1.6s infinite}
 @keyframes beat{0%{box-shadow:0 0 0 0 rgba(124,252,158,.6)}70%{box-shadow:0 0 0 9px rgba(124,252,158,0)}100%{box-shadow:0 0 0 0 rgba(124,252,158,0)}}
 
-.tabs{display:flex;gap:5px;margin-bottom:0px;background:transparent;padding:0;border-radius:0;flex-wrap:wrap;box-shadow:none;border:none;width:100%;align-content:flex-start;}
+.tabs{display:flex;gap:6px;margin-bottom:0px;background:var(--bg2);padding:8px;border-radius:14px;flex-wrap:wrap;box-shadow:inset 0 0 0 1px var(--line2);border:none;width:100%;align-content:flex-start;}
 .tabs::-webkit-scrollbar{height:4px;}
 .tabs::-webkit-scrollbar-track{background:transparent;}
 .tabs::-webkit-scrollbar-thumb{background:var(--brand-soft);border-radius:4px;}
 .tab-scroll-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--line2);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.3s;color:var(--brand);font-weight:900;flex-shrink:0}
 .tab-scroll-btn:hover{background:var(--brand-soft);border-color:var(--brand);transform:scale(1.1)}
 .tab-scroll-btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
-.tab-btn{padding:10px 16px;border:1px solid var(--line2);background:var(--bg2);color:var(--muted);
-  cursor:pointer;border-radius:9px;font-size:12px;font-weight:700;transition:.25s;font-family:inherit;
-  white-space:nowrap;flex-shrink:0;}
-.tab-btn:hover{background:var(--brand-soft);color:var(--brand);border-color:var(--brand-soft)}
-.tab-btn.active{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(30,64,175,.2)}
+.tab-btn{padding:9px 15px;border:1px solid transparent;background:var(--card);color:var(--muted);
+  cursor:pointer;border-radius:9px;font-size:12px;font-weight:700;transition:.2s ease;font-family:inherit;
+  white-space:nowrap;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+.tab-btn:hover{background:var(--brand-soft);color:var(--brand);border-color:var(--brand-soft);transform:translateY(-1px)}
+.tab-btn.active{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(30,64,175,.28);transform:translateY(-1px)}
 .tab-btn.tab-balance{background:linear-gradient(135deg,#0F6E56,#10b981);color:#fff;border-color:transparent}
 .tab-btn.tab-balance:hover{background:linear-gradient(135deg,#0c5c48,#0ea371);color:#fff}
 .tab-btn.tab-balance.active{background:linear-gradient(135deg,#065f46,#059669);color:#fff;box-shadow:0 5px 14px rgba(16,185,129,.35)}
@@ -1866,10 +1866,8 @@ tr:hover td{background:var(--brand-soft)}
   </div>
 
   <!-- TABS WITH SCROLL CONTROLS -->
-  <div id="topNavRow" style="gap:6px;align-items:center;margin-bottom:6px;display:flex;flex-wrap:wrap;justify-content:flex-start;">
-    <button id="tabBackBtn" class="tab-scroll-btn" onclick="tabGoBack()" title="التاب السابق (رجوع)" disabled style="display:none">⬅</button>
-    <button id="tabFwdBtn" class="tab-scroll-btn" onclick="tabGoForward()" title="التاب التالي (تقدم)" disabled style="display:none">➡</button>
-    <div id="tabsWrapper" style="flex:0 1 auto;overflow:visible;">
+  <div id="topNavRow" style="align-items:center;margin-bottom:6px;display:flex;">
+    <div id="tabsWrapper" style="flex:1 1 auto;overflow:visible;">
       <div class="tabs" id="tabs">
         <button class="tab-btn active" onclick="switchTab(0)" data-label-ar="🏠 الداشبورد" data-label-en="🏠 Dashboard">🏠 الداشبورد</button>
         <button class="tab-btn" onclick="switchTab(1)" data-label-ar="🚛 استلام كونتنر" data-label-en="🚛 Container Receipt" style="display: none;">🚛 استلام كونتنر</button>
@@ -1901,22 +1899,6 @@ tr:hover td{background:var(--brand-soft)}
 <button class="tab-btn" onclick="switchTab(28)">🖼️ صور الكتالوج</button>
 <button class="tab-btn" onclick="switchTab(22)">📧 سجل الإرسالات</button>
 
-      </div>
-    </div>
-    <!-- DROPDOWN FOR EXTRA TABS - OUTSIDE SCROLL CONTAINER -->
-    <div style="position:relative;display:inline-flex;align-items:center;margin-right:8px">
-      <button class="tab-btn" onclick="toggleTabDropdown()" style="background:linear-gradient(135deg,#666,#999);color:#fff;border-color:transparent;padding:8px 12px;flex-shrink:0">⋮ المزيد ▼</button>
-      <div id="tabDropdown" style="display: none; position: fixed; background: rgb(255, 255, 255); border: 1px solid var(--line); border-radius: 8px; box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 12px; z-index: 1000; min-width: 200px; direction: rtl; top: 161.5px; left: auto; right: 1065px;">
-        <button class="tab-dropdown-item" onclick="switchTab(18);toggleTabDropdown()">🧹 التفتيش والنظافة</button>
-        <button class="tab-dropdown-item" onclick="switchTab(19);toggleTabDropdown()">📈 تحليل البيانات</button>
-        <button class="tab-dropdown-item" onclick="switchTab(20);toggleTabDropdown()">🔮 التوقعات والساكنة</button>
-        <button class="tab-dropdown-item" onclick="switchTab(22);toggleTabDropdown()">📧 سجل البريد</button>
-        <button class="tab-dropdown-item" onclick="switchTab(23);toggleTabDropdown()">❄️ المستودع المجمد</button>
-        <button class="tab-dropdown-item" onclick="switchTab(24);toggleTabDropdown()">🛍️ البضائع النهائية</button>
-        <button class="tab-dropdown-item" onclick="switchTab(25);toggleTabDropdown()">📉 حدود المخزون</button>
-        <button class="tab-dropdown-item" onclick="switchTab(26);toggleTabDropdown()">📊 التحليل المتقدم</button>
-        <button class="tab-dropdown-item" onclick="switchTab(27);toggleTabDropdown()">📦 سعات الطبالي</button>
-        <button class="tab-dropdown-item" onclick="switchTab(28);toggleTabDropdown()">🖼️ صور الكتالوج</button>
       </div>
     </div>
   </div>
