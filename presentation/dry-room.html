@@ -588,6 +588,13 @@ body {
         <button class="viz3d__btn" id="btnPallets" title="إظهار البضاعة">📦 البضاعة</button>
         <button class="viz3d__btn" id="btnReset" title="إعادة الضبط">⟲ ضبط</button>
         <button class="viz3d__btn" id="btnAuto"  title="دوران تلقائي">⟳ تلقائي</button>
+        <select id="lblSchemeSelect" class="viz3d__btn" style="cursor:pointer" title="نمط ترميز الاستيكر">
+          <option value="location">🏷️ موقعي</option>
+          <option value="serial">🏷️ تسلسلي</option>
+          <option value="sscc">🏷️ SSCC</option>
+          <option value="composite">🏷️ مركّب</option>
+          <option value="datetime">🏷️ زمني</option>
+        </select>
       </div>
       <div class="viz3d__hint">اسحب = تدوير 360° · عجلة أو ＋ － = تقريب · زر الماوس الأيمن = تحريك</div>
       <svg id="rackSvg" viewBox="0 0 1200 420" xmlns="http://www.w3.org/2000/svg" style="display:none;width:100%;height:auto;border-radius:12px;background:#F8FAFB;"></svg>
@@ -604,6 +611,70 @@ body {
 </div>
 
 <script>
+/* ═══════════════════════════════════════════════════════════
+   RENO LABELER — نفس محرك الترميز المستخدم في تاب "🏷️ نمط الترميز"
+   بالنظام الأصلي (lblCfg/lblGenerate) — نفس المفتاح reno_labeler_cfg
+   عشان أي تغيير في التاب ينعكس هنا تلقائياً بدون تكرار منطق.
+   ═══════════════════════════════════════════════════════════ */
+var LBL_KEY = 'reno_labeler_cfg';
+var LBL_DEFAULTS = {
+  scheme:'location', prefix:'PAL', companyPrefix:'628000000', extDigit:'0',
+  serialStart:1, serialPad:6, separator:'-', includeYear:true
+};
+function lblCfg(){
+  try{ return Object.assign({}, LBL_DEFAULTS, JSON.parse(localStorage.getItem(LBL_KEY)||'{}')); }
+  catch(e){ return Object.assign({}, LBL_DEFAULTS); }
+}
+function lblSave(c){ localStorage.setItem(LBL_KEY, JSON.stringify(c)); }
+function gs1Check(d){
+  var sum=0;
+  for(var i=0;i<d.length;i++){ sum += parseInt(d[d.length-1-i],10) * (i%2===0 ? 3 : 1); }
+  return String((10 - (sum%10)) % 10);
+}
+function lblGenerate(loc, item, seq, cfg){
+  cfg = cfg || lblCfg();
+  var p = (loc||'').split('-');
+  var room=p[0]||'', rack=p[1]||'', lvl=p[2]||'', pos=p[3]||'';
+  var S = cfg.separator;
+  var yy = String(new Date().getFullYear());
+  var n  = String(seq||0).padStart(cfg.serialPad,'0');
+  switch(cfg.scheme){
+    case 'serial':
+      return cfg.prefix + S + (cfg.includeYear ? yy + S : '') + n;
+    case 'sscc': {
+      var base = cfg.extDigit + cfg.companyPrefix;
+      var ref  = String(seq||0).padStart(17-base.length,'0');
+      var body = (base+ref).slice(0,17);
+      return body + gs1Check(body);
+    }
+    case 'composite': {
+      var code = (item && item.code) ? String(item.code).replace(/[^A-Za-z0-9]/g,'') : 'ITEM';
+      var d = new Date();
+      var batch = String(d.getDate()).padStart(2,'0') + String(d.getMonth()+1).padStart(2,'0');
+      return code + S + batch + S + lvl + pos;
+    }
+    case 'datetime': {
+      var dt = new Date();
+      var stamp = String(dt.getFullYear()).slice(2) + String(dt.getMonth()+1).padStart(2,'0') + String(dt.getDate()).padStart(2,'0');
+      var shift = dt.getHours() < 14 ? 'A' : (dt.getHours() < 22 ? 'B' : 'C');
+      return stamp + S + shift + S + String(seq||0).padStart(3,'0');
+    }
+    default: /* location */
+      return loc || (room+S+rack+S+lvl+S+pos);
+  }
+}
+window.lblCfg = lblCfg; window.lblSave = lblSave; window.lblGenerate = lblGenerate;
+document.addEventListener('DOMContentLoaded', function(){
+  var sel = document.getElementById('lblSchemeSelect');
+  if(!sel) return;
+  sel.value = lblCfg().scheme;
+  sel.addEventListener('change', function(){
+    var cfg = lblCfg();
+    cfg.scheme = sel.value;
+    lblSave(cfg);
+    location.reload();
+  });
+});
 /* SVG RACK VISUALIZATION — fallback only (used if WebGL/3D fails to load) */
 window.buildFallbackSvg = function(){
   const svg = document.getElementById('rackSvg');
@@ -849,6 +920,7 @@ window.buildFallbackSvg = function(){
     const x0 = -totalLen/2;
 
     const pallets=[], posts=[], rails=[], guards=[], diags=[], fbeams=[], corbels=[], spans={};
+    const LBL_CFG_LIVE = window.lblCfg();
     // side = -1 (near block, -Z) or +1 (far block, +Z)
     function buildBlock(zs, side){
       const palletZ = d => side*(AISLE/2 + (d+0.5)*palletPitchZ);
@@ -882,8 +954,9 @@ window.buildFallbackSvg = function(){
             for(let d=0; d<DEEP; d++){
               const filled = Math.random() < zone.occ;
               const zCode = ZONE_DEFS[zone.z].code;
-              const palNum = String(palletCounter++).padStart(3,'0');
-              const palLabel = zCode+'-'+palNum;
+              const palNum = palletCounter++;
+              const loc = zCode+'-'+(lv+1)+'-'+(side>0?'B':'A')+'-'+(d+1);
+              const palLabel = window.lblGenerate(loc, {code:zCode}, palNum, LBL_CFG_LIVE);
               pallets.push({x:cx, y:railY+PHp/2+0.08, z:palletZ(d), c: filled?0xF5E6C8:0xEEF1F5, zn, label:palLabel, filled, zc:zone.c});
             }
           }
@@ -968,7 +1041,7 @@ window.buildFallbackSvg = function(){
         // رقم البالت
         cx.fillStyle = '#111'; cx.font = 'bold 46px Arial';
         cx.textAlign = 'center'; cx.textBaseline = 'middle';
-        const fontSize = label.length > 7 ? 34 : 46;
+        const fontSize = label.length > 14 ? 22 : (label.length > 7 ? 32 : 46);
         cx.font = `bold ${fontSize}px Arial`;
         cx.fillText(label, 128, 86);
         const t = new THREE.CanvasTexture(cv);
@@ -976,7 +1049,7 @@ window.buildFallbackSvg = function(){
         return t;
       }
 
-      F(pallets).filter(p=>p.filled).forEach(p=>{
+      F(pallets).forEach(p=>{
         const tex = makeStickerTex(p.label);
         const geo = new THREE.PlaneGeometry(PW*0.80, PHp*0.30);
         const mat = new THREE.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false, side:THREE.DoubleSide});
