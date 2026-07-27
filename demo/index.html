@@ -2462,6 +2462,7 @@ tr:hover td{background:var(--brand-soft)}
   <div class="p3d-top">
     <span class="p3d-badge">اسحب للدوران · عجلة الماوس للتقريب · دوس على أي طبلية لعرض تفاصيلها</span>
     <button id="p3dSelModeBtn" class="sel3d-toggle" onclick="toggleP3DSelectMode()">☐ وضع التحديد المتعدد</button>
+<button id="palTagBtn" class="sel3d-toggle" onclick="togglePalTags()" style="background:#facc15;color:#1a1a00;font-weight:800">🟨 ملصقات البالتات</button>
     <span class="p3d-free-box">
       <input id="p3dFreeLoc" placeholder="🧱 كود الموقع (مثال R1-01-A-1)" style="border:1px solid var(--line,#e6ded2);border-radius:9px;padding:6px 10px;font-size:12px;font-family:inherit;background:#fff;width:170px">
       <button onclick="p3d.freeView(document.getElementById(&#39;p3dFreeLoc&#39;).value.trim())">عرض حر</button>
@@ -13950,6 +13951,81 @@ function setupThree(){
     cartonTexCache[key]=t;
     return t;
   }
+
+  /* ✅ استيكر البالت الأصفر — لوح مثبّت على وش كل طبلية في المشهد ثلاثي الأبعاد */
+  var SHOW_PAL_TAGS=true;
+  var palTagCache={};
+  function palSeqFor(loc){
+    var p=(loc||'').split('-');
+    var rm=parseInt((p[0]||'R1').replace(/\D/g,''),10)||1;
+    var rk=parseInt(p[1]||'1',10)||1;
+    var lv={A:0,B:1,C:2}[p[2]]||0;
+    var ps=parseInt(p[3]||'1',10)||1;
+    return ((rm-1)*8*21)+((rk-1)*21)+(lv*7)+ps;
+  }
+  function palTagTexture(loc,data){
+    var p=(loc||'').split('-');
+    var lvl=p[2]||'', pos=p[3]||'';
+    var palNo=lvl+pos;
+    var code=loc;
+    try{ if(typeof lblGenerate==='function') code=lblGenerate(loc,data,palSeqFor(loc),null); }catch(e){}
+    var key=loc+'|'+code+'|'+((data&&data.cartons)||'')+'|'+((data&&data.name)||'');
+    if(palTagCache[key]) return palTagCache[key];
+
+    var cv=document.createElement('canvas'); cv.width=512; cv.height=320;
+    var g=cv.getContext('2d');
+    g.fillStyle='#facc15'; g.fillRect(0,0,512,320);
+    g.strokeStyle='rgba(26,26,0,.55)'; g.lineWidth=8; g.strokeRect(4,4,504,312);
+
+    g.fillStyle='#1a1a00'; g.fillRect(20,20,180,110);
+    g.fillStyle='#facc15'; g.textAlign='center'; g.textBaseline='middle';
+    g.font='bold 78px Arial'; g.fillText(palNo,110,78,168);
+
+    g.fillStyle='#1a1a00'; g.textAlign='right'; g.direction='rtl';
+    g.font='bold 30px Tahoma,Arial';
+    g.fillText((p[0]||'')+' \u00b7 \u0631\u0641 '+(p[1]||''),492,50,270);
+    g.font='bold 24px Tahoma,Arial'; g.globalAlpha=.75;
+    g.fillText(lvl==='A'?'\u0623\u0631\u0636\u064a':(lvl==='B'?'\u0648\u0633\u0637':'\u0639\u0644\u0648\u064a'),492,92,270);
+    g.globalAlpha=1;
+
+    g.fillStyle='#1a1a00'; g.fillRect(20,148,472,58);
+    g.fillStyle='#facc15'; g.textAlign='center'; g.direction='ltr';
+    g.font='bold 34px "Courier New",monospace';
+    g.fillText(code,256,178,452);
+
+    g.fillStyle='#1a1a00'; g.direction='rtl';
+    if(data && (data.name||data.code)){
+      g.textAlign='right'; g.font='bold 26px Tahoma,Arial';
+      g.fillText(String(data.name||data.code).slice(0,26),492,238,462);
+      g.font='bold 23px Tahoma,Arial';
+      g.fillText((data.cartons||0)+' \u0643\u0631\u062a\u0648\u0646',492,282,180);
+      if(data.expDate){
+        g.fillStyle='#1a1a00'; g.fillRect(20,262,205,40);
+        g.fillStyle='#facc15'; g.textAlign='left'; g.direction='ltr';
+        g.font='bold 22px "Courier New",monospace';
+        g.fillText(data.expDate,30,282,190);
+      }
+    } else {
+      g.textAlign='center'; g.font='bold 28px Tahoma,Arial'; g.globalAlpha=.5;
+      g.fillText('\u2014 \u0641\u0627\u0631\u063a \u2014',256,258,300); g.globalAlpha=1;
+    }
+    var t=new T.CanvasTexture(cv);
+    try{ if(typeof markColorTex==='function') t=markColorTex(t); }catch(e){}
+    try{ t.anisotropy=maxAniso; }catch(e){}
+    palTagCache[key]=t;
+    return t;
+  }
+  function buildPalTag(loc,data,loadH){
+    var w=PAL_W*0.62, h=w*(320/512);
+    var m=new T.Mesh(
+      new T.PlaneGeometry(w,h),
+      new T.MeshBasicMaterial({map:palTagTexture(loc,data),side:T.DoubleSide})
+    );
+    m.position.set(0, 0.12+loadH*0.62, PAL_D*0.92/2+0.012);
+    m.userData.loc=loc; m.userData.isPalTag=true;
+    return m;
+  }
+
   function buildPalletMesh(pos,data){
     const g=new T.Group();
     const base=new T.Mesh(new T.BoxGeometry(PAL_W,0.12,PAL_D),woodMat);
@@ -14039,6 +14115,7 @@ function setupThree(){
       badge.position.set(PAL_W*0.4,0.12+loadH+0.1,-PAL_D*0.4);
       g.add(badge);
     }
+    if(SHOW_PAL_TAGS){ try{ g.add(buildPalTag(data.loc,data,loadH)); }catch(e){} }
     g.position.set(pos.x,pos.y,pos.z);
     return {group:g,clickMesh};
   }
@@ -14109,6 +14186,23 @@ function setupThree(){
     isolatedRack=idx;
     rackGroups.forEach((g,i)=>{ g.visible=(i===idx); });
   }
+
+  /* ✅ إظهار/إخفاء ملصقات البالتات الصفراء في المشهد */
+  function togglePalTags(){
+    SHOW_PAL_TAGS=!SHOW_PAL_TAGS;
+    var btn=document.getElementById('palTagBtn');
+    if(btn){
+      btn.textContent = SHOW_PAL_TAGS ? '🟨 ملصقات البالتات' : '⬜ ملصقات البالتات';
+      btn.style.opacity = SHOW_PAL_TAGS ? '1' : '.5';
+    }
+    if(rig){
+      rig.traverse(function(o){ if(o.userData && o.userData.isPalTag) o.visible=SHOW_PAL_TAGS; });
+    }
+    if(typeof showToast==='function')
+      showToast(SHOW_PAL_TAGS?'تم إظهار ملصقات البالتات':'تم إخفاء ملصقات البالتات');
+  }
+  window.togglePalTags=togglePalTags;
+
   function showAllRacks(){
     isolatedRack=-1;
     rackGroups.forEach(g=>{ g.visible=true; });
