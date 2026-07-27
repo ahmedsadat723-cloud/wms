@@ -10614,7 +10614,10 @@ var _kioskInterval = null;
 function enterKiosk(){
   var overlay = document.getElementById('kioskOverlay');
   var body    = document.getElementById('kioskBody');
-  var dash    = document.getElementById('dashSection') || document.querySelector('.dashboard-wrap') || document.querySelector('[id*="dash"]');
+  /* ✅ لوحة الداشبورد الفعلية = .panel[data-tab="0"] — المعرّفات القديمة (dashSection / .dashboard-wrap) غير موجودة */
+  var dash = document.querySelector('.panel[data-tab="0"]')
+          || document.getElementById('dashboardContainer');
+  if(!overlay || !body){ return; }
   if(dash){ body.innerHTML = '<div style="pointer-events:none;">' + dash.innerHTML + '</div>'; }
   else { body.innerHTML = '<div style="color:white;text-align:center;margin-top:80px;font-size:24px;">لوحة التحكم غير متاحة</div>'; }
   overlay.classList.add('active');
@@ -10627,14 +10630,25 @@ function enterKiosk(){
   document.addEventListener('keydown', _kioskEscHandler);
 }
 function _kioskEscHandler(e){ if(e.key==='Escape'){ askExitKiosk(); } }
-function askExitKiosk(){ document.getElementById('kioskConfirm').classList.add('active'); }
+function askExitKiosk(){
+  var c=document.getElementById('kioskConfirm');
+  if(c) c.classList.add('active');
+}
 function exitKiosk(){
-  document.getElementById('kioskOverlay').classList.remove('active');
-  document.getElementById('kioskConfirm').classList.remove('active');
-  document.getElementById('kioskBody').innerHTML = '';
+  var o=document.getElementById('kioskOverlay');
+  var c=document.getElementById('kioskConfirm');
+  var b=document.getElementById('kioskBody');
+  if(o) o.classList.remove('active');
+  if(c) c.classList.remove('active');
+  if(b) b.innerHTML = '';
   if(_kioskInterval){ clearInterval(_kioskInterval); _kioskInterval=null; }
   document.removeEventListener('keydown', _kioskEscHandler);
 }
+/* ✅ تصدير دوال الكيوسك للنطاق العام — الأزرار تستدعيها عبر onclick */
+window.enterKiosk=enterKiosk;
+window.exitKiosk=exitKiosk;
+window.askExitKiosk=askExitKiosk;
+
 </script>
 
 <script>
