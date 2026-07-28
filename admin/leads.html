@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة طلبات التجربة — Reno Smart Inventory</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --navy:#0D1B2E; --blue:#4A9FC0; --blue-light:#8fc4dd;
+    --bg:#f4f7fa; --card:#ffffff; --border:#e2e8f0; --ink:#0D1B2E; --muted:#64748b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+
+  /* ===== LOGIN ===== */
+  #loginScreen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--navy),#16324a);
+  }
+  .login-card{
+    background:#fff;border-radius:16px;padding:36px 32px;width:100%;max-width:360px;
+    box-shadow:0 20px 60px rgba(0,0,0,.35);
+  }
+  .login-card h1{font-size:20px;margin:0 0 4px;color:var(--navy)}
+  .login-card p{font-size:13px;color:var(--muted);margin:0 0 22px}
+  .login-card input{
+    width:100%;padding:12px 14px;margin-bottom:12px;border:1px solid var(--border);
+    border-radius:9px;font-size:14px;outline:none;background:#f8fafc;
+  }
+  .login-card input:focus{border-color:var(--blue)}
+  .login-card button{
+    width:100%;padding:12px;border:none;border-radius:9px;background:var(--navy);
+    color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;
+  }
+  .login-card button:hover{background:var(--blue)}
+  #loginMsg{font-size:12px;color:#c0392b;margin-top:10px;min-height:16px;text-align:center}
+  #loginScreen.hidden{display:none}
+
+  /* ===== DASHBOARD ===== */
+  #dash{display:none}
+  #dash.show{display:block}
+  header{
+    background:var(--navy);color:#fff;padding:16px 24px;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  }
+  header h1{font-size:17px;margin:0;font-weight:800}
+  header .sub{font-size:12px;color:var(--blue-light);margin-top:2px}
+  #logoutBtn{
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;
+    padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;
+  }
+  #logoutBtn:hover{background:rgba(255,255,255,.22)}
+
+  .wrap{max-width:1200px;margin:24px auto;padding:0 20px}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+  .stat{
+    background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:14px 18px;min-width:120px;flex:1;
+  }
+  .stat b{display:block;font-size:22px;color:var(--navy)}
+  .stat span{font-size:12px;color:var(--muted)}
+
+  .table-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .table-toolbar{
+    padding:14px 18px;border-bottom:1px solid var(--border);display:flex;gap:10px;
+    align-items:center;flex-wrap:wrap;justify-content:space-between;
+  }
+  .table-toolbar input, .table-toolbar select{
+    padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#f8fafc;
+  }
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:#f1f5f9;color:var(--navy);text-align:right;padding:10px 14px;font-weight:700;white-space:nowrap}
+  td{padding:10px 14px;border-top:1px solid var(--border);vertical-align:middle}
+  tr:hover td{background:#f8fafc}
+  .badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+  .badge-new{background:#dbeafe;color:#1d4ed8}
+  .badge-contacted{background:#fef3c7;color:#92400e}
+  .badge-client{background:#dcfce7;color:#166534}
+  .badge-lost{background:#fee2e2;color:#991b1b}
+  select.statusSel{
+    border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;background:#fff;cursor:pointer;
+  }
+  #emptyMsg{padding:40px;text-align:center;color:var(--muted);font-size:14px}
+  a.mailto{color:var(--blue);text-decoration:none}
+  .company-cell{font-weight:700;color:var(--navy)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <h1>🏢 Reno Smart Inventory</h1>
+    <p>لوحة إدارة طلبات التجربة المجانية</p>
+    <input type="text" id="loginUser" placeholder="البريد الإلكتروني" autocomplete="off">
+    <input type="password" id="loginPass" placeholder="كلمة المرور" autocomplete="off">
+    <button onclick="doLogin()">دخول</button>
+    <div id="loginMsg"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash">
+  <header>
+    <div>
+      <h1>📋 طلبات التجربة المجانية</h1>
+      <div class="sub">Reno Smart Inventory — لوحة المتابعة</div>
+    </div>
+    <button id="logoutBtn" onclick="doLogout()">خروج</button>
+  </header>
+
+  <div class="wrap">
+    <div class="stats" id="statsRow"></div>
+
+    <div class="table-card">
+      <div class="table-toolbar">
+        <input type="text" id="searchBox" placeholder="ابحث بالشركة أو البريد..." oninput="renderTable()">
+        <select id="statusFilter" onchange="renderTable()">
+          <option value="">كل الحالات</option>
+          <option value="جديد">🆕 جديد</option>
+          <option value="تم التواصل">📞 تم التواصل</option>
+          <option value="عميل فعلي">✅ عميل فعلي</option>
+          <option value="مش مهتم">❌ مش مهتم</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="leadsTable">
+          <thead>
+            <tr>
+              <th>الشركة</th><th>البريد</th><th>الغرف</th><th>التخزين</th>
+              <th>الأصناف</th><th>التاريخ</th><th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody id="leadsBody"></tbody>
+        </table>
+      </div>
+      <div id="emptyMsg" style="display:none">مفيش طلبات لسه</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SB_URL='https://ttfflpkyumxowclkiiwa.supabase.co';
+const SB_KEY='sb_publishable_woNF7qilFQZE5hqD8pfnuw_tDS3pB2M';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+let LEADS=[];
+
+const STATUS_BADGE={
+  'جديد':'badge-new','تم التواصل':'badge-contacted','عميل فعلي':'badge-client','مش مهتم':'badge-lost'
+};
+const STATUS_ICON={'جديد':'🆕','تم التواصل':'📞','عميل فعلي':'✅','مش مهتم':'❌'};
+
+async function doLogin(){
+  const user=document.getElementById('loginUser').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const msg=document.getElementById('loginMsg');
+  if(!user||!pass){ msg.textContent='يرجى ملء جميع الحقول'; return; }
+  const {data,error}=await sb.auth.signInWithPassword({email:user,password:pass});
+  if(error||!data.user){ msg.textContent='بيانات خاطئة'; return; }
+  msg.textContent='';
+  showDash();
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  document.getElementById('dash').classList.remove('show');
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+async function showDash(){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('dash').classList.add('show');
+  await loadLeads();
+}
+
+async function loadLeads(){
+  const {data,error}=await sb.from('leads').select('*').order('created_at',{ascending:false});
+  if(error){ console.error(error); return; }
+  LEADS=data||[];
+  renderStats();
+  renderTable();
+}
+
+function renderStats(){
+  const total=LEADS.length;
+  const counts={'جديد':0,'تم التواصل':0,'عميل فعلي':0,'مش مهتم':0};
+  LEADS.forEach(l=>{ if(counts[l.status]!==undefined) counts[l.status]++; });
+  const row=document.getElementById('statsRow');
+  row.innerHTML=`
+    <div class="stat"><b>${total}</b><span>إجمالي الطلبات</span></div>
+    <div class="stat"><b>${counts['جديد']}</b><span>🆕 جديد</span></div>
+    <div class="stat"><b>${counts['تم التواصل']}</b><span>📞 تم التواصل</span></div>
+    <div class="stat"><b>${counts['عميل فعلي']}</b><span>✅ عميل فعلي</span></div>
+  `;
+}
+
+function renderTable(){
+  const q=(document.getElementById('searchBox').value||'').trim().toLowerCase();
+  const statusF=document.getElementById('statusFilter').value;
+  let rows=LEADS.filter(l=>{
+    const matchQ=!q || (l.company||'').toLowerCase().includes(q) || (l.email||'').toLowerCase().includes(q);
+    const matchS=!statusF || l.status===statusF;
+    return matchQ && matchS;
+  });
+  const body=document.getElementById('leadsBody');
+  const empty=document.getElementById('emptyMsg');
+  if(!rows.length){ body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  body.innerHTML=rows.map(l=>{
+    const dt=new Date(l.created_at).toLocaleString('ar-EG',{dateStyle:'medium',timeStyle:'short'});
+    const status=l.status||'جديد';
+    return `<tr>
+      <td class="company-cell">${esc(l.company)}</td>
+      <td><a class="mailto" href="mailto:${esc(l.email)}">${esc(l.email)}</a></td>
+      <td>${esc(l.rooms||'—')}</td>
+      <td>${esc(l.storage_type||'—')}</td>
+      <td>${esc(l.items_count||'—')}</td>
+      <td>${dt}</td>
+      <td>
+        <select class="statusSel" onchange="updateStatus('${l.id}', this.value)">
+          ${['جديد','تم التواصل','عميل فعلي','مش مهتم'].map(s=>`<option value="${s}" ${s===status?'selected':''}>${STATUS_ICON[s]} ${s}</option>`).join('')}
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function updateStatus(id,newStatus){
+  const {error}=await sb.from('leads').update({status:newStatus}).eq('id',id);
+  if(error){ alert('تعذّر تحديث الحالة'); return; }
+  const lead=LEADS.find(l=>l.id===id);
+  if(lead) lead.status=newStatus;
+  renderStats();
+}
+
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// فحص جلسة موجودة مسبقاً
+(async function(){
+  const {data}=await sb.auth.getSession();
+  if(data && data.session){ showDash(); }
+})();
+
+document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>
