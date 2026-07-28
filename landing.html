@@ -909,14 +909,22 @@ nav{
     try{ emailjs.init({publicKey:PUB}); }catch(e){}
 
     var now=new Date().toLocaleString('ar-EG');
-    var leadMessage='طلب تجربة مجانية جديد\n\n'
-      +'الشركة: '+company+'\n'
-      +'البريد: '+v+'\n'
-      +'عدد المستودعات/الغرف: '+rooms+'\n'
-      +'نوع التخزين: '+storage+'\n'
-      +'عدد الأصناف التقريبي: '+items+'\n'
-      +'المصدر: صفحة رينو التعريفية\n'
-      +'الوقت: '+now;
+    var LINE='━━━━━━━━━━━━━━━━━━━━━━━━━━━';
+    function row(label,value){
+      var padded=label; while(padded.length<16) padded+=' ';
+      return padded+': '+value;
+    }
+    var leadMessage=LINE+'\n'
+      +'طلب تجربة مجانية جديد\n'
+      +LINE+'\n'
+      +row('الشركة',company)+'\n'
+      +row('البريد',v)+'\n'
+      +row('الغرف/المستودعات',rooms)+'\n'
+      +row('نوع التخزين',storage)+'\n'
+      +row('عدد الأصناف',items)+'\n'
+      +row('المصدر','صفحة رينو التعريفية')+'\n'
+      +row('الوقت',now)+'\n'
+      +LINE;
 
     // 1) رسالة لصاحب المنتج (بيانات العميل كاملة)
     var ownerSend = emailjs.send(SERVICE, TEMPLATE, {
