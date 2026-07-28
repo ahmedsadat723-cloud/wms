@@ -262,6 +262,12 @@ nav{
 }
 .trial-input:focus{border-color:var(--blue)}
 .trial-input::placeholder{color:var(--text2)}
+.trial-details{
+  display:flex;flex-wrap:wrap;gap:10px;max-width:460px;margin:0 auto 12px;
+}
+.trial-details .trial-input{flex:1 1 210px;min-width:0}
+select.trial-input{cursor:pointer}
+select.trial-input:invalid{color:var(--text2)}
 .btn-trial{
   background:var(--blue);color:#fff;
   padding:13px 24px;border-radius:9px;
@@ -804,6 +810,28 @@ nav{
       جرّب Reno Smart Inventory كامل الميزات لمدة 30 يوماً.
       لا بطاقة ائتمان. لا عقد. لا مخاطرة.
     </p>
+    <div class="trial-details">
+      <input type="text" id="trialCompany" class="trial-input" placeholder="اسم الشركة / المصنع">
+      <select id="trialRooms" class="trial-input">
+        <option value="" disabled selected>عدد المستودعات/الغرف</option>
+        <option value="1-3">1 - 3</option>
+        <option value="4-9">4 - 9</option>
+        <option value="10+">10 فأكثر</option>
+      </select>
+      <select id="trialStorage" class="trial-input">
+        <option value="" disabled selected>نوع التخزين</option>
+        <option value="جاف">جاف فقط</option>
+        <option value="مبرد">مبرد/مجمد فقط</option>
+        <option value="جاف ومبرد">جاف ومبرد معاً</option>
+      </select>
+      <select id="trialItems" class="trial-input">
+        <option value="" disabled selected>عدد الأصناف تقريباً</option>
+        <option value="أقل من 50">أقل من 50</option>
+        <option value="50-150">50 - 150</option>
+        <option value="150-300">150 - 300</option>
+        <option value="300+">300 فأكثر</option>
+      </select>
+    </div>
     <div class="trial-form">
       <input type="email" id="trialEmail" class="trial-input" placeholder="بريدك الإلكتروني" dir="ltr" autocomplete="email">
       <button class="btn-trial" id="trialBtn" type="button">ابدأ التجربة</button>
@@ -827,7 +855,13 @@ nav{
 (function(){
   var PUB='DypgyifYb2XneOK_D', SERVICE='service_7tlduhf', TEMPLATE='template_o67z16k';
   var TO='renowms@proton.me';
+  var DEMO_URL='https://ahmedsadat723-cloud.github.io/wms/demo/index.html';
+  var DEMO_USER='demo@reno.test';
+  var DEMO_PASS='demo1234';
+
   var btn=document.getElementById('trialBtn'), inp=document.getElementById('trialEmail');
+  var companyInp=document.getElementById('trialCompany'), roomsInp=document.getElementById('trialRooms'),
+      storageInp=document.getElementById('trialStorage'), itemsInp=document.getElementById('trialItems');
   if(!btn||!inp) return;
 
   var note=document.createElement('p');
@@ -842,9 +876,9 @@ nav{
   }
   function valid(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
 
-  function fallback(v){
+  function fallback(v,company){
     var subject='طلب تجربة مجانية — Reno Smart Inventory';
-    var body='مرحباً فريق رينو،\n\nأرغب في تجربة النظام لمدة شهر.\n\nالبريد: '+v+'\nالشركة: \nعدد المستودعات: \n\nشكراً.';
+    var body='مرحباً فريق رينو،\n\nأرغب في تجربة النظام لمدة شهر.\n\nالبريد: '+v+'\nالشركة: '+(company||'')+'\nعدد المستودعات: \n\nشكراً.';
     window.location.href='mailto:'+TO+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
   }
 
@@ -852,6 +886,12 @@ nav{
   function go(){
     if(sending) return;
     var v=(inp.value||'').trim();
+    var company=(companyInp&&companyInp.value||'').trim();
+    var rooms=(roomsInp&&roomsInp.value||'غير محدد');
+    var storage=(storageInp&&storageInp.value||'غير محدد');
+    var items=(itemsInp&&itemsInp.value||'غير محدد');
+
+    if(!company){ say('من فضلك اكتب اسم الشركة أو المصنع.','err'); companyInp&&companyInp.focus(); return; }
     if(!valid(v)){ say('اكتب بريداً إلكترونياً صحيحاً لنرسل لك بيانات التجربة.','err'); inp.focus(); return; }
 
     sending=true; btn.disabled=true;
@@ -860,30 +900,65 @@ nav{
 
     function done(ok,msg,kind){
       sending=false; btn.disabled=false; btn.textContent=label;
-      say(msg,kind); if(ok) inp.value='';
+      say(msg,kind);
+      if(ok){ inp.value=''; if(companyInp)companyInp.value=''; if(roomsInp)roomsInp.selectedIndex=0; if(storageInp)storageInp.selectedIndex=0; if(itemsInp)itemsInp.selectedIndex=0; }
     }
 
-    if(!window.emailjs){ done(false,'تعذّر الاتصال. جاري فتح بريدك بدلاً من ذلك…','err'); fallback(v); return; }
+    if(!window.emailjs){ done(false,'تعذّر الاتصال. جاري فتح بريدك بدلاً من ذلك…','err'); fallback(v,company); return; }
 
     try{ emailjs.init({publicKey:PUB}); }catch(e){}
 
-    emailjs.send(SERVICE, TEMPLATE, {
+    var now=new Date().toLocaleString('ar-EG');
+    var leadMessage='طلب تجربة مجانية جديد\n\n'
+      +'الشركة: '+company+'\n'
+      +'البريد: '+v+'\n'
+      +'عدد المستودعات/الغرف: '+rooms+'\n'
+      +'نوع التخزين: '+storage+'\n'
+      +'عدد الأصناف التقريبي: '+items+'\n'
+      +'المصدر: صفحة رينو التعريفية\n'
+      +'الوقت: '+now;
+
+    // 1) رسالة لصاحب المنتج (بيانات العميل كاملة)
+    var ownerSend = emailjs.send(SERVICE, TEMPLATE, {
       to_email: TO,
-      from_name: v,
+      from_name: company+' — '+v,
       reply_to: v,
-      subject: 'طلب تجربة مجانية — Reno Smart Inventory',
-      message: 'طلب تجربة مجانية جديد\n\nالبريد: '+v+'\nالمصدر: صفحة رينو التعريفية\nالوقت: '+new Date().toLocaleString('ar-EG')
-    }).then(function(){
-      done(true,'✓ وصلنا طلبك. سنراسلك على '+v+' خلال يوم عمل.','ok');
+      subject: 'طلب تجربة جديد: '+company+' — Reno Smart Inventory',
+      message: leadMessage
+    });
+
+    // 2) رسالة ترحيب فورية للعميل ببيانات دخول الديمو
+    // ⚠️ يتطلب أن يكون حقل "To Email" في إعدادات قالب EmailJS (template_o67z16k)
+    // مضبوط على {{to_email}} حتى تصل هذه الرسالة فعلياً لبريد العميل وليس لصاحب الحساب فقط.
+    var welcomeMessage='أهلاً بك في Reno Smart Inventory 👋\n\n'
+      +'تجربتك المجانية لمدة 30 يوماً جاهزة الآن.\n\n'
+      +'رابط الدخول: '+DEMO_URL+'\n'
+      +'البريد: '+DEMO_USER+'\n'
+      +'كلمة المرور: '+DEMO_PASS+'\n\n'
+      +'هذه بيئة تجريبية بالكامل — جرّب كل الميزات بحرية.\n'
+      +'سيتواصل معك فريقنا خلال يوم عمل لمناقشة تفعيل بيئة خاصة ببياناتكم.\n\n'
+      +'لأي استفسار: '+TO;
+
+    var customerSend = emailjs.send(SERVICE, TEMPLATE, {
+      to_email: v,
+      from_name: 'Reno Smart Inventory',
+      reply_to: TO,
+      subject: 'بيانات دخول تجربتك المجانية — Reno Smart Inventory',
+      message: welcomeMessage
+    });
+
+    Promise.all([ownerSend, customerSend]).then(function(){
+      done(true,'✓ تم إرسال بيانات الدخول إلى '+v+'. تفقّد بريدك الآن.','ok');
     }).catch(function(err){
       console.error('EmailJS:',err);
       done(false,'تعذّر الإرسال التلقائي. جاري فتح بريدك — أو راسلنا على '+TO,'err');
-      fallback(v);
+      fallback(v,company);
     });
   }
 
   btn.addEventListener('click',go);
   inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); go(); } });
+  companyInp&&companyInp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); go(); } });
 })();
 </script>
 </body>
