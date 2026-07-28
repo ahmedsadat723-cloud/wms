@@ -960,10 +960,16 @@ nav{
     });
 
     // 3) تسجيل الطلب في جدول leads بقاعدة reno-demo (لا يوقف الإرسال لو فشل)
-    var dbSave = sb ? sb.from('leads').insert({
-      company: company, email: v, rooms: rooms, storage_type: storage,
-      items_count: items, source: 'landing'
-    }) : Promise.resolve();
+    if(sb){
+      sb.from('leads').insert({
+        company: company, email: v, rooms: rooms, storage_type: storage,
+        items_count: items, source: 'landing'
+      }).then(function(res){
+        if(res && res.error) console.warn('leads insert failed (non-blocking):', res.error);
+      });
+    } else {
+      console.warn('Supabase client not loaded — lead was not saved to dashboard.');
+    }
 
     Promise.all([ownerSend, customerSend]).then(function(){
       done(true,'✓ تم إرسال بيانات الدخول إلى '+v+'. تفقّد بريدك الآن.','ok');
@@ -972,7 +978,6 @@ nav{
       done(false,'تعذّر الإرسال التلقائي. جاري فتح بريدك — أو راسلنا على '+TO,'err');
       fallback(v,company);
     });
-    dbSave.catch(function(err){ console.warn('leads insert failed (non-blocking):', err); });
   }
 
   btn.addEventListener('click',go);
