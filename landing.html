@@ -510,6 +510,42 @@ nav{
   .stat-block{border-inline-start:none;border-top:1px solid var(--border)}
   .stat-block:first-child{border-top:none}
 }
+
+/* WhatsApp floating button */
+.wa-float{
+  position:fixed;
+  bottom:24px;
+  inset-inline-end:24px;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:#25D366;
+  color:#fff;
+  padding:14px 18px;
+  border-radius:50px;
+  text-decoration:none;
+  font-family:inherit;
+  font-size:14px;
+  font-weight:600;
+  box-shadow:0 6px 20px rgba(37,211,102,.4);
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.wa-float:hover{
+  transform:translateY(-3px);
+  box-shadow:0 10px 28px rgba(37,211,102,.5);
+}
+.wa-float svg{width:24px;height:24px;flex-shrink:0}
+.wa-float-text{white-space:nowrap}
+@media(max-width:560px){
+  .wa-float{
+    bottom:16px;
+    inset-inline-end:16px;
+    padding:14px;
+    border-radius:50%;
+  }
+  .wa-float-text{display:none}
+}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -985,5 +1021,9 @@ nav{
   companyInp&&companyInp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); go(); } });
 })();
 </script>
+<a href="https://wa.me/0596919810?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%20%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%B9%D8%B1%D9%81%20%D8%A3%D9%83%D8%AA%D8%B1%20%D8%B9%D9%86%20Reno%20Smart%20Inventory" class="wa-float" target="_blank" rel="noopener" aria-label="تواصل معنا على واتساب">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.001 2.003c-5.514 0-9.997 4.483-9.997 9.997 0 1.763.46 3.484 1.334 4.999L2 22.003l5.126-1.328a9.958 9.958 0 004.875 1.24h.004c5.514 0 9.997-4.483 9.997-9.997 0-2.67-1.04-5.18-2.929-7.069a9.936 9.936 0 00-7.072-2.928zm5.917 15.916a8.29 8.29 0 01-5.917 2.451h-.003a8.28 8.28 0 01-4.221-1.155l-.303-.18-3.043.788.813-2.968-.198-.305a8.267 8.267 0 01-1.269-4.42c0-4.575 3.723-8.298 8.302-8.298a8.243 8.243 0 015.87 2.433 8.243 8.243 0 012.428 5.867c0 4.579-3.723 8.302-8.298 8.302l-.161-.001z"/></svg>
+  <span class="wa-float-text">تواصل واتساب</span>
+</a>
 </body>
 </html>
