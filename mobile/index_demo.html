@@ -311,7 +311,7 @@
 
   <!-- شاشة السجل -->
   <div id="logScreen" class="screen hidden">
-    <h1>📋 سجل العمليات</h1>
+    <h1 data-i18n="nav_log_full">📋 سجل العمليات</h1>
     <div class="card">
       <div class="no-print" style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
         <label style="margin:0;flex:0 0 auto">اليوم</label>
@@ -522,7 +522,7 @@ const LANG = {
     err_withdraw_qty: '⚠️ Invalid quantity — must be between 1 and the available amount',
     confirm_withdraw: 'Confirm withdrawing {qty} cartons from "{name}" — {loc}?',
     withdraw_done: '✅ Quantity withdrawn successfully', cancel_btn: 'Cancel',
-    withdraw_confirm_btn: '✅ Confirm withdrawal', not_found_or_error: '❌ Could not fetch pallet data'
+    withdraw_confirm_btn: '✅ Confirm withdrawal', not_found_or_error: '❌ Could not fetch pallet data', nav_log_full: 'Operations Log', update_banner: '🔄 New app version available', update_btn: 'Update Now'
   },
   ur: {
     install_banner_default: '📲 تیز رسائی کے لیے ایپ کو ہوم اسکرین پر انسٹال کریں',
@@ -590,7 +590,7 @@ const LANG = {
     err_withdraw_qty: '⚠️ غلط تعداد — 1 اور دستیاب مقدار کے درمیان ہونی چاہیے',
     confirm_withdraw: '"{name}" — {loc} سے {qty} کارٹن نکالنے کی تصدیق کریں؟',
     withdraw_done: '✅ مقدار کامیابی سے نکال دی گئی', cancel_btn: 'منسوخ کریں',
-    withdraw_confirm_btn: '✅ نکاسی کی تصدیق کریں', not_found_or_error: '❌ پیلیٹ کا ڈیٹا حاصل نہیں ہو سکا'
+    withdraw_confirm_btn: '✅ نکاسی کی تصدیق کریں', not_found_or_error: '❌ پیلیٹ کا ڈیٹا حاصل نہیں ہو سکا', nav_log_full: 'آپریشن لاگ', update_banner: '🔄 نیا ایپ ورژن دستیاب ہے', update_btn: 'اب اپ ڈیٹ کریں'
   }
 };
 let currentLang = localStorage.getItem('sd_lang') || 'ar';
