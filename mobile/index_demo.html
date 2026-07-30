@@ -72,20 +72,20 @@
   <button class="lang-btn active-lang" data-lang="ar" onclick="setLang(&#39;ar&#39;)">AR</button>
   <button class="lang-btn" data-lang="en" onclick="setLang(&#39;en&#39;)">EN</button>
   <button class="lang-btn" data-lang="ur" onclick="setLang(&#39;ur&#39;)">UR</button>
-  <button id="coldModeBtn" class="lang-btn" onclick="toggleColdMode()" title="وضع غرفة التبريد">❄️</button>
+  <button id="coldModeBtn" class="lang-btn" onclick="toggleColdMode()" title="وضع غرفة التبريد" data-i18n="cold_mode_btn">❄️</button>
 </div>
 
 <h2 class="sr-only" data-i18n="app_description" style="position:absolute;width:1px;height:1px;overflow:hidden">تطبيق Reno Smart Inventory للموبايل — استلام بالكاميرا وبحث في المخزون</h2>
 
 <div id="installBanner" class="hidden" style="background:#e8622c;color:#fff;text-align:center;padding:10px 14px;font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:20">
-  <span id="installBannerText">📲 ثبّت التطبيق على شاشتك الرئيسية لتشغيل أسرع بدون متصفح</span>
+  <span id="installBannerText" data-i18n="install_banner_default">📲 ثبّت التطبيق على شاشتك الرئيسية لتشغيل أسرع بدون متصفح</span>
   <button id="installBtn" data-i18n="install_btn" onclick="installApp()" style="width:auto;padding:6px 14px;background:#fff;color:#e8622c;border-radius:8px;font-size:12px;font-weight:700">تثبيت</button>
   <button data-i18n="later_btn" onclick="dismissInstallBanner()" style="width:auto;padding:6px 10px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:8px;font-size:12px">لاحقاً</button>
 </div>
 
 <div id="updateBanner" class="hidden" style="background:#16a34a;color:#fff;text-align:center;padding:10px 14px;font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:21">
-  <span id="updateBannerText">🔄 نسخة جديدة من التطبيق متاحة</span>
-  <button onclick="applyAppUpdate()" style="width:auto;padding:6px 14px;background:#fff;color:#16a34a;border-radius:8px;font-size:12px;font-weight:700">تحديث الآن</button>
+  <span id="updateBannerText" data-i18n="update_banner_available">🔄 نسخة جديدة من التطبيق متاحة</span>
+  <button data-i18n="update_btn_now" onclick="applyAppUpdate()" style="width:auto;padding:6px 14px;background:#fff;color:#16a34a;border-radius:8px;font-size:12px;font-weight:700">تحديث الآن</button>
 </div>
 
 <!-- ===== شاشة الدخول ===== -->
@@ -121,12 +121,12 @@
     <div id="offlineBadge" class="hidden" style="margin-bottom:10px;padding:8px 10px;border-radius:8px;background:rgba(96,165,250,.15);color:#93c5fd;font-size:12.5px;text-align:center"></div>
 
     <div class="card">
-      <label>🧾 بيانات المستلم والسائق</label>
+      <label data-i18n="receiver_driver_data">🧾 بيانات المستلم والسائق</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
-        <div><label style="font-size:12px">اسم المستلم</label><input id="fReceiverName" autocomplete="off"></div>
-        <div><label style="font-size:12px">اسم السائق</label><input id="fDriverName" autocomplete="off"></div>
+        <div><label data-i18n="receiver_name_label" style="font-size:12px">اسم المستلم</label><input id="fReceiverName" autocomplete="off"></div>
+        <div><label data-i18n="driver_name_label" style="font-size:12px">اسم السائق</label><input id="fDriverName" autocomplete="off"></div>
       </div>
-      <label style="font-size:12px;margin-top:8px">✍️ توقيع المستلم</label>
+      <label data-i18n="signature_label" style="font-size:12px;margin-top:8px">✍️ توقيع المستلم</label>
       <canvas id="sigPad" width="500" height="150" style="width:100%;height:110px;background:#0f172a;border:1px solid #334155;border-radius:10px;touch-action:none"></canvas>
       <button type="button" class="btn-ghost" style="margin-top:6px" onclick="clearSignature()">🧹 مسح التوقيع</button>
     </div>
@@ -522,7 +522,7 @@ const LANG = {
     err_withdraw_qty: '⚠️ Invalid quantity — must be between 1 and the available amount',
     confirm_withdraw: 'Confirm withdrawing {qty} cartons from "{name}" — {loc}?',
     withdraw_done: '✅ Quantity withdrawn successfully', cancel_btn: 'Cancel',
-    withdraw_confirm_btn: '✅ Confirm withdrawal', not_found_or_error: '❌ Could not fetch pallet data', nav_log_full: ', step1_scan: '1️⃣ Scan carton barcode', step2_photo: '2️⃣ Photograph the label', step3_photo: '3️⃣ Photograph the carton', step4_review: '4️⃣ Review the data', detail_label: 'Details', status_label: 'Status'Operations Log', update_banner: '🔄 New app version available', update_btn: 'Update Now'
+    withdraw_confirm_btn: '✅ Confirm withdrawal', not_found_or_error: '❌ Could not fetch pallet data', cold_mode_btn: '❄️ Cold mode', receiver_driver_data: '🧾 Receiver & Driver Info', receiver_name_label: 'Receiver name', driver_name_label: 'Driver name', signature_label: '✍️ Receiver signature', clear_signature_btn: '🧹 Clear signature', log_receive_label: '📸 Receive', log_withdraw_label: '📤 Withdraw', print_btn: '🖨️ Print', export_excel_btn: '📊 Export Excel', update_banner_available: '🔄 New app version available', update_btn_now: 'Update Now', nav_log_full: ', step1_scan: '1️⃣ Scan carton barcode', step2_photo: '2️⃣ Photograph the label', step3_photo: '3️⃣ Photograph the carton', step4_review: '4️⃣ Review the data', detail_label: 'Details', status_label: 'Status'Operations Log', update_banner: '🔄 New app version available', update_btn: 'Update Now'
   },
   ur: {
     install_banner_default: '📲 تیز رسائی کے لیے ایپ کو ہوم اسکرین پر انسٹال کریں',
@@ -590,7 +590,7 @@ const LANG = {
     err_withdraw_qty: '⚠️ غلط تعداد — 1 اور دستیاب مقدار کے درمیان ہونی چاہیے',
     confirm_withdraw: '"{name}" — {loc} سے {qty} کارٹن نکالنے کی تصدیق کریں؟',
     withdraw_done: '✅ مقدار کامیابی سے نکال دی گئی', cancel_btn: 'منسوخ کریں',
-    withdraw_confirm_btn: '✅ نکاسی کی تصدیق کریں', not_found_or_error: '❌ پیلیٹ کا ڈیٹا حاصل نہیں ہو سکا', nav_log_full: ', step1_scan: '1️⃣ بارکوڈ اسکین کریں', step2_photo: '2️⃣ لیبل کی تصویر لیں', step3_photo: '3️⃣ کارٹن کی تصویر لیں', step4_review: '4️⃣ ڈیٹا کا جائزہ لیں', detail_label: 'تفصیلات', status_label: 'حالت'آپریشن لاگ', update_banner: '🔄 نیا ایپ ورژن دستیاب ہے', update_btn: 'اب اپ ڈیٹ کریں'
+    withdraw_confirm_btn: '✅ نکاسی کی تصدیق کریں', not_found_or_error: '❌ پیلیٹ کا ڈیٹا حاصل نہیں ہو سکا', cold_mode_btn: '❄️ کولڈ موڈ', receiver_driver_data: '🧾 وصول کنندہ اور ڈرائیور کی معلومات', receiver_name_label: 'وصول کنندہ کا نام', driver_name_label: 'ڈرائیور کا نام', signature_label: '✍️ وصول کنندہ کی دستخط', clear_signature_btn: '🧹 دستخط صاف کریں', log_receive_label: '📸 وصول', log_withdraw_label: '📤 نکاسی', print_btn: '🖨️ پرنٹ کریں', export_excel_btn: '📊 Excel میں ایکسپورٹ کریں', update_banner_available: '🔄 نیا ایپ ورژن دستیاب ہے', update_btn_now: 'اب اپ ڈیٹ کریں', nav_log_full: ', step1_scan: '1️⃣ بارکوڈ اسکین کریں', step2_photo: '2️⃣ لیبل کی تصویر لیں', step3_photo: '3️⃣ کارٹن کی تصویر لیں', step4_review: '4️⃣ ڈیٹا کا جائزہ لیں', detail_label: 'تفصیلات', status_label: 'حالت'آپریشن لاگ', update_banner: '🔄 نیا ایپ ورژن دستیاب ہے', update_btn: 'اب اپ ڈیٹ کریں'
   }
 };
 let currentLang = localStorage.getItem('sd_lang') || 'ar';
