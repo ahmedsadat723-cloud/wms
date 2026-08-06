@@ -366,13 +366,15 @@
     @page{size:A4 landscape;margin:3mm;}
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
 <div class="btnbar no-print">
   <button onclick="addRow()">+ Add Row</button>
   <button class="secondary" onclick="if(validateRequired()) window.print()">🖨 Print</button>
-  <button class="secondary" onclick="if(validateRequired()) savePDF()">📄 Save PDF</button>
+  <button class="secondary" onclick="savePDF()">📄 Save PDF</button>
   <button class="secondary" onclick="if(validateRequired()) downloadForm()">⬇ Download</button>
   <button class="secondary" onclick="resetForm()">Clear Data</button>
 </div>
@@ -1101,11 +1103,34 @@ const REQUIRED_FIELDS = [
   {id:'driverName', label:'Driver Name / اسم السائق'},
   {id:'driverIqama', label:'Iqama Number / رقم الإقامة'}
 ];
-// Print and Save-PDF both open the browser's native print dialog
-// (there is no separate browser API for "save only") — this button
-// exists so the person can choose Save as PDF there directly.
-function savePDF(){
-  window.print();
+// Real PDF export — captures the sheet as an image and builds an actual
+// .pdf file with jsPDF, then downloads it directly. No print dialog.
+async function savePDF(){
+  if(!validateRequired()) return;
+  const sheet = document.querySelector('.sheet');
+  const noPrintEls = document.querySelectorAll('.no-print');
+  const btnBar = document.querySelector('.btnbar');
+  noPrintEls.forEach(el=>{ el.dataset.prevVis = el.style.visibility; el.style.visibility = 'hidden'; });
+  if(btnBar) btnBar.style.display = 'none';
+  try{
+    const canvas = await html2canvas(sheet, {scale:2, useCORS:true, backgroundColor:'#ffffff'});
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const imgProps = pdf.getImageProperties(imgData);
+    const ratio = Math.min(pageW / imgProps.width, pageH / imgProps.height);
+    const w = imgProps.width * ratio;
+    const h = imgProps.height * ratio;
+    pdf.addImage(imgData, 'PNG', (pageW - w) / 2, (pageH - h) / 2, w, h);
+    pdf.save('transfer_document.pdf');
+  } catch(err){
+    alert('تعذر إنشاء PDF: ' + err.message);
+  } finally {
+    noPrintEls.forEach(el=>{ el.style.visibility = el.dataset.prevVis || ''; });
+    if(btnBar) btnBar.style.display = '';
+  }
 }
 function validateRequired(){
   let missing = [];
