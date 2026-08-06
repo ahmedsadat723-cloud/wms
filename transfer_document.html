@@ -303,6 +303,8 @@
   .cal-day:hover{background:var(--navy);color:#fff;}
   .cal-today{outline:1px solid var(--navy);}
 
+  .field-missing{border-color:#D64545 !important;background:#FFF3F3 !important;box-shadow:0 0 0 2px rgba(214,69,69,.15);}
+  .truck-key-warn{border-color:#D9A441 !important;background:#FFFAEF !important;}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   @media print{
     body{background:#fff;padding:0;}
@@ -369,8 +371,8 @@
 
 <div class="btnbar no-print">
   <button onclick="addRow()">+ Add Row</button>
-  <button class="secondary" onclick="window.print()">🖨 Print / Save PDF</button>
-  <button class="secondary" onclick="downloadForm()">⬇ Download</button>
+  <button class="secondary" onclick="if(validateRequired()) window.print()">🖨 Print / Save PDF</button>
+  <button class="secondary" onclick="if(validateRequired()) downloadForm()">⬇ Download</button>
   <button class="secondary" onclick="resetForm()">Clear Data</button>
 </div>
 
@@ -405,7 +407,7 @@
 
   <div class="grid">
     <div>
-      <div class="field-group"><label>Shipment Number</label><input type="text" placeholder="e.g. YMF90000"></div>
+      <div class="field-group"><label>Shipment Number</label><input type="text" id="shipmentNumber" placeholder="e.g. YMF90000"></div>
       <div class="field-group"><label>Week Plan No.</label><input type="text" placeholder="e.g. 2631-MF07"></div>
       <div class="field-group"><label>Transport Company</label><select id="transportAgent"><option value="">— Select —</option><option value="NAWAHEL">NAWAHEL</option><option value="QIMAM TOPS">QIMAM TOPS</option><option value="EID AL-ANZI">EID AL-ANZI</option><option value="AL-SAIF">AL-SAIF</option><option value="ABU DABL">ABU DABL</option><option value="AL-WATANIYA">AL-WATANIYA</option></select></div>
       <div class="field-group"><label>Temperature (°C)</label><select id="tempRange">
@@ -415,14 +417,14 @@
         <option value="-15">-15</option>
         <option value="-18">-18</option>
       </select></div>
-      <div class="field-group"><label>Way Bill No.</label><input type="text"></div>
+      <div class="field-group"><label>Way Bill No.</label><input type="text" id="wayBillNo"></div>
     </div>
     <div>
       <div class="field-group"><label>Document Date</label><input type="text" id="documentDate" class="date-field" placeholder="DD/MM/YYYY" maxlength="10" oninput="formatDateInput(this)"></div>
-      <div class="field-group"><label>Truck Plate No.</label><input type="text"></div>
+      <div class="field-group"><label>Truck Plate No.</label><input type="text" id="truckPlateNo"></div>
       <div class="field-group"><label>Loading Time</label><input type="text" id="loadingTime" class="time-field" placeholder="HH:MM" readonly=""></div>
       <div class="field-group"><label>Departure Time</label><input type="text" id="departureTime" class="time-field" placeholder="HH:MM" readonly=""></div>
-      <div class="field-group"><label>Seal No.</label><input type="text"></div>
+      <div class="field-group"><label>Seal No.</label><input type="text" id="sealNo"></div>
     </div>
   </div>
 
@@ -1081,6 +1083,73 @@ setTodayDate();
 attachDatePicker(document.getElementById('documentDate'));
 attachTimePicker(document.getElementById('loadingTime'));
 attachTimePicker(document.getElementById('departureTime'));
+
+// ===== Required-field validation before print/download =====
+const REQUIRED_FIELDS = [
+  {id:'goodsType', label:'Goods Type / نوع البضاعة'},
+  {id:'shipmentNumber', label:'Shipment Number / رقم الشحنة'},
+  {id:'transportAgent', label:'Transport Company / شركة النقل'},
+  {id:'tempRange', label:'Temperature / درجة الحرارة'},
+  {id:'wayBillNo', label:'Way Bill No. / رقم بوليصة الشحن'},
+  {id:'documentDate', label:'Document Date / تاريخ المستند'},
+  {id:'truckPlateNo', label:'Truck Plate No. / رقم لوحة الشاحنة'},
+  {id:'sealNo', label:'Seal No. / رقم الختم'},
+  {id:'fromBranch', label:'From Branch / من فرع'},
+  {id:'toBranch', label:'To Branch / إلى فرع'},
+  {id:'driverIdInput', label:'Truck No. (Driver Code) / رقم الشاحنة (كود السائق)'},
+  {id:'driverName', label:'Driver Name / اسم السائق'},
+  {id:'driverIqama', label:'Iqama Number / رقم الإقامة'}
+];
+function validateRequired(){
+  let missing = [];
+  REQUIRED_FIELDS.forEach(f=>{
+    const el = document.getElementById(f.id);
+    if(!el) return;
+    el.classList.remove('field-missing');
+    if(!el.value || !el.value.trim()){
+      el.classList.add('field-missing');
+      missing.push(f.label);
+    }
+  });
+  const hasItem = Array.from(document.querySelectorAll('#itemsBody .code-value'))
+    .some(i=>i.value && i.value.trim());
+  if(!hasItem) missing.push('At least one item row / صف صنف واحد على الأقل');
+
+  if(missing.length){
+    const first = document.querySelector('.field-missing');
+    if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
+    alert('يوجد حقول ناقصة / Missing required fields:\n\n' + missing.join('\n'));
+    return false;
+  }
+  return true;
+}
+document.addEventListener('input', function(e){
+  if(e.target && e.target.classList && e.target.classList.contains('field-missing') && e.target.value.trim()){
+    e.target.classList.remove('field-missing');
+  }
+});
+
+// ===== Truck# (reconciliation key) format hint =====
+// Expected pattern like 2630-MF-37 : digits-letters-digits, used as the
+// primary key to reconcile against the carrier / Oracle transfers report.
+const TRUCK_KEY_PATTERN = /^\d{3,4}-[A-Za-z]{2,4}-\d{1,4}$/;
+function checkTruckKeyFormat(input){
+  const val = (input.value || '').trim();
+  if(!val){ input.classList.remove('truck-key-warn'); return; }
+  if(TRUCK_KEY_PATTERN.test(val)){
+    input.classList.remove('truck-key-warn');
+  } else {
+    input.classList.add('truck-key-warn');
+  }
+}
+document.addEventListener('DOMContentLoaded', function(){
+  const truckKeyInput = document.getElementById('driverIdInput');
+  if(truckKeyInput){
+    truckKeyInput.title = 'Reconciliation key (Truck#) — expected format e.g. 2630-MF-37';
+    truckKeyInput.addEventListener('input', function(){ checkTruckKeyFormat(this); });
+    checkTruckKeyFormat(truckKeyInput);
+  }
+});
 </script>
 
 <div id="driverModalOverlay" class="modal-overlay no-print" onclick="if(event.target===this) closeDriverModal()">
