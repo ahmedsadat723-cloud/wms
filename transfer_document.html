@@ -371,7 +371,8 @@
 
 <div class="btnbar no-print">
   <button onclick="addRow()">+ Add Row</button>
-  <button class="secondary" onclick="if(validateRequired()) window.print()">🖨 Print / Save PDF</button>
+  <button class="secondary" onclick="if(validateRequired()) window.print()">🖨 Print</button>
+  <button class="secondary" onclick="if(validateRequired()) savePDF()">📄 Save PDF</button>
   <button class="secondary" onclick="if(validateRequired()) downloadForm()">⬇ Download</button>
   <button class="secondary" onclick="resetForm()">Clear Data</button>
 </div>
@@ -1100,6 +1101,12 @@ const REQUIRED_FIELDS = [
   {id:'driverName', label:'Driver Name / اسم السائق'},
   {id:'driverIqama', label:'Iqama Number / رقم الإقامة'}
 ];
+// Print and Save-PDF both open the browser's native print dialog
+// (there is no separate browser API for "save only") — this button
+// exists so the person can choose Save as PDF there directly.
+function savePDF(){
+  window.print();
+}
 function validateRequired(){
   let missing = [];
   REQUIRED_FIELDS.forEach(f=>{
