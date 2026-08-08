@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0198)file:///C:/Users/MR%20ahmed%20sadat/Downloads/%D9%86%D9%85%D9%88%D8%B0%D8%AC_%D8%A7%D8%AE%D8%B1%D8%A7%D8%AC_%D8%AA%D8%B9%D8%A8%D8%A6%D8%A9_%D8%A7%D9%84%D9%83%D8%AA%D8%B1%D9%88%D9%86%D9%8A%D8%A9.html -->
+<!-- saved from url=(0064)https://ahmedsadat723-cloud.github.io/wms/transfer_document.html -->
 <html lang="en" dir="ltr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <title>report1</title>
@@ -343,9 +343,40 @@
     table input, table select.code{font-size:9px;padding:1px;}
     .totals-row td{padding:2px 5px;}
 
-    .notes{margin-top:2px;}
-    .notes label{font-size:9px;}
-    .notes textarea{height:10px;}
+    .notes{margin-top:1px;}
+    .notes label{font-size:8px;margin-bottom:0;}
+    .notes textarea{height:16px !important;min-height:0;font-size:8px;padding:0 2px;}
+
+    /* --- compaction: header --- */
+    .header{padding:4px 12px !important;margin-bottom:2px !important;}
+    .logo-card{width:38px !important;height:38px !important;}
+    .logo-card img{height:29px !important;}
+    .header-eyebrow{font-size:7px !important;padding:1px 6px !important;margin-bottom:2px !important;}
+    .header h1{font-size:13px !important;margin:0 0 1px 0 !important;}
+    .header .ar-sub{font-size:8.5px !important;}
+    .header-inner{gap:10px !important;}
+
+    /* --- compaction: branch + driver blocks --- */
+    .branch-transfer{padding:2px 10px !important;margin-bottom:2px !important;}
+    .branch-box label{font-size:8px !important;}
+    .branch-arrow{font-size:13px !important;padding-bottom:0 !important;}
+    .grid{margin-bottom:2px !important;}
+    .field-group{margin-bottom:2px !important;}
+    label{font-size:8px !important;}
+    input[type=text], select, textarea{font-size:9px !important;padding:0 1px !important;}
+
+    /* --- compaction: barcode --- */
+    #wbBarcode{padding:0 2px !important;min-height:0 !important;}
+    #wbBarcode svg{height:28px !important;}
+
+    /* --- compaction: signatures + checklist --- */
+    .sigs{margin-top:0 !important;}
+    .sig .cap{font-size:7px !important;margin-top:1px !important;}
+    .checklist{padding:1px 10px !important;margin-top:1px !important;}
+    .checklist-title{font-size:8.5px !important;margin-bottom:1px !important;}
+    .chk-item{font-size:8px !important;}
+    .weight-summary{padding:1px 10px !important;font-size:8.5px !important;}
+    .sheet{padding:2mm 6mm !important;}
 
     .weight-summary{margin-top:1px;padding:2px 10px;font-size:9px;}
     .weight-summary .unit{font-size:8px;}
@@ -365,18 +396,31 @@
 
     @page{size:A4 landscape;margin:3mm;}
   }
+
+  /* --- expiry proximity --- */
+  tr.exp-warn    td{background:#fff6e0 !important;}
+  tr.exp-warn    .expiry{color:#a35b00;font-weight:700;}
+  tr.exp-expired td{background:#ffe6e6 !important;}
+  tr.exp-expired .expiry{color:#c0392b;font-weight:700;}
+
+  /* --- branch clash --- */
+  .branch-clash{border:1.5px solid #c0392b !important;background:#ffecec !important;}
+  #branchWarn{display:none;margin-top:4px;font-size:11px;color:#c0392b;font-weight:700;}
+
+  /* --- autosave badge --- */
+  #saveBadge{margin-left:auto;font-size:11px;color:#2e7d32;opacity:0;transition:opacity .3s;}
+  #saveBadge.show{opacity:1;}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
 <div class="btnbar no-print">
   <button onclick="addRow()">+ Add Row</button>
-  <button class="secondary" onclick="if(validateRequired()) window.print()">🖨 Print</button>
-  <button class="secondary" onclick="savePDF()">📄 Save PDF</button>
+  <button class="secondary" onclick="if(validateRequired()) savePdf()">📄 Save as PDF</button>
+  <button class="secondary" onclick="if(validateRequired()) printDirect()">🖨 Print</button>
   <button class="secondary" onclick="if(validateRequired()) downloadForm()">⬇ Download</button>
   <button class="secondary" onclick="resetForm()">Clear Data</button>
+  <span id="saveBadge"></span>
 </div>
 
 <div class="sheet">
@@ -400,7 +444,7 @@
 
   <div class="goods-type-row">
     <label>Goods Type</label>
-    <select id="goodsType">
+    <select id="goodsType" class="field-missing">
       <option value="">— Select —</option>
       <option value="Dry">Dry</option>
       <option value="Frozen Raw Materials">Frozen Raw Materials</option>
@@ -410,57 +454,59 @@
 
   <div class="grid">
     <div>
-      <div class="field-group"><label>Shipment Number</label><input type="text" id="shipmentNumber" placeholder="e.g. YMF90000"></div>
+      <div class="field-group"><label>Document No. / رقم المستند</label><input type="text" id="docNo" readonly class="readonly-name" style="font-weight:700;letter-spacing:.3px"></div>
+      <div class="field-group"><label>Shipment Number</label><input type="text" id="shipmentNumber" placeholder="e.g. YMF90000" class="field-missing"></div>
       <div class="field-group"><label>Week Plan No.</label><input type="text" placeholder="e.g. 2631-MF07"></div>
-      <div class="field-group"><label>Transport Company</label><select id="transportAgent"><option value="">— Select —</option><option value="NAWAHEL">NAWAHEL</option><option value="QIMAM TOPS">QIMAM TOPS</option><option value="EID AL-ANZI">EID AL-ANZI</option><option value="AL-SAIF">AL-SAIF</option><option value="ABU DABL">ABU DABL</option><option value="AL-WATANIYA">AL-WATANIYA</option></select></div>
-      <div class="field-group"><label>Temperature (°C)</label><select id="tempRange">
+      <div class="field-group"><label>Transport Company</label><select id="transportAgent" class="field-missing"><option value="">— Select —</option></select></div>
+      <div class="field-group"><label>Temperature (°C)</label><select id="tempRange" class="field-missing">
         <option value="">— Select —</option>
         <option value="+5">+5</option>
         <option value="-10">-10</option>
         <option value="-15">-15</option>
         <option value="-18">-18</option>
       </select></div>
-      <div class="field-group"><label>Way Bill No.</label><input type="text" id="wayBillNo"></div>
+      <div class="field-group"><label>Way Bill No.</label><input type="text" id="wayBillNo" class="field-missing"></div>
     </div>
     <div>
       <div class="field-group"><label>Document Date</label><input type="text" id="documentDate" class="date-field" placeholder="DD/MM/YYYY" maxlength="10" oninput="formatDateInput(this)"></div>
-      <div class="field-group"><label>Truck Plate No.</label><input type="text" id="truckPlateNo"></div>
+      <div class="field-group"><label>Truck Plate No.</label><input type="text" id="truckPlateNo" class="field-missing"></div>
       <div class="field-group"><label>Loading Time</label><input type="text" id="loadingTime" class="time-field" placeholder="HH:MM" readonly=""></div>
       <div class="field-group"><label>Departure Time</label><input type="text" id="departureTime" class="time-field" placeholder="HH:MM" readonly=""></div>
-      <div class="field-group"><label>Seal No.</label><input type="text" id="sealNo"></div>
+      <div class="field-group"><label>Seal No.</label><input type="text" id="sealNo" class="field-missing"></div>
     </div>
   </div>
 
   <div class="branch-transfer">
     <div class="branch-box">
       <label>From Branch</label>
-      <select id="fromBranch"><option value="">— Select —</option><option value="RIYADH">RIYADH</option><option value="MADINA">MADINA</option><option value="MAKKAH">MAKKAH</option><option value="JEDDAH - AL MUNAJEM COLD STORE">JEDDAH - AL MUNAJEM COLD STORE</option><option value="DAMMAM">DAMMAM</option><option value="KHAMIS">KHAMIS</option><option value="QASSIM">QASSIM</option><option value="HAIL">HAIL</option><option value="GIZAN">GIZAN</option><option value="TABUK">TABUK</option><option value="SAKAKA">SAKAKA</option><option value="JEDDAH - AL MUNAJEM NEW FACTORY">JEDDAH - AL MUNAJEM NEW FACTORY</option><option value="JEDDAH - LODALY">JEDDAH - LODALY</option></select>
+      <select id="fromBranch" class="field-missing"><option value="">— Select —</option></select>
     </div>
     <div class="branch-arrow">→</div>
     <div class="branch-box">
       <label>To Branch</label>
-      <select id="toBranch"><option value="">— Select —</option><option value="RIYADH">RIYADH</option><option value="MADINA">MADINA</option><option value="MAKKAH">MAKKAH</option><option value="JEDDAH - AL MUNAJEM COLD STORE">JEDDAH - AL MUNAJEM COLD STORE</option><option value="DAMMAM">DAMMAM</option><option value="KHAMIS">KHAMIS</option><option value="QASSIM">QASSIM</option><option value="HAIL">HAIL</option><option value="GIZAN">GIZAN</option><option value="TABUK">TABUK</option><option value="SAKAKA">SAKAKA</option><option value="JEDDAH - AL MUNAJEM NEW FACTORY">JEDDAH - AL MUNAJEM NEW FACTORY</option><option value="JEDDAH - LODALY">JEDDAH - LODALY</option></select>
+      <select id="toBranch" class="field-missing"><option value="">— Select —</option></select>
     </div>
   </div>
+  <div id="branchWarn" class="no-print">⚠ From Branch and To Branch cannot be the same / لا يمكن أن يكون الفرع المرسل هو نفسه المستلم</div>
 
   <div class="branch-transfer driver-box-row driver-box-3col">
     <div class="branch-box code-cell">
       <label>Truck No. (Driver Code) <button type="button" class="mini-link no-print" onclick="openDriverModal()">⚙ Manage</button></label>
       <div class="code-combo">
-        <input type="text" id="driverIdInput" class="code-input" placeholder="Type truck no..." autocomplete="off" oninput="filterDriverOptions(this, &#39;id&#39;)" onfocus="filterDriverOptions(this, &#39;id&#39;)">
+        <input type="text" id="driverIdInput" class="code-input field-missing" placeholder="Type truck no..." autocomplete="off" oninput="filterDriverOptions(this, &#39;id&#39;)" onfocus="filterDriverOptions(this, &#39;id&#39;)" title="Reconciliation key (Truck#) — expected format e.g. 2630-MF-37">
         <div class="code-dropdown" id="driverDropdown"></div>
       </div>
     </div>
     <div class="branch-box code-cell">
       <label>Driver Name</label>
       <div class="code-combo">
-        <input type="text" id="driverName" class="code-input" placeholder="Type driver name..." autocomplete="off" oninput="filterDriverOptions(this, &#39;name&#39;)" onfocus="filterDriverOptions(this, &#39;name&#39;)">
+        <input type="text" id="driverName" class="code-input field-missing" placeholder="Type driver name..." autocomplete="off" oninput="filterDriverOptions(this, &#39;name&#39;)" onfocus="filterDriverOptions(this, &#39;name&#39;)">
         <div class="code-dropdown" id="driverNameDropdown"></div>
       </div>
     </div>
     <div class="branch-box">
       <label>Iqama Number</label>
-      <input type="text" id="driverIqama" placeholder="Enter once, saved for this driver" oninput="saveIqamaForCurrentDriver(this)">
+      <input type="text" id="driverIqama" placeholder="Enter once, saved for this driver" oninput="saveIqamaForCurrentDriver(this)" class="field-missing">
     </div>
   </div>
 
@@ -469,11 +515,12 @@
       <thead>
         <tr>
           <th style="width:9%">Code</th>
-          <th style="width:31%">Description</th>
+          <th style="width:27%">Description</th>
           <th style="width:11%">Lot</th>
           <th style="width:12%">Expiry Date</th>
-          <th style="width:12.5%">Qty (CRT)</th>
-          <th style="width:12.5%">Qty (KG)</th>
+          <th style="width:9%">Qty (CRT)</th>
+          <th style="width:9%">Qty (KG)</th>
+          <th style="width:7%">Pallets<br>طبليات</th>
           <th class="no-print" style="width:8%">Actions</th>
         </tr>
       </thead>
@@ -490,6 +537,7 @@
     <td><input type="text" class="expiry date-field" placeholder="DD/MM/YYYY" maxlength="10" oninput="formatDateInput(this)"></td>
     <td><input type="text" class="crt" oninput="onCrtInput(this)"></td>
     <td><input type="text" class="kg" oninput="calcTotals()"></td>
+    <td><input type="text" class="plt" oninput="calcTotals()"></td>
     <td class="no-print row-actions">
       <button class="row-btn add-btn" title="Add row below" onclick="addRowAfter(this)">+</button>
       <button class="row-btn edit-btn" title="Lock/Unlock row" onclick="toggleLock(this)">✎</button>
@@ -508,6 +556,7 @@
     <td><input type="text" class="expiry date-field" placeholder="DD/MM/YYYY" maxlength="10" oninput="formatDateInput(this)"></td>
     <td><input type="text" class="crt" oninput="onCrtInput(this)"></td>
     <td><input type="text" class="kg" oninput="calcTotals()"></td>
+    <td><input type="text" class="plt" oninput="calcTotals()"></td>
     <td class="no-print row-actions">
       <button class="row-btn add-btn" title="Add row below" onclick="addRowAfter(this)">+</button>
       <button class="row-btn edit-btn" title="Lock/Unlock row" onclick="toggleLock(this)">✎</button>
@@ -526,6 +575,7 @@
     <td><input type="text" class="expiry date-field" placeholder="DD/MM/YYYY" maxlength="10" oninput="formatDateInput(this)"></td>
     <td><input type="text" class="crt" oninput="onCrtInput(this)"></td>
     <td><input type="text" class="kg" oninput="calcTotals()"></td>
+    <td><input type="text" class="plt" oninput="calcTotals()"></td>
     <td class="no-print row-actions">
       <button class="row-btn add-btn" title="Add row below" onclick="addRowAfter(this)">+</button>
       <button class="row-btn edit-btn" title="Lock/Unlock row" onclick="toggleLock(this)">✎</button>
@@ -544,6 +594,83 @@
     <td><input type="text" class="expiry date-field" placeholder="DD/MM/YYYY" maxlength="10" oninput="formatDateInput(this)"></td>
     <td><input type="text" class="crt" oninput="onCrtInput(this)"></td>
     <td><input type="text" class="kg" oninput="calcTotals()"></td>
+    <td><input type="text" class="plt" oninput="calcTotals()"></td>
+    <td class="no-print row-actions">
+      <button class="row-btn add-btn" title="Add row below" onclick="addRowAfter(this)">+</button>
+      <button class="row-btn edit-btn" title="Lock/Unlock row" onclick="toggleLock(this)">✎</button>
+      <button class="row-btn del-btn" title="Delete row" onclick="delRow(this)">🗑</button>
+    </td>
+  </tr><tr>
+    <td class="code-cell">
+      <div class="code-combo">
+        <input type="text" class="code-input" placeholder="Type code or name..." autocomplete="off" oninput="filterCodeOptions(this)" onfocus="filterCodeOptions(this)">
+        <input type="hidden" class="code-value">
+        <div class="code-dropdown"></div>
+      </div>
+    </td>
+    <td><input type="text" class="desc" placeholder="auto-filled, editable"></td>
+    <td><input type="text" class="lot"></td>
+    <td><input type="text" class="expiry date-field" placeholder="DD/MM/YYYY" maxlength="10" oninput="formatDateInput(this)"></td>
+    <td><input type="text" class="crt" oninput="onCrtInput(this)"></td>
+    <td><input type="text" class="kg" oninput="calcTotals()"></td>
+    <td><input type="text" class="plt" oninput="calcTotals()"></td>
+    <td class="no-print row-actions">
+      <button class="row-btn add-btn" title="Add row below" onclick="addRowAfter(this)">+</button>
+      <button class="row-btn edit-btn" title="Lock/Unlock row" onclick="toggleLock(this)">✎</button>
+      <button class="row-btn del-btn" title="Delete row" onclick="delRow(this)">🗑</button>
+    </td>
+  </tr><tr>
+    <td class="code-cell">
+      <div class="code-combo">
+        <input type="text" class="code-input" placeholder="Type code or name..." autocomplete="off" oninput="filterCodeOptions(this)" onfocus="filterCodeOptions(this)">
+        <input type="hidden" class="code-value">
+        <div class="code-dropdown"></div>
+      </div>
+    </td>
+    <td><input type="text" class="desc" placeholder="auto-filled, editable"></td>
+    <td><input type="text" class="lot"></td>
+    <td><input type="text" class="expiry date-field" placeholder="DD/MM/YYYY" maxlength="10" oninput="formatDateInput(this)"></td>
+    <td><input type="text" class="crt" oninput="onCrtInput(this)"></td>
+    <td><input type="text" class="kg" oninput="calcTotals()"></td>
+    <td><input type="text" class="plt" oninput="calcTotals()"></td>
+    <td class="no-print row-actions">
+      <button class="row-btn add-btn" title="Add row below" onclick="addRowAfter(this)">+</button>
+      <button class="row-btn edit-btn" title="Lock/Unlock row" onclick="toggleLock(this)">✎</button>
+      <button class="row-btn del-btn" title="Delete row" onclick="delRow(this)">🗑</button>
+    </td>
+  </tr><tr>
+    <td class="code-cell">
+      <div class="code-combo">
+        <input type="text" class="code-input" placeholder="Type code or name..." autocomplete="off" oninput="filterCodeOptions(this)" onfocus="filterCodeOptions(this)">
+        <input type="hidden" class="code-value">
+        <div class="code-dropdown"></div>
+      </div>
+    </td>
+    <td><input type="text" class="desc" placeholder="auto-filled, editable"></td>
+    <td><input type="text" class="lot"></td>
+    <td><input type="text" class="expiry date-field" placeholder="DD/MM/YYYY" maxlength="10" oninput="formatDateInput(this)"></td>
+    <td><input type="text" class="crt" oninput="onCrtInput(this)"></td>
+    <td><input type="text" class="kg" oninput="calcTotals()"></td>
+    <td><input type="text" class="plt" oninput="calcTotals()"></td>
+    <td class="no-print row-actions">
+      <button class="row-btn add-btn" title="Add row below" onclick="addRowAfter(this)">+</button>
+      <button class="row-btn edit-btn" title="Lock/Unlock row" onclick="toggleLock(this)">✎</button>
+      <button class="row-btn del-btn" title="Delete row" onclick="delRow(this)">🗑</button>
+    </td>
+  </tr><tr>
+    <td class="code-cell">
+      <div class="code-combo">
+        <input type="text" class="code-input" placeholder="Type code or name..." autocomplete="off" oninput="filterCodeOptions(this)" onfocus="filterCodeOptions(this)">
+        <input type="hidden" class="code-value">
+        <div class="code-dropdown"></div>
+      </div>
+    </td>
+    <td><input type="text" class="desc" placeholder="auto-filled, editable"></td>
+    <td><input type="text" class="lot"></td>
+    <td><input type="text" class="expiry date-field" placeholder="DD/MM/YYYY" maxlength="10" oninput="formatDateInput(this)"></td>
+    <td><input type="text" class="crt" oninput="onCrtInput(this)"></td>
+    <td><input type="text" class="kg" oninput="calcTotals()"></td>
+    <td><input type="text" class="plt" oninput="calcTotals()"></td>
     <td class="no-print row-actions">
       <button class="row-btn add-btn" title="Add row below" onclick="addRowAfter(this)">+</button>
       <button class="row-btn edit-btn" title="Lock/Unlock row" onclick="toggleLock(this)">✎</button>
@@ -555,6 +682,7 @@
           <td colspan="4">Total / الإجمالي</td>
           <td><span id="totalCrt">0</span></td>
           <td><span id="totalKg">0</span></td>
+          <td><span id="totalPlt">0</span></td>
           <td class="no-print"></td>
         </tr>
       </tfoot>
@@ -596,6 +724,12 @@
     </div>
   </div>
 
+  <div style="display:flex;align-items:flex-end;gap:14px;margin:4px 0 2px">
+    <div style="flex:0 0 210px">
+      <div style="font-size:9px;font-weight:700;color:#0D1B2E;margin-bottom:1px">Way Bill Barcode</div>
+      <div id="wbBarcode" style="border:1px solid #ddd;padding:2px 4px;background:#fff;min-height:46px"></div>
+    </div>
+  </div>
   <div class="checklist">
     <div class="checklist-title">Pre-Departure Checklist</div>
     <div class="checklist-grid">
@@ -655,7 +789,39 @@ function showCalendar(input){
     const prev = document.createElement('button'); prev.type='button'; prev.textContent='‹';
     const next = document.createElement('button'); next.type='button'; next.textContent='›';
     const lbl = document.createElement('span');
-    lbl.textContent = MONTH_NAMES[viewM] + ' ' + viewY;
+    lbl.style.display = 'flex';
+    lbl.style.gap = '4px';
+    lbl.style.alignItems = 'center';
+
+    const mSel = document.createElement('select');
+    mSel.style.cssText = 'font-size:11px;padding:1px 2px;border:1px solid #ccc;border-radius:3px;cursor:pointer;';
+    MONTH_NAMES.forEach((nm,i)=>{
+      const o = document.createElement('option');
+      o.value = i; o.textContent = nm;
+      if(i===viewM) o.selected = true;
+      mSel.appendChild(o);
+    });
+    mSel.onclick = (e)=> e.stopPropagation();
+    mSel.onchange = (e)=>{ e.stopPropagation(); viewM = parseInt(mSel.value); render(); };
+
+    const ySel = document.createElement('select');
+    ySel.style.cssText = 'font-size:11px;padding:1px 2px;border:1px solid #ccc;border-radius:3px;cursor:pointer;';
+    const baseY = now.getFullYear();
+    for(let y = baseY - 3; y <= baseY + 8; y++){
+      const o = document.createElement('option');
+      o.value = y; o.textContent = y;
+      if(y===viewY) o.selected = true;
+      ySel.appendChild(o);
+    }
+    if(viewY < baseY-3 || viewY > baseY+8){
+      const o = document.createElement('option');
+      o.value = viewY; o.textContent = viewY; o.selected = true;
+      ySel.appendChild(o);
+    }
+    ySel.onclick = (e)=> e.stopPropagation();
+    ySel.onchange = (e)=>{ e.stopPropagation(); viewY = parseInt(ySel.value); render(); };
+
+    lbl.append(mSel, ySel);
     prev.onclick = (e)=>{ e.stopPropagation(); viewM--; if(viewM<0){viewM=11; viewY--;} render(); };
     next.onclick = (e)=>{ e.stopPropagation(); viewM++; if(viewM>11){viewM=0; viewY++;} render(); };
     const closeBtn = document.createElement('button');
@@ -690,10 +856,6 @@ function showCalendar(input){
     popup.appendChild(grid);
   }
   render();
-}
-function attachDatePicker(input){
-  input.addEventListener('click', ()=> showCalendar(input));
-  input.addEventListener('focus', ()=> showCalendar(input));
 }
 
 let activeTimePopup = null;
@@ -749,12 +911,17 @@ function showTimePicker(input){
   wrap.append(hCol, mCol);
   popup.appendChild(wrap);
 }
-function attachTimePicker(input){
-  input.addEventListener('click', ()=> showTimePicker(input));
-  input.addEventListener('focus', ()=> showTimePicker(input));
-}
+// Delegation: works for every date/time field, including rows written directly in the HTML
+document.addEventListener('click', (e)=>{
+  const t = e.target;
+  if(!t || t.tagName !== 'INPUT') return;
+  if(t.classList.contains('date-field')) showCalendar(t);
+  else if(t.classList.contains('time-field')) showTimePicker(t);
+});
+function attachDatePicker(input){ /* handled by delegation */ }
+function attachTimePicker(input){ /* handled by delegation */ }
 
-const ITEM_GROUPS = [{"group": "Finished Goods / الأصناف النهائية", "items": [{"code": "BFRMASSA001", "name": "BEEF MINCE ANAAM SAUDI 20*400 GM", "unit_kg": 8.0}, {"code": "CHPKDRSA001", "name": "CHICKEN BREAST TENDERIZED DARI 5*2 KG - MF", "unit_kg": 10.0}, {"code": "CHPKDRSA002", "name": "CHICKEN BREAST TENDERIZED DARI 10*1 KG - MF", "unit_kg": 10.0}, {"code": "CHPKDXSA001", "name": "CHICKEN BREAST TENDERIZED DOUX 5*2 KG", "unit_kg": 10.0}, {"code": "CHPKDXSA002", "name": "CHICKEN BREAST TENDERIZED DOUX 10*1 KG", "unit_kg": 10.0}, {"code": "CHPPDXSA001", "name": "REGULAR CHICKEN STRIPS DOUX 12*750 GM", "unit_kg": 9.0}, {"code": "CHPPDXSA002", "name": "CHICKEN STRIPS SPICY DOUX 12*750 GM", "unit_kg": 9.0}, {"code": "CHPPDXSA005", "name": "DOUX SPICY CHICKEN STRIPS 12*700 GM", "unit_kg": 8.4}, {"code": "CHPPDXSA006", "name": "DOUX REGULAR CHICKEN STRIPS 12*700 GM", "unit_kg": 8.4}, {"code": "CHPTDXSA001", "name": "CHICKEN BREADED NUGETS DOUX 10*1 KG", "unit_kg": 10.0}, {"code": "CHPTDXSA002", "name": "CHICKEN BREADED NUGETS DOUX 12*500 GM", "unit_kg": 6.0}, {"code": "CHPUDXSA001", "name": "CHICKEN BURGER DOUX 12*660 GM", "unit_kg": 7.92}, {"code": "CHPUDXSA002", "name": "CHICKEN BREADED BURGER DOUX 12*660 GM", "unit_kg": 7.92}, {"code": "CHPWDXSA001", "name": "CHICKEN BREADED FINGERS DOUX 12*500 GM", "unit_kg": 6.0}, {"code": "CHPWDXSA002", "name": "CHICKEN BREADED STEAK DOUX 12*600 GM", "unit_kg": 7.2}, {"code": "CHRBHBSA02T", "name": "CHICKEN BREADED BURGER AL HABRA 8*855 GM", "unit_kg": 6.84}, {"code": "CHRMDRSA01T", "name": "CHICKEN MINCE DARI 20*400 GM", "unit_kg": 8.0}, {"code": "MTRMASSA001", "name": "MUTTON MINCE ANNAM SAUDI 20*400 GM", "unit_kg": 8.0}, {"code": "MTRMDRSA01T", "name": "MUTTON MINCE DARI 20*400 GM", "unit_kg": 8.0}, {"code": "MTRMHBSA001", "name": "MUTTON MINCE AL HABRA 20*400 GM", "unit_kg": 8.0}]}, {"group": "Frozen Raw Materials / مواد خام أولية مجمدة", "items": [{"code": "BFPTGEBR001", "name": "BEEF TRIMMINGS 80VL - MF", "unit_kg": 26.736}, {"code": "BFPTPRAU001", "name": "BEEF TRIMMINGS 50CL", "unit_kg": 25.695}, {"code": "BFPTXXUY001", "name": "BEEF TRIMMINGS 65CL TACUAREMBO URUGUAY", "unit_kg": 21.998}, {"code": "CHPKGAAR001", "name": "CHICKEN BREAST BULK W/O INNER FILLET 15 KG GTA", "unit_kg": 15.0}, {"code": "CHPKJABR01T", "name": "CHICKEN B/L S/L HALF BREAST JAGUA W/OUT INNER FILLET 2*7.5 KG", "unit_kg": 15.0}, {"code": "CHPKNORU001", "name": "RM- STRIPS CHICKEN B/L S/L BREAST NOOR INNER FILLET 15 KG", "unit_kg": 15.0}, {"code": "CHPKNORU01T", "name": "CHICKEN B/L S/L HALF BREAST NOOR W/OUT INNER FILLET 4*2.5 KG", "unit_kg": 10.0}, {"code": "CHPKNORU03T", "name": "CHICKEN B/L S/L BREAST NOOR W/OUT INNER FILLET BULK 15 KG", "unit_kg": 15.0}, {"code": "CHPKSEBR003", "name": "CHICKEN BONELESS SKINLESS BREAST SEARA 1*15 KG", "unit_kg": 15.0}, {"code": "CHPKSEBR008", "name": "RM- STRIPS CHICKEN B/L S/L BREAST SEARA INNER FILLET 15 KG", "unit_kg": 15.0}, {"code": "CHPKXXRU001", "name": "CHICKEN BREAST MIRATORG BULK W/O INNER FILLET 15 KG", "unit_kg": 15.0}, {"code": "CHPNSEBR01T", "name": "CHICKEN SKIN SEARA 1*15 KG", "unit_kg": 15.0}, {"code": "CHPSXXBR001", "name": "FROZEN CHICKEN SKIN CUTS 15 KG PACK", "unit_kg": 15.0}, {"code": "MTPTFLAU001", "name": "MUTTON TRIMMINGS 50CL FLETCHER", "unit_kg": 23.18}, {"code": "MTPTFLAU003", "name": "MUTTON TRIMMINGS 65CL FLETCHER", "unit_kg": 26.39}]}, {"group": "Packaging & Plastic / مواد التغليف والبلاستيك", "items": [{"code": "CRTCB002", "name": "CARTON BREADED CHICKEN BURGER", "unit_kg": null}, {"code": "CRTDC001", "name": "CARTON MINCE DARI CHICKEN", "unit_kg": null}, {"code": "CRTDL001", "name": "CARTON MINCE DARI LAMB", "unit_kg": null}, {"code": "CRTHC002", "name": "CARTON FOR TENDERIZED - DARI 1 KG", "unit_kg": null}, {"code": "CRTHL001", "name": "CARTON MINCE HABRA LAMB", "unit_kg": null}, {"code": "CRTSB001", "name": "CARTON MINE SAUDI BEEF", "unit_kg": null}, {"code": "CRTSL001", "name": "CARTON MINE SAUDI LAMB", "unit_kg": null}, {"code": "CRTTB001", "name": "CARTON FOR TENDERIZED - DARI 2 KG", "unit_kg": null}, {"code": "NCRCDXSA001", "name": "CARTON CHICKEN BREADED NUGGETS -DOUX 1 KG", "unit_kg": null}, {"code": "NCRCDXSA002", "name": "CARTON CHICKEN BREADED NUGGETS -DOUX 500 GM", "unit_kg": null}, {"code": "NCRCDXSA003", "name": "CARTON CHICKEN BREADED BURGER -DOUX 660 GM", "unit_kg": null}, {"code": "NCRCDXSA004", "name": "CARTON CHICKEN BREADED FINGER -DOUX 500 GM", "unit_kg": null}, {"code": "NCRCDXSA005", "name": "CARTON CHICKEN BREADED STEAK -DOUX 600 GM", "unit_kg": null}, {"code": "NCRCDXSA007", "name": "CARTON CHICKEN BURGER -DOUX 660 GM", "unit_kg": null}, {"code": "NCRCNASA003", "name": "CARTON FOR TENDERIZED - DOUX 1 KG", "unit_kg": null}, {"code": "NCRCNASA004", "name": "CARTON FOR TENDERIZED - DOUX 2 KG", "unit_kg": null}, {"code": "NCRPXXGB001", "name": "ZIPPER (MX29TD-CLR-C1)", "unit_kg": null}, {"code": "NCWCDXSA001", "name": "PACKAGING BOX-DOUX CHICKEN FINGERS -500GM", "unit_kg": null}, {"code": "NCWCDXSA002", "name": "PACKAGING BOX-DOUX CHICKEN NUGGETS -500GM", "unit_kg": null}, {"code": "NCWCDXSA003", "name": "PACKAGING BOX-DOUX CHICKEN STEAK -600GM", "unit_kg": null}, {"code": "NCWCDXSA004", "name": "PACKAGING BOX-DOUX BREADED BURGER -660GM", "unit_kg": null}, {"code": "NCWCDXSA005", "name": "PACKAGING BOX-DOUX BURGER -660GM", "unit_kg": null}, {"code": "NCWPDXAE001", "name": "PLASTIC ROLL - DOUX CHICKEN NUGGETS 1KG", "unit_kg": 600.0}, {"code": "NCWPXXAE005", "name": "PLASTIC ROLL - DOUX 1 KG (AL JAZIB)", "unit_kg": 600.0}, {"code": "NCWPXXAE006", "name": "PLASTIC ROLL - DOUX 2 KG", "unit_kg": 500.0}, {"code": "NCWPXXAE007", "name": "PLASTIC ROLL - REGULAR STRIPS DOUX 750 GM", "unit_kg": 500.738}, {"code": "NCWPXXAE008", "name": "PLASTIC ROLL - SPICY STRIPS DOUX 750 GM", "unit_kg": 499.283}, {"code": "NCWPXXAE012", "name": "PLASTIC ROLL - CHICKEN BREADED BURGER", "unit_kg": 504.978}, {"code": "NCWPXXAE013", "name": "PLASTIC ROLL - DARI CHICKEN MINCE", "unit_kg": 500.0}, {"code": "NCWPXXAE014", "name": "UNPRINTED PLASTIC ROLL 510MM", "unit_kg": 780.0}, {"code": "NCWPXXSA009", "name": "PACKAGING CARTON FOR REGULAR STRIPS - DOUX", "unit_kg": null}, {"code": "NCWPXXSA010", "name": "PACKAGING CARTON FOR SPICY STRIPS - DOUX", "unit_kg": null}, {"code": "NCWPXXSA012", "name": "PLASTIC ROLL - TENDERIZED DARI 1 KG", "unit_kg": 440.693}, {"code": "NCWPXXSA013", "name": "PLASTIC ROLL - TENDERIZED DARI 2 KG", "unit_kg": 400.0}, {"code": "NCWPXXSA014", "name": "PLASTIC ROLL - TENDERIZED DOUX 1 KG", "unit_kg": 410.185}, {"code": "NCWPXXSA019", "name": "PLASTIC ROLL - TENDERIZED DOUX 2 KG", "unit_kg": 400.0}, {"code": "PKBR001", "name": "PLASTIC ROLL FOR BREAST", "unit_kg": 20.699}, {"code": "PKCL002", "name": "PACKING CLIP ROLL", "unit_kg": 10.0}, {"code": "PKPL002", "name": "PLASTIC PACKAGING ROLL SAUDI LAMB (NAPCO)", "unit_kg": 6.0}, {"code": "PKPL003", "name": "PLASTIC PACKAGING ROLL SAUDI BEEF (NAPCO)", "unit_kg": 6.0}, {"code": "PKPL005", "name": "PLASTIC PACKAGING ROLL HABRA LAMB (NAPCO)", "unit_kg": 6.0}, {"code": "PKPL013", "name": "PLASTIC PACKAGING ROLL DARI LAMB (NAPCO)", "unit_kg": 6.0}, {"code": "PKPL017", "name": "PLASTIC PACKAGING ROLL DARI CHICKEN (NAPCO)", "unit_kg": 6.0}, {"code": "PKSH001", "name": "SHRINK ROLL", "unit_kg": 24.731}, {"code": "PKTP001", "name": "SEALING TAPE FOR CARTONS", "unit_kg": null}]}, {"group": "Other Raw Materials / مواد خام أخرى", "items": [{"code": "BRRRXXEG001", "name": "BREADING EG", "unit_kg": 20.0}, {"code": "GRCBHAES04T", "name": "BREADCRUMBS SO-30-N", "unit_kg": 25.0}, {"code": "GRCBHAES05T", "name": "BREAD FINE CRUMBS T-03-B", "unit_kg": 25.0}, {"code": "GRCBHAES06T", "name": "BATTER HA -SJ/2", "unit_kg": 25.0}, {"code": "GRCBKCDK01T", "name": "FIBER BIND 400- MF", "unit_kg": 8.0}, {"code": "GRCWXXDE01T", "name": "WHEAT FIBER BIND- MF", "unit_kg": 10.0}, {"code": "GRGXSCIN01T", "name": "TEXTURED SOYA PROTEIN SONIC 20 KG", "unit_kg": 20.0}, {"code": "GRGXXXIN001", "name": "TEXTURED SOYA PROTEIN", "unit_kg": 20.0}, {"code": "GRRCXXSA001", "name": "MEFSCO - CORN STARCH 25 KG", "unit_kg": 25.0}, {"code": "GRRFXXSA001", "name": "SUPERIOR FLOUR", "unit_kg": 45.0}, {"code": "GRRVXXCN001", "name": "ASCORBIC ACID", "unit_kg": 25.0}, {"code": "GRWSZAAT001", "name": "EURO NUGGET SEASONING- MF", "unit_kg": 2.0}, {"code": "GRXXXXDE01T", "name": "SODIUM TRIPOLYPHOSPHATE 25 KG", "unit_kg": 25.0}, {"code": "HSRHXXSA001", "name": "CHILI POWDER HIGH PUNGENCY", "unit_kg": 10.0}, {"code": "HSRSXXGB001", "name": "BONELESS WING BREADER DB300", "unit_kg": 25.0}, {"code": "HSRXXXDE001", "name": "AROMIX FLAVOR C INTENSIVE", "unit_kg": 10.0}, {"code": "HSRXXXDE002", "name": "SEASONING MIX FOR CHICKEN STRIPS", "unit_kg": 24.0}, {"code": "OLRSNOSA001", "name": "NOOR FRYIT BLENDED OIL FOR COOKING & FRYING  1*17 LITER", "unit_kg": 17.0}, {"code": "OLRVXXSA001", "name": "SUNFLOWER OIL AMBER 4*4 LTR", "unit_kg": 16.0}, {"code": "OLVCMRSA02T", "name": "VEGETABLE COOKING OIL MARIETTA 1*17 LITER", "unit_kg": 17.0}, {"code": "OLWCFASA001", "name": "CORN OIL ALFA 1*17 LITER", "unit_kg": 17.0}, {"code": "PKBP002", "name": "BLACK PEPPER POWDER 1*10 KG", "unit_kg": 10.0}, {"code": "PKGP004", "name": "GARLIC POWDER 1*10 KG", "unit_kg": 10.0}, {"code": "PKGP005", "name": "GINGER POWDER 1*10 KG", "unit_kg": 10.0}, {"code": "PKOP002", "name": "ONION POWDER 1*10 KG", "unit_kg": 10.0}, {"code": "PKSL001", "name": "SALT", "unit_kg": 50.0}, {"code": "PKWP003", "name": "WHITE PEPPER POWDER 1*10 KG", "unit_kg": 10.0}, {"code": "PSWWXXES01T", "name": "WHEAT BREAD CRUMB MIX 158 - MF", "unit_kg": 25.0}]}, {"group": "Additional Inventory Items / أصناف إضافية", "items": [{"code": "BFPBAUAU001", "name": "BEEF BRISKET ANGUS AUSKOBE", "unit_kg": null}, {"code": "BFPBVFBR001", "name": "BEEF BRISKET MINERVA FOODS - CHILLED", "unit_kg": null}, {"code": "BFPBXXCA01T", "name": "BEEF BRISKET CANADIAN - AAA", "unit_kg": null}, {"code": "BFPEAEBR001", "name": "BEEF TENDERLOIN APETI - CHILLED", "unit_kg": null}, {"code": "BFPEAUAU001", "name": "BEEF TENDERLOIN ANGUS AUSKOBE", "unit_kg": null}, {"code": "BFPEBRBR001", "name": "BEEF TENDERLOIN BRAZILI", "unit_kg": null}, {"code": "BFPEGEBR01T", "name": "BEEF TENDERLOIN GEJOTA", "unit_kg": null}, {"code": "BFPESLNZ03T", "name": "RESERVE BEEF TENDERLOIN SILVER FERN FARMS - CHILLED", "unit_kg": null}, {"code": "BFPEVFBR001", "name": "BEEF TENDERLOIN CHAIN ON MINERVA FOODS", "unit_kg": null}, {"code": "BFPLBRBR001", "name": "BEEF STRIPLOIN BRAZILI", "unit_kg": null}, {"code": "BFPMXXBR001", "name": "BEEF RUMP HEART FRIBOI - CHILLED", "unit_kg": null}, {"code": "BFPNAEBR001", "name": "BEEF KNUCKLE APETI - CHILLED", "unit_kg": null}, {"code": "BFPNVFBR01T", "name": "BEEF BONELESS KNUCKLE MINERVA FOODS- CHILLED", "unit_kg": null}, {"code": "BFPOAUAU001", "name": "BEEF TOPSIDE ANGUS AUSKOBE", "unit_kg": null}, {"code": "BFPOBRBR001", "name": "BEEF TOPSIDE BRAZILI", "unit_kg": null}, {"code": "BFPOGEBR01T", "name": "BEEF TOPSIDE GEJOTA BRAZILI", "unit_kg": null}, {"code": "BFPOGEBR02T", "name": "BEEF TOPSIDE GEJOTA BRAZILI - CHILLED", "unit_kg": null}, {"code": "BFPOVFBR01T", "name": "BEEF BONELESS TOPSIDE CAP ON FAT ON MINERVA FOODS", "unit_kg": null}, {"code": "BFPOVFBR02T", "name": "BEEF BONELESS TOPSIDE MINERVA FOODS - CHILLED", "unit_kg": null}, {"code": "BFPQVFBR001", "name": "BEEF FOREQUARTER MINERVA FOODS", "unit_kg": null}, {"code": "BFPUAUAU001", "name": "BEEF CHUCK & BLADE ANGUS AUSKOBE", "unit_kg": null}, {"code": "BFPUVFBR001", "name": "BEEF CHUCK MINERVA FOODS - CHILLED", "unit_kg": null}, {"code": "BFPYVFBR01T", "name": "BEEF BONELESS EYEROUND MINERVA FOODS - CHILLED", "unit_kg": null}, {"code": "BFRDDRSA001", "name": "DAOUD BASHA DARI 12*415 GM", "unit_kg": null}, {"code": "BFRLDRSA001", "name": "BEEF LASAGNE DARI 12*425 GM", "unit_kg": null}, {"code": "BTPOLUDK001", "name": "UNSALTED BUTTER LURPAK SPREADABLE MINICUP 6*100*10 GM", "unit_kg": null}, {"code": "BTPSPNFR001", "name": "SALTED BUTTER PRESIDENT 600*10 GM", "unit_kg": null}, {"code": "BTPSPNFR002", "name": "SALTED BUTTER PRESIDENT 60*100 GM", "unit_kg": null}, {"code": "BTPUABSA01W", "name": "STO- BUTTER ALBAIK-WS", "unit_kg": null}, {"code": "BTPUPNFR001", "name": "UNSALTED BUTTER PRESIDENT 20*400 GM", "unit_kg": null}, {"code": "BTPUPNFR002", "name": "UNSALTED BUTTER PRESIDENT 40*200 GM", "unit_kg": null}, {"code": "BTPUPNFR01T", "name": "UNSALTED BUTTER PRESIDENT 60*100 GM", "unit_kg": null}, {"code": "BTPUPTAR001", "name": "UNSALTED BUTTER SAPUTO 25 KG", "unit_kg": null}, {"code": "CHPBNORU001", "name": "CHICKEN B/L S/L LEGS NOOR  4*2.5 KG", "unit_kg": null}, {"code": "CHPKPBBR001", "name": "CHICKEN B/L S/L BREAST PENA BRANCA 4*2.5 GM", "unit_kg": null}, {"code": "CHPKUSBR001", "name": "CHICKEN B/L S/L BREAST UNEF W/OUT INNER FILLET 4*2.5 KG", "unit_kg": null}, {"code": "CHPONORU01T", "name": "BONELESS WHOLE CHICKEN NOOR 4*2.5 KG", "unit_kg": null}, {"code": "CHPOPISA001", "name": "CHICKEN POPCORN CRISPY PREMIER 4*2.5 KG", "unit_kg": null}, {"code": "CHPOUSBR001", "name": "BONELESS WHOLE CHICKEN UNEF 4*2.5 KG", "unit_kg": null}, {"code": "CHPTNORU001", "name": "CHICKEN THIGHS  B/L S/L NOOR  4*2.5 KG", "unit_kg": null}, {"code": "CHRBDXFR001", "name": "CHICKEN BURGER DOUX 12*660 GM", "unit_kg": null}, {"code": "CHRBDXFR002", "name": "CHICKEN BREADED BURGER DOUX 12*660 GM", "unit_kg": null}, {"code": "CHRCDRFR001", "name": "CHICKEN FRANKS W/CHEESE DARI 24*340 GM", "unit_kg": null}, {"code": "CHRCDXFR002", "name": "CHICKEN FRANKS W/CHEESE DOUX 24*400 GM", "unit_kg": null}, {"code": "CHRFDRSA002", "name": "CHICKEN FRANKS DARI 24*340 GM - A", "unit_kg": null}, {"code": "CHRFDXFR005", "name": "CHICKEN FRANKS DOUX 24*400 GM", "unit_kg": null}, {"code": "CHRFDXFR05T", "name": "CHICKEN FRANKS DOUX PROMO 8*3*340 GM", "unit_kg": null}, {"code": "CHRFDXFR06T", "name": "CHICKEN FRANKS DOUX SMOKED 24*400 GM", "unit_kg": null}, {"code": "CHRFSRFR02T", "name": "CHICKEN FRANKS SUPREME 24*340 GM", "unit_kg": null}, {"code": "CHRGDXFR002", "name": "CHICKEN FRANKS W/GARLIC DOUX 24*400 GM", "unit_kg": null}, {"code": "CHRIDXFR04T", "name": "CHICKEN BREADED FINGERS DOUX 12*500 GM", "unit_kg": null}, {"code": "CHRKDXFR04T", "name": "CHICKEN BREADED STEAK DOUX 12*600 GM", "unit_kg": null}, {"code": "CHRSDXFR004", "name": "CHICKEN FRANKS HOT & SPICY DOUX 24*400 GM", "unit_kg": null}, {"code": "CHRSDXFR03T", "name": "CHICKEN FRANKS WITH ARABIC SPICES DOUX 24*400 GM", "unit_kg": null}, {"code": "CHRTDXFR04T", "name": "CHICKEN BREADED NUGETS DOUX 10*1 KG", "unit_kg": null}, {"code": "CHWCDRSA001", "name": "CHICKEN TIKKA DARI 12*375 GM", "unit_kg": null}, {"code": "CHWOPBBR001", "name": "WHOLE CHICKEN B/L PENA BRANCA 4*2.5 GM", "unit_kg": null}, {"code": "CHWWDRFR001", "name": "WHOLE CHICKEN DARI 10*900 GM", "unit_kg": null}, {"code": "CHWWDRFR002", "name": "WHOLE CHICKEN DARI 10*1000 GM", "unit_kg": null}, {"code": "CHWWDRFR003", "name": "WHOLE CHICKEN DARI 10*1100 GM", "unit_kg": null}, {"code": "CHWWDRFR004", "name": "WHOLE CHICKEN DARI 10*1200 GM", "unit_kg": null}, {"code": "CHWWDRSA001", "name": "BUTTER CHICKEN DARI 12*400 GM", "unit_kg": null}, {"code": "CHWWDRSA002", "name": "CHICKEN ALFREDO DARI 12*400 GM", "unit_kg": null}, {"code": "CHWWDRSA003", "name": "CHICKEN BIRYANI DARI 12*400 GM", "unit_kg": null}, {"code": "CHWWDXFR001", "name": "WHOLE CHICKEN DOUX 16*650 GM", "unit_kg": null}, {"code": "CHWWDXFR002", "name": "WHOLE CHICKEN DOUX 10*800 GM", "unit_kg": null}, {"code": "CHWWDXFR003", "name": "WHOLE CHICKEN DOUX 10*900 GM", "unit_kg": null}, {"code": "CHWWDXFR004", "name": "WHOLE CHICKEN DOUX 10*1000 GM", "unit_kg": null}, {"code": "CHWWDXFR005", "name": "WHOLE CHICKEN DOUX 10*1100 GM", "unit_kg": null}, {"code": "CHWWDXFR007", "name": "WHOLE CHICKEN DOUX 10*1200 GM", "unit_kg": null}, {"code": "CHWWDXFR009", "name": "WHOLE CHICKEN DOUX 10*1300 GM", "unit_kg": null}, {"code": "CHWWDXFR010", "name": "WHOLE CHICKEN DOUX 10*1400 GM", "unit_kg": null}, {"code": "CHWWNORU001", "name": "WHOLE CHICKEN NOOR 10*800 GM", "unit_kg": null}, {"code": "CHWWNORU002", "name": "WHOLE CHICKEN NOOR 10*900 GM", "unit_kg": null}, {"code": "CHWWNORU003", "name": "WHOLE CHICKEN NOOR 10*1000 GM", "unit_kg": null}, {"code": "CHWWNORU004", "name": "WHOLE CHICKEN NOOR 10*1100 GM", "unit_kg": null}, {"code": "CHWWNORU005", "name": "WHOLE CHICKEN NOOR 10*1200 GM", "unit_kg": null}, {"code": "CHWWNORU006", "name": "WHOLE CHICKEN NOOR 10*1300 GM", "unit_kg": null}, {"code": "CHWWSRFR002", "name": "WHOLE CHICKEN SUPREME 10*800 GM", "unit_kg": null}, {"code": "CHWWSRFR003", "name": "WHOLE CHICKEN SUPREME 10*900 GM", "unit_kg": null}, {"code": "CHWWSRFR005", "name": "WHOLE CHICKEN SUPREME 10*1000 GM", "unit_kg": null}, {"code": "CHWWSRFR008", "name": "WHOLE CHICKEN SUPREME 10*1200 GM", "unit_kg": null}, {"code": "CHWWSRFR009", "name": "WHOLE CHICKEN SUPREME 10*1300 GM", "unit_kg": null}, {"code": "CHWWUSBR002", "name": "WHOLE CHICKEN UNEF 10*800 GM", "unit_kg": null}, {"code": "CHWWUSBR003", "name": "WHOLE CHICKEN UNEF 10*900 GM", "unit_kg": null}, {"code": "CHWWUSBR004", "name": "WHOLE CHICKEN UNEF 10*1000 GM", "unit_kg": null}, {"code": "CHWWUSBR005", "name": "WHOLE CHICKEN UNEF 10*1100 GM", "unit_kg": null}, {"code": "CHWWUSBR006", "name": "WHOLE CHICKEN UNEF 10*1200GM", "unit_kg": null}, {"code": "CRCFDRAE001", "name": "CREAM DARI (QASHTA) 48*170 GM", "unit_kg": null}, {"code": "CRTFMMIT05T", "name": "COOKING CREAM GOURMET CHEF MASTER MARTINI 12*1 LITER", "unit_kg": null}, {"code": "CSCBPNEG001", "name": "CHEDDER CHEESE BLOCK PRESIDENT 24*450 GM", "unit_kg": null}, {"code": "CSCLPNSA003", "name": "SLICES CHEDDAR CHEESE LIGHT PRESIDENT 18*400 GM", "unit_kg": null}, {"code": "CSCLPNSA01T", "name": "CHEDDER CHEESE SLICES PRESIDENT LIGHT&TASTY 36*200 GM", "unit_kg": null}, {"code": "CSCSPNSA001", "name": "CHEDDAR CHEESE SHREDED PRESIDENT 8*450 GM", "unit_kg": null}, {"code": "CSELPNSA001", "name": "SLICES EMMENTAL CHEESE TOAST PRESIDENT 36*200 GM", "unit_kg": null}, {"code": "CSFRLWDE01T", "name": "MOZZARELLA CHEESE STICKS LAMBWESTON 6*1 KG", "unit_kg": null}, {"code": "CSFRLWNL01T", "name": "CHILI CHEESE NUGGETS LAMBWESTON 6*1 KG", "unit_kg": null}, {"code": "CSFRLWNL02T", "name": "MINI CHEESE BALLS (CHEDDAR) LAMBWESTON 6*1 KG", "unit_kg": null}, {"code": "CSHLDRCY01T", "name": "HALLOUMI CYPRIOT WHITE CHEESE LITE DARI 20*225 GM", "unit_kg": null}, {"code": "CSHODRCY001", "name": "HALLOUMI CHEESE BURGER DARI  20*200 GM", "unit_kg": null}, {"code": "CSHODRCY002", "name": "HALLOUMI CYPRIOT WHITE CHEESE WITH CHILLI DARI 20*225 GM", "unit_kg": null}, {"code": "CSHODRCY003", "name": "HALLOUMI CHEESE SLICES DARI 20*200 GM", "unit_kg": null}, {"code": "CSHWCRCY002", "name": "HALLOUMI CHEESE CHRISTIS 20*225 GM", "unit_kg": null}, {"code": "CSHWDRCY01T", "name": "HALLOUMI CHEESE DARI 20*225 GM", "unit_kg": null}, {"code": "CSHWDRCY02T", "name": "HALLOUMI CHEESE GOAT AND SHEEP DARI 18*225 GM", "unit_kg": null}, {"code": "CSKBDRBG001", "name": "KASHKAVAL CHEESE DARI 2*8 KG (BU)", "unit_kg": null}, {"code": "CSKWDRHU001", "name": "KASHKAVAL CHEESE DARI 2*8 KG", "unit_kg": null}, {"code": "CSLLPNSA001", "name": "SLICES CHEESE  PRESIDENT LIGHT 0.9% FAT  36*200 GM", "unit_kg": null}, {"code": "CSLWDRSA001", "name": "SLICES YELLOW CHEESE DARI 8*2.27 KG", "unit_kg": null}, {"code": "CSLWDRSA002", "name": "SLICES WHITE CHEESE DARI 8*2.27 KG", "unit_kg": null}, {"code": "CSLWPNNL001", "name": "SLICES CHEESE PRESIDENT EDAM 10*150 GM", "unit_kg": null}, {"code": "CSLWPNNL002", "name": "SLICES CHEESE PRESIDENT GOUDA 10*150 GM", "unit_kg": null}, {"code": "CSLWPNNL003", "name": "SLICES CHEESE PRESIDENT MAASDAM 10*150 GM", "unit_kg": null}, {"code": "CSLWPNSA01T", "name": "SLICES BURGER CHEESE PRESIDENT 36*200 GM", "unit_kg": null}, {"code": "CSLWPNSA02T", "name": "SLICES BURGER CHEESE PRESIDENT 18*400 GM", "unit_kg": null}, {"code": "CSLWPNSA03T", "name": "SLICES SANDWICH CHEESE PRESIDENT 18*400 GM", "unit_kg": null}, {"code": "CSLWPNSA04T", "name": "SLICES SANDWICH CHEESE PRESIDENT 36*200 GM", "unit_kg": null}, {"code": "CSMB3CDK001", "name": "MOZARILLA CHEESE BLOCK 3COWS 8*2.3", "unit_kg": null}, {"code": "CSMBDRPL01T", "name": "MOZARILLA CHEESE BLOCK DARI 4*2.3 KG", "unit_kg": null}, {"code": "CSMLPNSA001", "name": "SLICES MOZARILLA CHEESE PRESIDENT 36*200 GM", "unit_kg": null}, {"code": "CSMSDRPL002", "name": "MOZARILLA CHEESE SHREDED DARI 5*2 KG", "unit_kg": null}, {"code": "CSMSDRPL003", "name": "MOZARILLA CHEESE SHREDED DARI 20*200 GM (PL)", "unit_kg": null}, {"code": "CSMSDRSA001", "name": "MOZARILLA CHEESE SHREDED DARI 4*1 KG (PL)", "unit_kg": null}, {"code": "CSMSDRSA002", "name": "MOZARILLA CHEESE SHREDED DARI 8*500 GM (PL)", "unit_kg": null}, {"code": "CSMSDRSA003", "name": "MOZARILLA CHEESE SHREDED DARI 20*200 GM(UF)", "unit_kg": null}, {"code": "CSMSDRSA007", "name": "MOZARILLA CHEESE SHREDED DARI 2*2 KG (UF)", "unit_kg": null}, {"code": "CSMSPNSA001", "name": "MOZARILLA CHEESE SHREDED PRESIDENT 8*450 GM", "unit_kg": null}, {"code": "CSMSPNSA002", "name": "MOZARILLA CHEESE SHREDED PRESIDENT 4*900 GM", "unit_kg": null}, {"code": "CSMSPNSA003", "name": "MOZARILLA CHEESE SHREDED PRESIDENT 20*200 GM", "unit_kg": null}, {"code": "CSMSPNSA004", "name": "MOZARILLA & KASHKAVAL CHEESE SHREDED PRESIDENT 10*400 GM", "unit_kg": null}, {"code": "CSMSPNSA005", "name": "MOZARILLA CHEESE SHREDED LIGHT PRESIDENT 10*400 GM", "unit_kg": null}, {"code": "CSMSPNSA006", "name": "MOZARILLA & CHEDDAR CHEESE SHREDED PRESIDENT 8*450 GM", "unit_kg": null}, {"code": "CSMSPNSA007", "name": "MOZARILLA CHEESE SHREDED FOUR FLAVORS PRESIDENT 10*400 GM", "unit_kg": null}, {"code": "CSMWPNSA001", "name": "MOZARILLA & EMMENTAL CHEESE PRESIDENT 8*450 GM", "unit_kg": null}, {"code": "CSRJDREG001", "name": "CREAM CHEESE JAR DARI 6*900 GM", "unit_kg": null}, {"code": "CSRJDRSA001", "name": "CREAM CHEESE JAR DARI 12*500 GM", "unit_kg": null}, {"code": "CSRWPNFR001", "name": "CREAM PRESIDENT UHT WHIPPING CREAM 35.1% FDM 6*1 LITER", "unit_kg": null}, {"code": "CSRWPNFR003", "name": "CREAM PRESIDENT UHT COOKING CREAM 18% FDM 6*1 LITER", "unit_kg": null}, {"code": "CSTWALSA001", "name": "TRIANGLE CHEESE PRESIDENT ALVITA 32 P 12*480 GM", "unit_kg": null}, {"code": "CSTWALSA002", "name": "TRIANGLE CHEESE PRESIDENT ALVITA 24 P 24*360 GM", "unit_kg": null}, {"code": "CSTWALSA003", "name": "TRIANGLE CHEESE PRESIDENT ALVITA 8 P 24*120 GM", "unit_kg": null}, {"code": "CSWBPNEG001", "name": "WHITE CHEESE PRESIDENT 12*500 GM", "unit_kg": null}, {"code": "CSWBPNEG002", "name": "WHITE CHEESE PRESIDENT 27*250 GM", "unit_kg": null}, {"code": "CSWBVAFR002", "name": "WHITE CHEESE FETA MINI BLOCK VALBRESO 8*600 GM", "unit_kg": null}, {"code": "CSWBVAFR003", "name": "WHITE CHEESE FETA BLOCK VALBRESO", "unit_kg": null}, {"code": "CSWLVAFR001", "name": "SLICES CHEESE FETA VALBRESO 12*200 GM", "unit_kg": null}, {"code": "CSWLVAFR002", "name": "SLICES CHEESE FETA LIGHT VALBRESO 12*200 GM", "unit_kg": null}, {"code": "CSWLVAFR003", "name": "SLICES CHEESE FETA WITH ZATAR VALBRESO 12*200 GM", "unit_kg": null}, {"code": "CSWODRSA001", "name": "CLASSIC MACARONI CHEESE DARI 12*350 GM", "unit_kg": null}, {"code": "CSWW3CDK006", "name": "WHITE CHEESE (3COWS) 1*16 KGM", "unit_kg": null}, {"code": "CSWWDRDK001", "name": "WHITE CHEESE DARI 1*16 KGM", "unit_kg": null}, {"code": "CSWWDRGR001", "name": "WHITE CHEESE DARI 12*500 GM", "unit_kg": null}, {"code": "CSWWDRGR002", "name": "WHITE CHEESE DARI 27*200 GM", "unit_kg": null}, {"code": "CSWWMRHU01T", "name": "WHITE CHEESE HUNGARIAN DOUBLE CREAM MARIETTA 1*16 KGM", "unit_kg": null}, {"code": "CSWWPNFR001", "name": "WHITE CHEESE PRESIDENT EMMENTAL 14*220 GM", "unit_kg": null}, {"code": "CSWWPNNL001", "name": "WHITE CHEESE PRESIDENT EDAM BALL", "unit_kg": null}, {"code": "CSWWPNNL003", "name": "WHITE CHEESE PRESIDENT GOUDA WHEEL", "unit_kg": null}, {"code": "CUPCBASA01W", "name": "STO - CORN ALBAIK - WS", "unit_kg": null}, {"code": "CUPCBASA02W", "name": "STO - CORN KERNEL ALBAIK - WS", "unit_kg": null}, {"code": "CUUWMRJO01T", "name": "TAHINA PREMIUM MARIETTA 1*10 KG", "unit_kg": null}, {"code": "DUWWDRBR09T", "name": "WHOLE DUCK W/G DARI 8*2000 GM", "unit_kg": null}, {"code": "DUWWDRBR10T", "name": "WHOLE DUCK W/G DARI 6*2200 GM", "unit_kg": null}, {"code": "DUWWDRBR11T", "name": "WHOLE DUCK W/G DARI 8*1800 GM", "unit_kg": null}, {"code": "DUWWGRBR004", "name": "WHOLE DUCK W/G GERMANIA 6*2200 GM", "unit_kg": null}, {"code": "DUWWGRBR005", "name": "WHOLE DUCK W/G GERMANIA 6*2400 GM", "unit_kg": null}, {"code": "DUWWGRBR09T", "name": "WHOLE DUCK W/G GERMANIA 8*2000 GM", "unit_kg": null}, {"code": "DUWWGRBR10T", "name": "WHOLE DUCK W/G GERMANIA 8*1800 GM", "unit_kg": null}, {"code": "EGWEBASA01W", "name": "STO - EGGS ALBAIK - WS", "unit_kg": null}, {"code": "FRKPDREG001", "name": "POMEGRANATE KERNEL DARI 8*1 KG (G)", "unit_kg": null}, {"code": "FRKPDRIN001", "name": "POMEGRANATE KERNEL DARI 8*1 KG", "unit_kg": null}, {"code": "FRKPMREG001", "name": "POMEGRANATE KERNEL MARIETTA - EG 8*1 KG", "unit_kg": null}, {"code": "FRPADRMX001", "name": "AVOCADO PULP DARI 6*454 GM", "unit_kg": null}, {"code": "FRPAMRMX01T", "name": "AVOCADO PULP MARIETTA 8*1 KG", "unit_kg": null}, {"code": "FRPCDRRS001", "name": "CRANBERRY DARI 16*350 GM", "unit_kg": null}, {"code": "FRPJDRIN002", "name": "GUAVA PULP WOS DARI 16  KG (4*250 GM)", "unit_kg": null}, {"code": "FRPJMOIN002", "name": "GUAVA PULP WOS MONTANA 16*1 KG", "unit_kg": null}, {"code": "FRPMDRIN004", "name": "ALPHONSO MANGO PULP WOS DARI 16  KG (4*250 GM)", "unit_kg": null}, {"code": "FRPMDRIN005", "name": "TOTAPURI MANGO PULP WOS DARI 16  KG (4*250 GM)", "unit_kg": null}, {"code": "FRPMDRIN006", "name": "MANGO PULP ALPHONSO WOS DARI 16*1 KG", "unit_kg": null}, {"code": "FRPMMOIN003", "name": "MANGO PULP WOS MONTANA 16*1 KG", "unit_kg": null}, {"code": "FRRBSXBR002", "name": "SAMBAZON SCOOPABLE ACAI  2X3.6 L", "unit_kg": null}, {"code": "FRRBSXBR003", "name": "SAMBAZON ACAI SORBET ON THE GO 24*173 GM", "unit_kg": null}, {"code": "FRRBSXBR004", "name": "SAMBAZON ACAI BOWL RTE AMAZON SUPER BERRY 8*173G", "unit_kg": null}, {"code": "FRRBSXBR005", "name": "SAMBAZON ACAI BOWL RTE BERRY BLISS 8*173G", "unit_kg": null}, {"code": "FRRBSXBR006", "name": "SAMBAZON ACAI PURE UNSWEETENED SUPER FRUIT PACK 15*400G", "unit_kg": null}, {"code": "FRRBSXBR007", "name": "SAMBAZON ACAI ORIGINAL BLEND SUPER FRUITS PACK 15*400G", "unit_kg": null}, {"code": "FRRBSXBR008", "name": "SAMBAZON ACAI SCOOPABLE SORBET 18*500 ML", "unit_kg": null}, {"code": "FRRBSXBR009", "name": "SAMBAZON ACAI + BANANA SCOOPABLE SORBET 18*500ML", "unit_kg": null}, {"code": "FRWBDRYU001", "name": "BLUEBERRY DARI 16*350 GM", "unit_kg": null}, {"code": "FRWHDRRS001", "name": "FROZEN SWEET CHERRIES DARI 16*350 GM", "unit_kg": null}, {"code": "FRWHDRRS002", "name": "FROZEN SOUR CHERRIES DARI 16*350 GM", "unit_kg": null}, {"code": "FRWKDRYU001", "name": "BLACKBERRY DARI 16*350 GM", "unit_kg": null}, {"code": "FRWRDRYU001", "name": "RASBERRY DARI 16*350 GM", "unit_kg": null}, {"code": "FRWSDREG003", "name": "STRAWBERRY DARI  (M) 8*1 KG", "unit_kg": null}, {"code": "FRWSDRRS001", "name": "VERY BERRY DARI MIX 16*350 GM", "unit_kg": null}, {"code": "FRWSMOEG001", "name": "STRAWBERRY MONTANA 8*1 KG", "unit_kg": null}, {"code": "FRWSMREG001", "name": "STRAWBERRY MARIETTA 8*1 KG (M)", "unit_kg": null}, {"code": "FRWSMREG003", "name": "STRAWBERRY MARIETTA 2*5 KG", "unit_kg": null}, {"code": "FSPEASAE01T", "name": "FROZEN FISH FILLET ASMAK 10*1 KG", "unit_kg": null}, {"code": "FSPRNPTZ002", "name": "FROZEN NILE PERCH FISH FILLET 500/1000 1*6 KG", "unit_kg": null}, {"code": "FSPRNPTZ003", "name": "FROZEN NILE PERCH FISH FILLET 1000/2000 1*6 KG", "unit_kg": null}, {"code": "FSPRNPTZ004", "name": "FROZEN NILE PERCH FISH FILLET 2000/3000 1*6 KG", "unit_kg": null}, {"code": "FSPRNPUG001", "name": "FROZEN NILE PERCH FISH FILLET 500/1000 1*6 KG - UG", "unit_kg": null}, {"code": "FSPRNPUG002", "name": "FROZEN NILE PERCH FISH FILLET 1000/2000 1*6 KG - UG", "unit_kg": null}, {"code": "FSRTMRTH001", "name": "CANNED TUNA MARIETTA CHUNK IN VEGETABLE OIL 48*95 GM", "unit_kg": null}, {"code": "FSRTMRTH002", "name": "CANNED TUNA MARIETTA CHUNK IN VEGETABLE OIL 48*185 GM", "unit_kg": null}, {"code": "FSRTMRTH003", "name": "CANNED TUNA MARIETTA CHUNK IN VEGETABLE OIL WITH CHILLI 48*95 GM", "unit_kg": null}, {"code": "FSRTMRTH004", "name": "CANNED TUNA MARIETTA CHUNK IN VEGETABLE OIL WITH CHILLI 48*185 GM", "unit_kg": null}, {"code": "FSWEXXBH002", "name": "FROZEN WHITE FISH FILLET 5*2 KG", "unit_kg": null}, {"code": "FSWRASAE001", "name": "FROZEN MEDIUM SHRIMPS ASMAK 20*400 GM", "unit_kg": null}, {"code": "FSWRASAE01T", "name": "FROZEN COOKING SHRIMPS ASMAK 20*400 GM", "unit_kg": null}, {"code": "FSWRASAE02T", "name": "FROZEN COOKING SHRIMPS ASMAK 10*1000 GM", "unit_kg": null}, {"code": "FSWRASAE03T", "name": "FROZEN LARGE SHRIMPS ASMAK 20*400 GM", "unit_kg": null}, {"code": "FSWRASAE04T", "name": "FROZEN JUMBO SHRIMPS ASMAK 20*400 GM", "unit_kg": null}, {"code": "FYWXDRSA01T", "name": "WHOLE QUAILS DARI 16*600 GM", "unit_kg": null}, {"code": "GHPUMASA001", "name": "UNSALTED MARGARINE MARIETTA 10*2.5 GM", "unit_kg": null}, {"code": "GRWRMRIN01T", "name": "MARIETTA LONG GRAIN SELA BASMATI RICE 40 KG", "unit_kg": null}, {"code": "HSHTDRJO001", "name": "THYME DARI 12*450 GM", "unit_kg": null}, {"code": "HSHTDRJO002", "name": "THYME DARI 12*225 GM", "unit_kg": null}, {"code": "ICCCKWSA02W", "name": "STO - KWALITY CARAMAEL COMPOUND / 511197 - WS", "unit_kg": null}, {"code": "ICCCKWSA03W", "name": "STO - KWALITY COLOR SHEDE PINKISH RED - WS", "unit_kg": null}, {"code": "ICCCKWSA04W", "name": "STO - KWALITY CARAMEL REVEL TOFFEE - WS", "unit_kg": null}, {"code": "ICCPKWSA02W", "name": "STO - KWALITY BLACK BERRY PUREE - WS", "unit_kg": null}, {"code": "ICCPKWSA03W", "name": "STO - KWALITY RASPBERRY BERRY PUREE - WS", "unit_kg": null}, {"code": "ICCXKWSA01W", "name": "STO - KWALITY MILK CHOCOLTE BALL CRUNCH - WS", "unit_kg": null}, {"code": "ICCXKWSA05W", "name": "STO - KWALITY YOUGHURT FLAVOURED ICE DIP COATING - WS", "unit_kg": null}, {"code": "KMKRMROM01T", "name": "KETCHUP MARIETTA 1000*9 GM", "unit_kg": null}, {"code": "KMKRMROM03T", "name": "KETCHUP MARIETTA 4*5 KG", "unit_kg": null}, {"code": "KMMRMROM01T", "name": "MAYONNAISSE MARIETTA 1000*10 GM", "unit_kg": null}, {"code": "KMRKDRES001", "name": "TOMATO KETCHUP DARI 12*340 GM", "unit_kg": null}, {"code": "KMRKDRES002", "name": "TOMATO HOT KETCHUP DARI 12*340 GM", "unit_kg": null}, {"code": "KMRMDRES001", "name": "MAYONNAISE DARI 12*300 ML", "unit_kg": null}, {"code": "KMRMDRES002", "name": "MAYONNAISE DARI LIGHT 12*300 ML", "unit_kg": null}, {"code": "KMSHMROM01T", "name": "HOT SAUCE MARIETTA 36*88 ML", "unit_kg": null}, {"code": "LBRLULTR001", "name": "PRESIDENT LABNEH LOW FAT 32*275 GM", "unit_kg": null}, {"code": "LBRWDRBG002", "name": "LABNEH DARI 36*180 GM (BU)", "unit_kg": null}, {"code": "LBRWDRSA001", "name": "LABNEH DARI 4*2.75 KG", "unit_kg": null}, {"code": "LBRWDRTR002", "name": "LABNEH DARI 24*375 GM", "unit_kg": null}, {"code": "LBRWDRTR003", "name": "LABNEH DARI 18*700 GM", "unit_kg": null}, {"code": "LBRWDRTR004", "name": "LABNEH DARI 4*2750 GM", "unit_kg": null}, {"code": "LBRWDRTR005", "name": "LABNEH DARI 36*180 GM", "unit_kg": null}, {"code": "LBRWPLTR001", "name": "PRESIDENT LABNEH 18*700 GM", "unit_kg": null}, {"code": "LBRWPNSA001", "name": "LABNEH PRESIDENT 4*2750 GM (SA)", "unit_kg": null}, {"code": "LBRWULTR002", "name": "PRESIDENT LABNEH 18*550 GM", "unit_kg": null}, {"code": "LBRWULTR003", "name": "PRESIDENT LABNEH 32*275 GM", "unit_kg": null}, {"code": "LBRWULTR004", "name": "PRESIDENT LABNEH 36*180 GM", "unit_kg": null}, {"code": "LMPOXXAU01T", "name": "LAMB RACKS BONE IN AUSTRALIAN", "unit_kg": null}, {"code": "LMPQSLNZ002", "name": "LAMB FOREQUARTER SILVER FERN FARMS", "unit_kg": null}, {"code": "LMPQXXNZ001", "name": "LAMB FOREQUARTER NEW ZEALAND", "unit_kg": null}, {"code": "LMPUFLAU001", "name": "LAMB BONE IN HINDSHANK FLETCHER", "unit_kg": null}, {"code": "LMPUSWAU01T", "name": "LAMB HINDSHANK SWIFT", "unit_kg": null}, {"code": "LMPVANNZ001", "name": "LAMB LIVER ANZCO", "unit_kg": null}, {"code": "LMPVMFAU001", "name": "LAMB LIVER MIDFIELD", "unit_kg": null}, {"code": "LMPVPRNZ001", "name": "LAMB LIVER PROGRESSIVE", "unit_kg": null}, {"code": "LMPVXXAU02T", "name": "LAMB LIVER AUSTRALIAN SWIFT", "unit_kg": null}, {"code": "LMWXXXNZ002", "name": "LAMB CARCASS NEW ZEALAND - YM", "unit_kg": null}, {"code": "MKEFDRAE002", "name": "DARI  EVOPORATED MILK 48*170 GM", "unit_kg": null}, {"code": "MTPLARAU01T", "name": "MUTTON LEGS BONE IN ARARAT", "unit_kg": null}, {"code": "MTPOARAU01T", "name": "MUTTON BONE IN LOIN ARARAT", "unit_kg": null}, {"code": "MTPOMFAU01T", "name": "MUTTON BONEIN LOIN MIDFIELD", "unit_kg": null}, {"code": "MTPVAFNZ01T", "name": "SHEEP LIVER AFFCO", "unit_kg": null}, {"code": "MTPVPPNZ003", "name": "MUTTON LIVER PPCS", "unit_kg": null}, {"code": "MTPWCSAU001", "name": "MUTTON CLASSIC 6 WAY CUTS", "unit_kg": null}, {"code": "MTWXXXNZ001", "name": "MUTTON CARCASS NEW ZEALAND", "unit_kg": null}, {"code": "OLOBCOES08T", "name": "OLIVE OIL COPOLIVA GOLD EXTRA VIRGIN 12*500 ML", "unit_kg": null}, {"code": "OLOBCOES09T", "name": "OLIVE OIL COPOLIVA POMACE 12*250 ML", "unit_kg": null}, {"code": "OLOBCOES10T", "name": "OLIVE OIL COPOLIVA POMACE 12*500 ML", "unit_kg": null}, {"code": "OVLBCOES002", "name": "BLACK OLIVES SLICES COPOLIVA 6*510 GM", "unit_kg": null}, {"code": "OVLBCOES003", "name": "BLACK OLIVES SLICES COPOLIVA 6*360 GM", "unit_kg": null}, {"code": "OVLBCOES004", "name": "BLACK OLIVES SLICES COPOLIVA 12*114 GM", "unit_kg": null}, {"code": "OVLBCOES006", "name": "BLACK OLIVES SLICES COPOLIVA 10*936 GM", "unit_kg": null}, {"code": "OVLBMREG001", "name": "OLIVES SLICES BLACK MARIETTA 6*1560 GM", "unit_kg": null}, {"code": "OVLBOLES002", "name": "BLACK OLIVES SLICES OLICOP 10*936 GM", "unit_kg": null}, {"code": "OVLBXXMA001", "name": "OLIVES SLICES BLACK MOROCCO 10*936 GM", "unit_kg": null}, {"code": "OVLGCOES002", "name": "GREEN OLIVES SLICES COPOLIVA 6*510 GM", "unit_kg": null}, {"code": "OVLGCOES003", "name": "GREEN OLIVES SLICES COPOLIVA 6*360 GM", "unit_kg": null}, {"code": "OVLGCOES004", "name": "GREEN OLIVES SLICES COPOLIVA 12*114 GM", "unit_kg": null}, {"code": "OVLGCOES006", "name": "GREEN OLIVES SLICES COPOLIVA 10*936 GM", "unit_kg": null}, {"code": "OVLGCOES009", "name": "GREEN OLIVES SLICES HOT COPOLIVA 12*114 GM", "unit_kg": null}, {"code": "OVLGCOES10T", "name": "GREEN OLIVES SLICES HOT COPOLIVA 6*510 GM", "unit_kg": null}, {"code": "OVLGMREG001", "name": "OLIVES SLICES GREEN MARIETTA 6*1560 GM", "unit_kg": null}, {"code": "OVLGOLES002", "name": "GREEN OLIVES SLICES OLICOP 10*936 GM", "unit_kg": null}, {"code": "OVLGXXMA001", "name": "OLIVES SLICES GREEN MOROCCO 10*936 GM", "unit_kg": null}, {"code": "OVOBCNES002", "name": "OLIVE OIL CONSUL POMACE BLENDED WITH EXTRA VIRGIN 1*10 LITER", "unit_kg": null}, {"code": "OVSGCOES001", "name": "GREEN OLIVES STFFED 300/320 COPOLIVA 2*5 KG", "unit_kg": null}, {"code": "OVSGCOES002", "name": "GREEN OLIVES STFFED COPOLIVA 12*142 GM", "unit_kg": null}, {"code": "OVTBCOES001", "name": "BLACK OLIVES PITTED COPOLIVA 6*1200 GM", "unit_kg": null}, {"code": "OVTBCOES002", "name": "BLACK OLIVES PITTED COPOLIVA 12*150 GM", "unit_kg": null}, {"code": "OVTBCOES003", "name": "BLACK OLIVES PITTED COPOLIVA 12*75 GM", "unit_kg": null}, {"code": "OVTGCOES001", "name": "GREEN OLIVES PITTED COPOLIVA 6*1200 GM", "unit_kg": null}, {"code": "OVTGCOES002", "name": "GREEN OLIVES PITTED COPOLIVA 12*150 GM", "unit_kg": null}, {"code": "OVTGCOES003", "name": "GREEN OLIVES PITTED COPOLIVA 12*75 GM", "unit_kg": null}, {"code": "OVTGCOES04T", "name": "GREEN OLIVES PITTED COPOLIVA 12*180 GM (150 GM+20% FREE)", "unit_kg": null}, {"code": "OVWBCOES002", "name": "BLACK OLIVES 160/180 COPOLIVA 2*5 KG", "unit_kg": null}, {"code": "OVWBCOES004", "name": "BLACK OLIVES 320/360 COPOLIVA 2*5 KG", "unit_kg": null}, {"code": "OVWBCOES006", "name": "BLACK OLIVES COPOLIVA 12*200 GM", "unit_kg": null}, {"code": "OVWBCOES007", "name": "BLACK OLIVES COPOLIVA 12*100 GM", "unit_kg": null}, {"code": "OVWBCOES010", "name": "BLACK OLIVES 180/220 COPOLIVA 2*5 KG", "unit_kg": null}, {"code": "OVWBCOES013", "name": "BLACK OLIVES 140\\160 COPOLIVA 2*5 KG", "unit_kg": null}, {"code": "OVWBCOGR01T", "name": "BLACK WHOLE OLIVE GREEK COPOLIVA 161/180 15*145 GM", "unit_kg": null}, {"code": "OVWBCOGR02T", "name": "BLACK WHOLE OLIVE GREEK COPOLIVA 161/180 15*250 GM", "unit_kg": null}, {"code": "OVWBMRCL01T", "name": "BLACK OLIVES KALAMATA COLOSSAL MARIETTA 7 KG", "unit_kg": null}, {"code": "OVWBMRCL02T", "name": "BLACK OLIVES KALAMATA GIANT MARIETTA  7 KG", "unit_kg": null}, {"code": "OVWBOLES001", "name": "BLACK OLIVES OLICOP 2*5 KG", "unit_kg": null}, {"code": "OVWGCOES004", "name": "GREEN OLIVES 320/360 COPOLIVA 2*5 KG", "unit_kg": null}, {"code": "OVWGCOES006", "name": "GREEN OLIVES COPOLIVA 12*200 GM", "unit_kg": null}, {"code": "OVWGCOES007", "name": "GREEN OLIVES COPOLIVA 12*100 GM", "unit_kg": null}, {"code": "OVWGCOES008", "name": "GREEN OLIVES 180/220 COPOLIVA 2*5 KG", "unit_kg": null}, {"code": "OVWGOLES001", "name": "GREEN OLIVES OLICOP 2*5 KG", "unit_kg": null}, {"code": "OVWGXXMA001", "name": "GREEN OLIVES CARTIER ANDALOUSIAN WITH CHILLI 1*8 KG", "unit_kg": null}, {"code": "OVWGXXMA002", "name": "GREEN OLIVES CARTIER MOROCCO WITH LEMON 1*8 KG", "unit_kg": null}, {"code": "PSRCXXNL02W", "name": "STO- ALTTYIBIN CAKE WITH CREAM AND BERRIES -WS", "unit_kg": null}, {"code": "PSRDDRAE001", "name": "PLAIN PARATHA DARI  24*400 GM", "unit_kg": null}, {"code": "PSRIDRSA001", "name": "FOUR CHEESE PIZZA DARI12*400 GM", "unit_kg": null}, {"code": "PSRIDRSA002", "name": "MUSHROOM AND PESTO PIZZA DARI 12*400 GM", "unit_kg": null}, {"code": "PSRIDRSA003", "name": "VEGETABLE PIZZA DARI 12*400 GM", "unit_kg": null}, {"code": "PSRIDRSA004", "name": "CHICKEN PIZZA DARI12*400 GM", "unit_kg": null}, {"code": "PSRLDRGR001", "name": "BAKLAVA DOUGH DARI (FILO) 12*450 GM", "unit_kg": null}, {"code": "PSRMDRGR001", "name": "SAMBOSA LEAVES DARI 24*500 GM", "unit_kg": null}, {"code": "PSRPDRSA001", "name": "CHICKEN PASTA DARI WITH TOMATO RAGO SAUCE  12*385 GM", "unit_kg": null}, {"code": "PSRSDRAE001", "name": "PUFF PASTRY DARI 18*400 GM", "unit_kg": null}, {"code": "PSRSDRAE002", "name": "PUFF PASTRY DARI 9*800 GM", "unit_kg": null}, {"code": "PSRSDRSG001", "name": "SPRING ROLL DARI PASTRY  40*340 GM", "unit_kg": null}, {"code": "PSRUDRGR001", "name": "KUNAFA DOUGH DARI 12*500 GM", "unit_kg": null}, {"code": "SARNPNFR001", "name": "CREAM PRESIDENT UHT COOKING CREAM 18% FDM 18*500 ML", "unit_kg": null}, {"code": "TUWWDXFR002", "name": "WHOLE TURKEY W/G DOUX 4*3600 GM", "unit_kg": null}, {"code": "TUWWDXFR003", "name": "WHOLE TURKEY W/G DOUX 4*3800 GM", "unit_kg": null}, {"code": "TUWWDXFR004", "name": "WHOLE TURKEY W/G DOUX 4*4000 GM", "unit_kg": null}, {"code": "TUWWDXFR09T", "name": "WHOLE TURKEY W/G DOUX 5*3400 GM", "unit_kg": null}, {"code": "TUWWDXFR28T", "name": "WHOLE TURKEY W/G SELF BASTING + COOKING TIMER DOUX 5*3400 GM", "unit_kg": null}, {"code": "VGCCDRIN01T", "name": "SWEET CORN KERNEL DARI 20*400 GM", "unit_kg": null}, {"code": "VGPBDRAE001", "name": "DARI CANNED RED BEANS KIDNEY 24*400 GM", "unit_kg": null}, {"code": "VGPBDRAE002", "name": "DARI CANNED BAKED BEANS/TOMATO SAUCE 24*400 GM", "unit_kg": null}, {"code": "VGPBDREG001", "name": "GREEN BEANS DARI (M) 20*400 GM", "unit_kg": null}, {"code": "VGPBDRES001", "name": "GREEN BEANS DARI 20*400 GM", "unit_kg": null}, {"code": "VGPBLFEG01T", "name": "GREEN BEANS LIFE 20*400 GM", "unit_kg": null}, {"code": "VGPBMOEG001", "name": "GREEN BEANS MONTANA 20*400 GM", "unit_kg": null}, {"code": "VGPBMOES001", "name": "GREEN BEANS MONTANA - SP 20*400 GM", "unit_kg": null}, {"code": "VGPBMREG01T", "name": "GREEN BEANS MARIETTA 20*400 GM", "unit_kg": null}, {"code": "VGPCMOIN001", "name": "CORN KERNEL (MONTANA) 20*400 GM", "unit_kg": null}, {"code": "VGPCMRIN001", "name": "CORN KERNEL MARIETTA 20*400 GM", "unit_kg": null}, {"code": "VGPDDRES001", "name": "MIXED VEGETABLE W/CORN DARI 20*400 GM", "unit_kg": null}, {"code": "VGPDDRES002", "name": "MIXED VEGETABLE W/CORN DARI 10*900 GM", "unit_kg": null}, {"code": "VGPDLWNL001", "name": "POTATO DIPPERS LAMBWESTON 10*1 KG (RT)", "unit_kg": null}, {"code": "VGPDMOEG001", "name": "MIXED VEGETABLE W/CORN MONTANA 20*400 GM", "unit_kg": null}, {"code": "VGPDMOES001", "name": "MIXED VEGETABLE W/CORN MONTANA - SP 20*400 GM", "unit_kg": null}, {"code": "VGPEMOES001", "name": "PEAS/CARROTS MONTANA 20*400 GM", "unit_kg": null}, {"code": "VGPIDRES001", "name": "MIXED VEGETABLE DARI 20*400 GM", "unit_kg": null}, {"code": "VGPILFEG01T", "name": "MIXED VEGETABLES LIFE 20*400 GM", "unit_kg": null}, {"code": "VGPIMOEG001", "name": "MIXED VEGETABLE MONTANA 20*400 GM", "unit_kg": null}, {"code": "VGPIMOES001", "name": "MIXED VEGETABLE MONTANA - SP 20*400 GM", "unit_kg": null}, {"code": "VGPIMREG001", "name": "MIXED VEGETABLE MARIETTA - EG 20*400 GM", "unit_kg": null}, {"code": "VGPKLWNL001", "name": "POTATO STEALTH W/SKIN 9*9 LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPLDRES001", "name": "BROCCOLI DARI 20*400 GM", "unit_kg": null}, {"code": "VGPLMOEG001", "name": "BROCCOLI MONTANA 20*250 GM", "unit_kg": null}, {"code": "VGPMDREG001", "name": "MOLOKHIA DARI (M) 20*400 GM", "unit_kg": null}, {"code": "VGPMLFEG01T", "name": "MOLOKHIA LIFE 20*400 GM", "unit_kg": null}, {"code": "VGPMMOEG001", "name": "MOLOKHIA MONTANA 20*400 GM", "unit_kg": null}, {"code": "VGPMMREG01T", "name": "MOLOKHIA MARIETTA 20*400 GM", "unit_kg": null}, {"code": "VGPPBASA01W", "name": "STO - POTATO CHIPS ALBAIK - WS", "unit_kg": null}, {"code": "VGPPDRAE001", "name": "DARI CANNED GREEN PEAS 24*400 GM", "unit_kg": null}, {"code": "VGPPDRBE01T", "name": "POTATO 9*9 DARI 5*2 KG (A)", "unit_kg": null}, {"code": "VGPPDRBE02T", "name": "POTATO 9*9 DARI 4*2.5 KG (A)", "unit_kg": null}, {"code": "VGPPDRBE03T", "name": "POTATO 6*6 DARI 4*2.5 KG (A)", "unit_kg": null}, {"code": "VGPPDRBE04T", "name": "POTATO 6*6 DARI 5*2 KG (A)", "unit_kg": null}, {"code": "VGPPDRES001", "name": "PEAS DARI 20*400 GM", "unit_kg": null}, {"code": "VGPPDRES002", "name": "PEAS DARI 10*900 GM", "unit_kg": null}, {"code": "VGPPDRES02T", "name": "GREEN PEAS/CARROTS DARI 10*900 GM", "unit_kg": null}, {"code": "VGPPDRES03T", "name": "GREEN PEAS/CARROTS DARI 20*400 GM", "unit_kg": null}, {"code": "VGPPDRNL002", "name": "POTATO 9*9 DARI 10*1 KG (A)", "unit_kg": null}, {"code": "VGPPFFEG002", "name": "POTATO 10*10 FARM FRITES 4*2.5 KG", "unit_kg": null}, {"code": "VGPPLFIN01T", "name": "GREEN PEAS LIFE- R 20*400 GM", "unit_kg": null}, {"code": "VGPPLWNL001", "name": "POTATO 6*6 LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPPLWNL002", "name": "POTATO 9*9 LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPPLWNL006", "name": "POTATO LAMBWESTON 9*9 HOT2HOME 4*2.5 KG", "unit_kg": null}, {"code": "VGPPLWNL009", "name": "POTATO CRISPY CHIPS LAMBWESTON 5*2 KG", "unit_kg": null}, {"code": "VGPPLWNL010", "name": "POTATO REALLY CRUNCHY 9*9 LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPPLWNL012", "name": "POTATO REALLY CRUNCHY 6*6 THIN LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPPLWNL03W", "name": "STO - ALBAIK POTATO CRISPY CHIPS LAMBWESTON 5*2 KG - WS", "unit_kg": null}, {"code": "VGPPLWNL06T", "name": "POTATO CHEFS TRADITIONAL CUBES LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPPLWNL09T", "name": "POTATO 9*9 LAMBWESTON 4*2.5 KG (RT)", "unit_kg": null}, {"code": "VGPPLWNL10T", "name": "POTATO 9*9 LAMBWESTON 10*1 KG (RT)", "unit_kg": null}, {"code": "VGPPMOES001", "name": "PEAS MONTANA - SP 20*400 GM", "unit_kg": null}, {"code": "VGPPMOIN001", "name": "PEAS (MONTANA) 20*400 GM", "unit_kg": null}, {"code": "VGPPMRIN01T", "name": "PEAS MARIETTA 20*400 GM", "unit_kg": null}, {"code": "VGPPXXSA001", "name": "POTATO 9*9  4*2.5 KG", "unit_kg": null}, {"code": "VGPQMOEG001", "name": "KULKAS MONTANA 20*400 GM", "unit_kg": null}, {"code": "VGPRLWNL001", "name": "POTATO PRIVATE 6*6 LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPRLWNL03T", "name": "POTATO PRIVATE 9*18 LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPRLWNL04T", "name": "POTATO PRIVATE 9*9 LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPSDREG001", "name": "SPINACH DARI (M) 20*400 GM", "unit_kg": null}, {"code": "VGPSDRES001", "name": "SPINACH PORTIONS DARI 20*400 GM", "unit_kg": null}, {"code": "VGPSLFEG001", "name": "SPINACH LIFE 20*400 GM", "unit_kg": null}, {"code": "VGPSLWNL001", "name": "POTATO STEALTH 6*6 LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPSLWNL002", "name": "POTATO STEALTH 13*13 LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPSLWNL003", "name": "POTATO STEALTH 9*9 LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPSLWNL01W", "name": "STO - POTATO AL BAIK 5*2.5 KG", "unit_kg": null}, {"code": "VGPSLWNL02T", "name": "POTATO STEALTH 6*6 SKIN ON LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPSLWNL05T", "name": "POTATO EXTRA CRISPY 9*9 LAMBWESTON 4*2.5 KG (RT)", "unit_kg": null}, {"code": "VGPSLWNL06T", "name": "POTATO EXTRA CRISPY 9*9 LAMBWESTON 12*750 GM (RT)", "unit_kg": null}, {"code": "VGPSLWNL07T", "name": "POTATO ZIGGY 9*9 LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPSLWNL11T", "name": "POTATO AL BAIK 5*2.5 KG", "unit_kg": null}, {"code": "VGPSMOEG001", "name": "SPINACH MONTANA 20*400 GM", "unit_kg": null}, {"code": "VGPSMREG01T", "name": "SPINACH MARIETTA 20*400 GM", "unit_kg": null}, {"code": "VGPSMRES001", "name": "SPINACH MARIETTA 10*1 KG", "unit_kg": null}, {"code": "VGPTLWNL001", "name": "SWEET POTATO LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGPUDRAE001", "name": "DARI CANNED FOUL MEDAMAS 24*400 GM", "unit_kg": null}, {"code": "VGPZLWNL001", "name": "POTATO ZIGGY LAMBWESTON 12*750 GM (RT)", "unit_kg": null}, {"code": "VGRCLWNL001", "name": "POTATO CRISSCUTS LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGRCLWNL06T", "name": "POTATO CRISSCUTS LAMBWESTON 4*2.5 KG (RT)", "unit_kg": null}, {"code": "VGRCLWNL07T", "name": "POTATO CRISSCUTS LAMBWESTON 12*750 GM (RT)", "unit_kg": null}, {"code": "VGRDLWNL01T", "name": "POTATO DIPPERS LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGRHLWNL001", "name": "POTATO HASH BROWNS LAMBWESTON 10*1 KG", "unit_kg": null}, {"code": "VGRHLWNL02T", "name": "POTATO HASH BROWNS LAMBWESTON 10*1 KG (RT)", "unit_kg": null}, {"code": "VGRJLWNL01T", "name": "JALAPENOS CHEDDAR CHEESE LAMBWESTON 6*1 KG", "unit_kg": null}, {"code": "VGRLLWNL001", "name": "POTATO CHIPS 11 MM STRAIGHT CUT LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGROLWNL001", "name": "ONION RINGS LAMBWESTON 6*1 KG", "unit_kg": null}, {"code": "VGROLWNL02T", "name": "ONION RINGS LAMBWESTON 12*600 GM (RT)", "unit_kg": null}, {"code": "VGRPDRBE002", "name": "POTATO DARI WEDGES 12*750 GMS", "unit_kg": null}, {"code": "VGRPDRBE003", "name": "POTATO DARI WAFFLES 10*750 GMS", "unit_kg": null}, {"code": "VGRPDRBE004", "name": "POTATO 6*6 DARI 10*1 KG", "unit_kg": null}, {"code": "VGRPDRBE005", "name": "POTATO EXTRA CRISPY 9*9 DARI 10*1 KG", "unit_kg": null}, {"code": "VGRPDRBE006", "name": "POTATO EXTRA CRISPY 6*6 DARI 10*1 KG", "unit_kg": null}, {"code": "VGRTDRBE01T", "name": "POTATO CURLY DARI 10*1 KG ( A )", "unit_kg": null}, {"code": "VGRTLWNL001", "name": "POTATO TWISTERS LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGRTLWNL03T", "name": "POTATO TWISTERS LAMBWESTON 4*2.5 KG (RT)", "unit_kg": null}, {"code": "VGRTLWNL04T", "name": "POTATO TWISTERS LAMBWESTON 12*750 GM (RT)", "unit_kg": null}, {"code": "VGRVLWNL001", "name": "POTATO WEDGES WAVES LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGRWDRBE01T", "name": "POTATO WEDGES DARI 10*1 KG ( A )", "unit_kg": null}, {"code": "VGRWLWNL001", "name": "POTATO WEDGES SKIN ON SEASONED LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGRWLWNL03T", "name": "POTATO WEDGES W/SKIN LAMBWESTON 4*2.5 KG (RT)", "unit_kg": null}, {"code": "VGRWLWNL04T", "name": "POTATO WEDGES W/SKIN LAMBWESTON 12*750 GM (RT)", "unit_kg": null}, {"code": "VGRWLWNL05T", "name": "POTATO WEDGES SKIN ON LAMBWESTON 4*2.5 KG", "unit_kg": null}, {"code": "VGWADREG001", "name": "ARTICHOKE DARI 20*400 GM", "unit_kg": null}, {"code": "VGWAMOEG001", "name": "ARTICHOKE MONTANA 20*400 GM", "unit_kg": null}, {"code": "VGWBDRTH001", "name": "FROZEN EDAMAME DARI 20*454 GM", "unit_kg": null}, {"code": "VGWCDRIN001", "name": "WHOLE CORN ON COB DARI 10*1 KG", "unit_kg": null}, {"code": "VGWODREG001", "name": "OKRA EXTRA DARI (M) 20*400 GM", "unit_kg": null}, {"code": "VGWODREG002", "name": "OKRA FINE DARI (M) 20*400 GM", "unit_kg": null}, {"code": "VGWODREG003", "name": "OKRA ZERO DARI (M) 20*400 GM", "unit_kg": null}, {"code": "VGWOLFEG01T", "name": "OKRA FINE LIFE 20*400 GM", "unit_kg": null}, {"code": "VGWOMOEG001", "name": "OKRA EXTRA MONTANA 20*400 GM", "unit_kg": null}, {"code": "VGWOMOEG002", "name": "OKRA ZERO MONTANA 20*400 GM", "unit_kg": null}, {"code": "VGWOMOEG003", "name": "OKRA MUMTAZA MONTANA 20*400 GM", "unit_kg": null}, {"code": "VGWOMREG002", "name": "OKRA MEDIUM MARIETTA 20*400 GM", "unit_kg": null}, {"code": "VGWOMREG003", "name": "OKRA EXTRA MARIETTA 20*400 GM", "unit_kg": null}, {"code": "VLPBSLNZ001", "name": "BOBY VEAL BACKSTRAP SILVER FERN FARMS", "unit_kg": null}, {"code": "VLPEHBIN003", "name": "HABRA VEAL TERNDERLION 18 KG", "unit_kg": null}, {"code": "VLPLHBIN001", "name": "VEAL LEGS AL HABRA 20*900 GM", "unit_kg": null}, {"code": "VLPRHBIN001", "name": "VEAL ROLLS AL HABRA 4.5 KG", "unit_kg": null}, {"code": "VLWCSLNZ001", "name": "BOBBY VEAL BONEIN CARCASS 6 CUTS SILVER FERN FARMS W/T", "unit_kg": null}, {"code": "VLWCXXNZ001", "name": "NEW ZEALAND BOBY VEAL BONEIN CARCASE 6 CUTS", "unit_kg": null}]}];
+const ITEM_GROUPS = [{"group": "Finished Goods / الأصناف النهائية", "items": [{"code": "BFRMASSA001", "name": "BEEF MINCE ANAAM SAUDI 20*400 GM", "unit_kg": 8.0}, {"code": "CHPKDRSA001", "name": "CHICKEN BREAST TENDERIZED DARI 5*2 KG - MF", "unit_kg": 10.0}, {"code": "CHPKDRSA002", "name": "CHICKEN BREAST TENDERIZED DARI 10*1 KG - MF", "unit_kg": 10.0}, {"code": "CHPKDXSA001", "name": "CHICKEN BREAST TENDERIZED DOUX 5*2 KG", "unit_kg": 10.0}, {"code": "CHPKDXSA002", "name": "CHICKEN BREAST TENDERIZED DOUX 10*1 KG", "unit_kg": 10.0}, {"code": "CHPPDXSA001", "name": "REGULAR CHICKEN STRIPS DOUX 12*750 GM", "unit_kg": 9.0}, {"code": "CHPPDXSA002", "name": "CHICKEN STRIPS SPICY DOUX 12*750 GM", "unit_kg": 9.0}, {"code": "CHPPDXSA005", "name": "DOUX SPICY CHICKEN STRIPS 12*700 GM", "unit_kg": 8.4}, {"code": "CHPPDXSA006", "name": "DOUX REGULAR CHICKEN STRIPS 12*700 GM", "unit_kg": 8.4}, {"code": "CHPTDXSA001", "name": "CHICKEN BREADED NUGETS DOUX 10*1 KG", "unit_kg": 10.0}, {"code": "CHPTDXSA002", "name": "CHICKEN BREADED NUGETS DOUX 12*500 GM", "unit_kg": 6.0}, {"code": "CHPUDXSA001", "name": "CHICKEN BURGER DOUX 12*660 GM", "unit_kg": 7.92}, {"code": "CHPUDXSA002", "name": "CHICKEN BREADED BURGER DOUX 12*660 GM", "unit_kg": 7.92}, {"code": "CHPWDXSA001", "name": "CHICKEN BREADED FINGERS DOUX 12*500 GM", "unit_kg": 6.0}, {"code": "CHPWDXSA002", "name": "CHICKEN BREADED STEAK DOUX 12*600 GM", "unit_kg": 7.2}, {"code": "CHRBHBSA02T", "name": "CHICKEN BREADED BURGER AL HABRA 8*855 GM", "unit_kg": 6.84}, {"code": "CHRMDRSA01T", "name": "CHICKEN MINCE DARI 20*400 GM", "unit_kg": 8.0}, {"code": "MTRMASSA001", "name": "MUTTON MINCE ANNAM SAUDI 20*400 GM", "unit_kg": 8.0}, {"code": "MTRMDRSA01T", "name": "MUTTON MINCE DARI 20*400 GM", "unit_kg": 8.0}, {"code": "MTRMHBSA001", "name": "MUTTON MINCE AL HABRA 20*400 GM", "unit_kg": 8.0}]}, {"group": "Frozen Raw Materials / مواد خام أولية مجمدة", "items": [{"code": "BFPTGEBR001", "name": "BEEF TRIMMINGS 80VL - MF", "unit_kg": 26.736}, {"code": "BFPTPRAU001", "name": "BEEF TRIMMINGS 50CL", "unit_kg": 25.695}, {"code": "BFPTXXUY001", "name": "BEEF TRIMMINGS 65CL TACUAREMBO URUGUAY", "unit_kg": 21.998}, {"code": "CHPKGAAR001", "name": "CHICKEN BREAST BULK W/O INNER FILLET 15 KG GTA", "unit_kg": 15.0}, {"code": "CHPKJABR01T", "name": "CHICKEN B/L S/L HALF BREAST JAGUA W/OUT INNER FILLET 2*7.5 KG", "unit_kg": 15.0}, {"code": "CHPKNORU001", "name": "RM- STRIPS CHICKEN B/L S/L BREAST NOOR INNER FILLET 15 KG", "unit_kg": 15.0}, {"code": "CHPKNORU01T", "name": "CHICKEN B/L S/L HALF BREAST NOOR W/OUT INNER FILLET 4*2.5 KG", "unit_kg": 10.0}, {"code": "CHPKNORU03T", "name": "CHICKEN B/L S/L BREAST NOOR W/OUT INNER FILLET BULK 15 KG", "unit_kg": 15.0}, {"code": "CHPKSEBR003", "name": "CHICKEN BONELESS SKINLESS BREAST SEARA 1*15 KG", "unit_kg": 15.0}, {"code": "CHPKSEBR008", "name": "RM- STRIPS CHICKEN B/L S/L BREAST SEARA INNER FILLET 15 KG", "unit_kg": 15.0}, {"code": "CHPKXXRU001", "name": "CHICKEN BREAST MIRATORG BULK W/O INNER FILLET 15 KG", "unit_kg": 15.0}, {"code": "CHPNSEBR01T", "name": "CHICKEN SKIN SEARA 1*15 KG", "unit_kg": 15.0}, {"code": "CHPSXXBR001", "name": "FROZEN CHICKEN SKIN CUTS 15 KG PACK", "unit_kg": 15.0}, {"code": "MTPTFLAU001", "name": "MUTTON TRIMMINGS 50CL FLETCHER", "unit_kg": 23.18}, {"code": "MTPTFLAU003", "name": "MUTTON TRIMMINGS 65CL FLETCHER", "unit_kg": 26.39}]}, {"group": "Packaging & Plastic / مواد التغليف والبلاستيك", "items": [{"code": "CRTCB002", "name": "CARTON BREADED CHICKEN BURGER", "unit_kg": null}, {"code": "CRTDC001", "name": "CARTON MINCE DARI CHICKEN", "unit_kg": null}, {"code": "CRTDL001", "name": "CARTON MINCE DARI LAMB", "unit_kg": null}, {"code": "CRTHC002", "name": "CARTON FOR TENDERIZED - DARI 1 KG", "unit_kg": null}, {"code": "CRTHL001", "name": "CARTON MINCE HABRA LAMB", "unit_kg": null}, {"code": "CRTSB001", "name": "CARTON MINE SAUDI BEEF", "unit_kg": null}, {"code": "CRTSL001", "name": "CARTON MINE SAUDI LAMB", "unit_kg": null}, {"code": "CRTTB001", "name": "CARTON FOR TENDERIZED - DARI 2 KG", "unit_kg": null}, {"code": "NCRCDXSA001", "name": "CARTON CHICKEN BREADED NUGGETS -DOUX 1 KG", "unit_kg": null}, {"code": "NCRCDXSA002", "name": "CARTON CHICKEN BREADED NUGGETS -DOUX 500 GM", "unit_kg": null}, {"code": "NCRCDXSA003", "name": "CARTON CHICKEN BREADED BURGER -DOUX 660 GM", "unit_kg": null}, {"code": "NCRCDXSA004", "name": "CARTON CHICKEN BREADED FINGER -DOUX 500 GM", "unit_kg": null}, {"code": "NCRCDXSA005", "name": "CARTON CHICKEN BREADED STEAK -DOUX 600 GM", "unit_kg": null}, {"code": "NCRCDXSA007", "name": "CARTON CHICKEN BURGER -DOUX 660 GM", "unit_kg": null}, {"code": "NCRCNASA003", "name": "CARTON FOR TENDERIZED - DOUX 1 KG", "unit_kg": null}, {"code": "NCRCNASA004", "name": "CARTON FOR TENDERIZED - DOUX 2 KG", "unit_kg": null}, {"code": "NCRPXXGB001", "name": "ZIPPER (MX29TD-CLR-C1)", "unit_kg": null}, {"code": "NCWCDXSA001", "name": "PACKAGING BOX-DOUX CHICKEN FINGERS -500GM", "unit_kg": null}, {"code": "NCWCDXSA002", "name": "PACKAGING BOX-DOUX CHICKEN NUGGETS -500GM", "unit_kg": null}, {"code": "NCWCDXSA003", "name": "PACKAGING BOX-DOUX CHICKEN STEAK -600GM", "unit_kg": null}, {"code": "NCWCDXSA004", "name": "PACKAGING BOX-DOUX BREADED BURGER -660GM", "unit_kg": null}, {"code": "NCWCDXSA005", "name": "PACKAGING BOX-DOUX BURGER -660GM", "unit_kg": null}, {"code": "NCWPDXAE001", "name": "PLASTIC ROLL - DOUX CHICKEN NUGGETS 1KG", "unit_kg": 600.0}, {"code": "NCWPXXAE005", "name": "PLASTIC ROLL - DOUX 1 KG (AL JAZIB)", "unit_kg": 600.0}, {"code": "NCWPXXAE006", "name": "PLASTIC ROLL - DOUX 2 KG", "unit_kg": 500.0}, {"code": "NCWPXXAE007", "name": "PLASTIC ROLL - REGULAR STRIPS DOUX 750 GM", "unit_kg": 500.738}, {"code": "NCWPXXAE008", "name": "PLASTIC ROLL - SPICY STRIPS DOUX 750 GM", "unit_kg": 499.283}, {"code": "NCWPXXAE012", "name": "PLASTIC ROLL - CHICKEN BREADED BURGER", "unit_kg": 504.978}, {"code": "NCWPXXAE013", "name": "PLASTIC ROLL - DARI CHICKEN MINCE", "unit_kg": 500.0}, {"code": "NCWPXXAE014", "name": "UNPRINTED PLASTIC ROLL 510MM", "unit_kg": 780.0}, {"code": "NCWPXXSA009", "name": "PACKAGING CARTON FOR REGULAR STRIPS - DOUX", "unit_kg": null}, {"code": "NCWPXXSA010", "name": "PACKAGING CARTON FOR SPICY STRIPS - DOUX", "unit_kg": null}, {"code": "NCWPXXSA012", "name": "PLASTIC ROLL - TENDERIZED DARI 1 KG", "unit_kg": 440.693}, {"code": "NCWPXXSA013", "name": "PLASTIC ROLL - TENDERIZED DARI 2 KG", "unit_kg": 400.0}, {"code": "NCWPXXSA014", "name": "PLASTIC ROLL - TENDERIZED DOUX 1 KG", "unit_kg": 410.185}, {"code": "NCWPXXSA019", "name": "PLASTIC ROLL - TENDERIZED DOUX 2 KG", "unit_kg": 400.0}, {"code": "PKBR001", "name": "PLASTIC ROLL FOR BREAST", "unit_kg": 20.699}, {"code": "PKCL002", "name": "PACKING CLIP ROLL", "unit_kg": 10.0}, {"code": "PKPL002", "name": "PLASTIC PACKAGING ROLL SAUDI LAMB (NAPCO)", "unit_kg": 6.0}, {"code": "PKPL003", "name": "PLASTIC PACKAGING ROLL SAUDI BEEF (NAPCO)", "unit_kg": 6.0}, {"code": "PKPL005", "name": "PLASTIC PACKAGING ROLL HABRA LAMB (NAPCO)", "unit_kg": 6.0}, {"code": "PKPL013", "name": "PLASTIC PACKAGING ROLL DARI LAMB (NAPCO)", "unit_kg": 6.0}, {"code": "PKPL017", "name": "PLASTIC PACKAGING ROLL DARI CHICKEN (NAPCO)", "unit_kg": 6.0}, {"code": "PKSH001", "name": "SHRINK ROLL", "unit_kg": 24.731}, {"code": "PKTP001", "name": "SEALING TAPE FOR CARTONS", "unit_kg": null}]}, {"group": "Other Raw Materials / مواد خام أخرى", "items": [{"code": "BRRRXXEG001", "name": "BREADING EG", "unit_kg": 20.0}, {"code": "GRCBHAES04T", "name": "BREADCRUMBS SO-30-N", "unit_kg": 25.0}, {"code": "GRCBHAES05T", "name": "BREAD FINE CRUMBS T-03-B", "unit_kg": 25.0}, {"code": "GRCBHAES06T", "name": "BATTER HA -SJ/2", "unit_kg": 25.0}, {"code": "GRCBKCDK01T", "name": "FIBER BIND 400- MF", "unit_kg": 8.0}, {"code": "GRCWXXDE01T", "name": "WHEAT FIBER BIND- MF", "unit_kg": 10.0}, {"code": "GRGXSCIN01T", "name": "TEXTURED SOYA PROTEIN SONIC 20 KG", "unit_kg": 20.0}, {"code": "GRGXXXIN001", "name": "TEXTURED SOYA PROTEIN", "unit_kg": 20.0}, {"code": "GRRCXXSA001", "name": "MEFSCO - CORN STARCH 25 KG", "unit_kg": 25.0}, {"code": "GRRFXXSA001", "name": "SUPERIOR FLOUR", "unit_kg": 45.0}, {"code": "GRRVXXCN001", "name": "ASCORBIC ACID", "unit_kg": 25.0}, {"code": "GRWSZAAT001", "name": "EURO NUGGET SEASONING- MF", "unit_kg": 2.0}, {"code": "GRXXXXDE01T", "name": "SODIUM TRIPOLYPHOSPHATE 25 KG", "unit_kg": 25.0}, {"code": "HSRHXXSA001", "name": "CHILI POWDER HIGH PUNGENCY", "unit_kg": 10.0}, {"code": "HSRSXXGB001", "name": "BONELESS WING BREADER DB300", "unit_kg": 25.0}, {"code": "HSRXXXDE001", "name": "AROMIX FLAVOR C INTENSIVE", "unit_kg": 10.0}, {"code": "HSRXXXDE002", "name": "SEASONING MIX FOR CHICKEN STRIPS", "unit_kg": 24.0}, {"code": "OLRSNOSA001", "name": "NOOR FRYIT BLENDED OIL FOR COOKING & FRYING  1*17 LITER", "unit_kg": 17.0}, {"code": "OLRVXXSA001", "name": "SUNFLOWER OIL AMBER 4*4 LTR", "unit_kg": 16.0}, {"code": "OLVCMRSA02T", "name": "VEGETABLE COOKING OIL MARIETTA 1*17 LITER", "unit_kg": 17.0}, {"code": "OLWCFASA001", "name": "CORN OIL ALFA 1*17 LITER", "unit_kg": 17.0}, {"code": "PKBP002", "name": "BLACK PEPPER POWDER 1*10 KG", "unit_kg": 10.0}, {"code": "PKGP004", "name": "GARLIC POWDER 1*10 KG", "unit_kg": 10.0}, {"code": "PKGP005", "name": "GINGER POWDER 1*10 KG", "unit_kg": 10.0}, {"code": "PKOP002", "name": "ONION POWDER 1*10 KG", "unit_kg": 10.0}, {"code": "PKSL001", "name": "SALT", "unit_kg": 50.0}, {"code": "PKWP003", "name": "WHITE PEPPER POWDER 1*10 KG", "unit_kg": 10.0}, {"code": "PSWWXXES01T", "name": "WHEAT BREAD CRUMB MIX 158 - MF", "unit_kg": 25.0}]}, {"group": "Additional Inventory Items / أصناف إضافية", "items": [{"code": "BFPBAUAU001", "name": "BEEF BRISKET ANGUS AUSKOBE", "unit_kg": null}, {"code": "BFPBVFBR001", "name": "BEEF BRISKET MINERVA FOODS - CHILLED", "unit_kg": null}, {"code": "BFPBXXCA01T", "name": "BEEF BRISKET CANADIAN - AAA", "unit_kg": null}, {"code": "BFPEAEBR001", "name": "BEEF TENDERLOIN APETI - CHILLED", "unit_kg": null}, {"code": "BFPEAUAU001", "name": "BEEF TENDERLOIN ANGUS AUSKOBE", "unit_kg": null}, {"code": "BFPEBRBR001", "name": "BEEF TENDERLOIN BRAZILI", "unit_kg": null}, {"code": "BFPEGEBR01T", "name": "BEEF TENDERLOIN GEJOTA", "unit_kg": null}, {"code": "BFPESLNZ03T", "name": "RESERVE BEEF TENDERLOIN SILVER FERN FARMS - CHILLED", "unit_kg": null}, {"code": "BFPEVFBR001", "name": "BEEF TENDERLOIN CHAIN ON MINERVA FOODS", "unit_kg": null}, {"code": "BFPLBRBR001", "name": "BEEF STRIPLOIN BRAZILI", "unit_kg": null}, {"code": "BFPMXXBR001", "name": "BEEF RUMP HEART FRIBOI - CHILLED", "unit_kg": null}, {"code": "BFPNAEBR001", "name": "BEEF KNUCKLE APETI - CHILLED", "unit_kg": null}, {"code": "BFPNVFBR01T", "name": "BEEF BONELESS KNUCKLE MINERVA FOODS- CHILLED", "unit_kg": null}, {"code": "BFPOAUAU001", "name": "BEEF TOPSIDE ANGUS AUSKOBE", "unit_kg": null}, {"code": "BFPOBRBR001", "name": "BEEF TOPSIDE BRAZILI", "unit_kg": null}, {"code": "BFPOGEBR01T", "name": "BEEF TOPSIDE GEJOTA BRAZILI", "unit_kg": null}, {"code": "BFPOGEBR02T", "name": "BEEF TOPSIDE GEJOTA BRAZILI - CHILLED", "unit_kg": null}, {"code": "BFPOVFBR01T", "name": "BEEF BONELESS TOPSIDE CAP ON FAT ON MINERVA FOODS", "unit_kg": null}, {"code": "BFPOVFBR02T", "name": "BEEF BONELESS TOPSIDE MINERVA FOODS - CHILLED", "unit_kg": null}, {"code": "BFPQVFBR001", "name": "BEEF FOREQUARTER MINERVA FOODS", "unit_kg": null}, {"code": "BFPUAUAU001", "name": "BEEF CHUCK & BLADE ANGUS AUSKOBE", "unit_kg": null}, {"code": "BFPUVFBR001", "name": "BEEF CHUCK MINERVA FOODS - CHILLED", "unit_kg": null}, {"code": "BFPYVFBR01T", "name": "BEEF BONELESS EYEROUND MINERVA FOODS - CHILLED", "unit_kg": null}, {"code": "BFRDDRSA001", "name": "DAOUD BASHA DARI 12*415 GM", "unit_kg": 4.98}, {"code": "BFRLDRSA001", "name": "BEEF LASAGNE DARI 12*425 GM", "unit_kg": 5.1}, {"code": "BTPOLUDK001", "name": "UNSALTED BUTTER LURPAK SPREADABLE MINICUP 6*100*10 GM", "unit_kg": null}, {"code": "BTPSPNFR001", "name": "SALTED BUTTER PRESIDENT 600*10 GM", "unit_kg": 6.0}, {"code": "BTPSPNFR002", "name": "SALTED BUTTER PRESIDENT 60*100 GM", "unit_kg": 6.0}, {"code": "BTPUABSA01W", "name": "STO- BUTTER ALBAIK-WS", "unit_kg": null}, {"code": "BTPUPNFR001", "name": "UNSALTED BUTTER PRESIDENT 20*400 GM", "unit_kg": 8.0}, {"code": "BTPUPNFR002", "name": "UNSALTED BUTTER PRESIDENT 40*200 GM", "unit_kg": 8.0}, {"code": "BTPUPNFR01T", "name": "UNSALTED BUTTER PRESIDENT 60*100 GM", "unit_kg": 6.0}, {"code": "BTPUPTAR001", "name": "UNSALTED BUTTER SAPUTO 25 KG", "unit_kg": null}, {"code": "CHPBNORU001", "name": "CHICKEN B/L S/L LEGS NOOR  4*2.5 KG", "unit_kg": 10.0}, {"code": "CHPKPBBR001", "name": "CHICKEN B/L S/L BREAST PENA BRANCA 4*2.5 GM", "unit_kg": null}, {"code": "CHPKUSBR001", "name": "CHICKEN B/L S/L BREAST UNEF W/OUT INNER FILLET 4*2.5 KG", "unit_kg": 10.0}, {"code": "CHPONORU01T", "name": "BONELESS WHOLE CHICKEN NOOR 4*2.5 KG", "unit_kg": 10.0}, {"code": "CHPOPISA001", "name": "CHICKEN POPCORN CRISPY PREMIER 4*2.5 KG", "unit_kg": 10.0}, {"code": "CHPOUSBR001", "name": "BONELESS WHOLE CHICKEN UNEF 4*2.5 KG", "unit_kg": 10.0}, {"code": "CHPTNORU001", "name": "CHICKEN THIGHS  B/L S/L NOOR  4*2.5 KG", "unit_kg": 10.0}, {"code": "CHRBDXFR001", "name": "CHICKEN BURGER DOUX 12*660 GM", "unit_kg": 7.92}, {"code": "CHRBDXFR002", "name": "CHICKEN BREADED BURGER DOUX 12*660 GM", "unit_kg": 7.92}, {"code": "CHRCDRFR001", "name": "CHICKEN FRANKS W/CHEESE DARI 24*340 GM", "unit_kg": 8.16}, {"code": "CHRCDXFR002", "name": "CHICKEN FRANKS W/CHEESE DOUX 24*400 GM", "unit_kg": 9.6}, {"code": "CHRFDRSA002", "name": "CHICKEN FRANKS DARI 24*340 GM - A", "unit_kg": 8.16}, {"code": "CHRFDXFR005", "name": "CHICKEN FRANKS DOUX 24*400 GM", "unit_kg": 9.6}, {"code": "CHRFDXFR05T", "name": "CHICKEN FRANKS DOUX PROMO 8*3*340 GM", "unit_kg": null}, {"code": "CHRFDXFR06T", "name": "CHICKEN FRANKS DOUX SMOKED 24*400 GM", "unit_kg": 9.6}, {"code": "CHRFSRFR02T", "name": "CHICKEN FRANKS SUPREME 24*340 GM", "unit_kg": 8.16}, {"code": "CHRGDXFR002", "name": "CHICKEN FRANKS W/GARLIC DOUX 24*400 GM", "unit_kg": 9.6}, {"code": "CHRIDXFR04T", "name": "CHICKEN BREADED FINGERS DOUX 12*500 GM", "unit_kg": 6.0}, {"code": "CHRKDXFR04T", "name": "CHICKEN BREADED STEAK DOUX 12*600 GM", "unit_kg": 7.2}, {"code": "CHRSDXFR004", "name": "CHICKEN FRANKS HOT & SPICY DOUX 24*400 GM", "unit_kg": 9.6}, {"code": "CHRSDXFR03T", "name": "CHICKEN FRANKS WITH ARABIC SPICES DOUX 24*400 GM", "unit_kg": 9.6}, {"code": "CHRTDXFR04T", "name": "CHICKEN BREADED NUGETS DOUX 10*1 KG", "unit_kg": 10.0}, {"code": "CHWCDRSA001", "name": "CHICKEN TIKKA DARI 12*375 GM", "unit_kg": 4.5}, {"code": "CHWOPBBR001", "name": "WHOLE CHICKEN B/L PENA BRANCA 4*2.5 GM", "unit_kg": null}, {"code": "CHWWDRFR001", "name": "WHOLE CHICKEN DARI 10*900 GM", "unit_kg": 9.0}, {"code": "CHWWDRFR002", "name": "WHOLE CHICKEN DARI 10*1000 GM", "unit_kg": 10.0}, {"code": "CHWWDRFR003", "name": "WHOLE CHICKEN DARI 10*1100 GM", "unit_kg": 11.0}, {"code": "CHWWDRFR004", "name": "WHOLE CHICKEN DARI 10*1200 GM", "unit_kg": 12.0}, {"code": "CHWWDRSA001", "name": "BUTTER CHICKEN DARI 12*400 GM", "unit_kg": 4.8}, {"code": "CHWWDRSA002", "name": "CHICKEN ALFREDO DARI 12*400 GM", "unit_kg": 4.8}, {"code": "CHWWDRSA003", "name": "CHICKEN BIRYANI DARI 12*400 GM", "unit_kg": 4.8}, {"code": "CHWWDXFR001", "name": "WHOLE CHICKEN DOUX 16*650 GM", "unit_kg": 10.4}, {"code": "CHWWDXFR002", "name": "WHOLE CHICKEN DOUX 10*800 GM", "unit_kg": 8.0}, {"code": "CHWWDXFR003", "name": "WHOLE CHICKEN DOUX 10*900 GM", "unit_kg": 9.0}, {"code": "CHWWDXFR004", "name": "WHOLE CHICKEN DOUX 10*1000 GM", "unit_kg": 10.0}, {"code": "CHWWDXFR005", "name": "WHOLE CHICKEN DOUX 10*1100 GM", "unit_kg": 11.0}, {"code": "CHWWDXFR007", "name": "WHOLE CHICKEN DOUX 10*1200 GM", "unit_kg": 12.0}, {"code": "CHWWDXFR009", "name": "WHOLE CHICKEN DOUX 10*1300 GM", "unit_kg": 13.0}, {"code": "CHWWDXFR010", "name": "WHOLE CHICKEN DOUX 10*1400 GM", "unit_kg": 14.0}, {"code": "CHWWNORU001", "name": "WHOLE CHICKEN NOOR 10*800 GM", "unit_kg": 8.0}, {"code": "CHWWNORU002", "name": "WHOLE CHICKEN NOOR 10*900 GM", "unit_kg": 9.0}, {"code": "CHWWNORU003", "name": "WHOLE CHICKEN NOOR 10*1000 GM", "unit_kg": 10.0}, {"code": "CHWWNORU004", "name": "WHOLE CHICKEN NOOR 10*1100 GM", "unit_kg": 11.0}, {"code": "CHWWNORU005", "name": "WHOLE CHICKEN NOOR 10*1200 GM", "unit_kg": 12.0}, {"code": "CHWWNORU006", "name": "WHOLE CHICKEN NOOR 10*1300 GM", "unit_kg": 13.0}, {"code": "CHWWSRFR002", "name": "WHOLE CHICKEN SUPREME 10*800 GM", "unit_kg": 8.0}, {"code": "CHWWSRFR003", "name": "WHOLE CHICKEN SUPREME 10*900 GM", "unit_kg": 9.0}, {"code": "CHWWSRFR005", "name": "WHOLE CHICKEN SUPREME 10*1000 GM", "unit_kg": 10.0}, {"code": "CHWWSRFR008", "name": "WHOLE CHICKEN SUPREME 10*1200 GM", "unit_kg": 12.0}, {"code": "CHWWSRFR009", "name": "WHOLE CHICKEN SUPREME 10*1300 GM", "unit_kg": 13.0}, {"code": "CHWWUSBR002", "name": "WHOLE CHICKEN UNEF 10*800 GM", "unit_kg": 8.0}, {"code": "CHWWUSBR003", "name": "WHOLE CHICKEN UNEF 10*900 GM", "unit_kg": 9.0}, {"code": "CHWWUSBR004", "name": "WHOLE CHICKEN UNEF 10*1000 GM", "unit_kg": 10.0}, {"code": "CHWWUSBR005", "name": "WHOLE CHICKEN UNEF 10*1100 GM", "unit_kg": 11.0}, {"code": "CHWWUSBR006", "name": "WHOLE CHICKEN UNEF 10*1200GM", "unit_kg": 12.0}, {"code": "CRCFDRAE001", "name": "CREAM DARI (QASHTA) 48*170 GM", "unit_kg": 8.16}, {"code": "CRTFMMIT05T", "name": "COOKING CREAM GOURMET CHEF MASTER MARTINI 12*1 LITER", "unit_kg": 12.0}, {"code": "CSCBPNEG001", "name": "CHEDDER CHEESE BLOCK PRESIDENT 24*450 GM", "unit_kg": 10.8}, {"code": "CSCLPNSA003", "name": "SLICES CHEDDAR CHEESE LIGHT PRESIDENT 18*400 GM", "unit_kg": 7.2}, {"code": "CSCLPNSA01T", "name": "CHEDDER CHEESE SLICES PRESIDENT LIGHT&TASTY 36*200 GM", "unit_kg": 7.2}, {"code": "CSCSPNSA001", "name": "CHEDDAR CHEESE SHREDED PRESIDENT 8*450 GM", "unit_kg": 3.6}, {"code": "CSELPNSA001", "name": "SLICES EMMENTAL CHEESE TOAST PRESIDENT 36*200 GM", "unit_kg": 7.2}, {"code": "CSFRLWDE01T", "name": "MOZZARELLA CHEESE STICKS LAMBWESTON 6*1 KG", "unit_kg": 6.0}, {"code": "CSFRLWNL01T", "name": "CHILI CHEESE NUGGETS LAMBWESTON 6*1 KG", "unit_kg": 6.0}, {"code": "CSFRLWNL02T", "name": "MINI CHEESE BALLS (CHEDDAR) LAMBWESTON 6*1 KG", "unit_kg": 6.0}, {"code": "CSHLDRCY01T", "name": "HALLOUMI CYPRIOT WHITE CHEESE LITE DARI 20*225 GM", "unit_kg": 4.5}, {"code": "CSHODRCY001", "name": "HALLOUMI CHEESE BURGER DARI  20*200 GM", "unit_kg": 4.0}, {"code": "CSHODRCY002", "name": "HALLOUMI CYPRIOT WHITE CHEESE WITH CHILLI DARI 20*225 GM", "unit_kg": 4.5}, {"code": "CSHODRCY003", "name": "HALLOUMI CHEESE SLICES DARI 20*200 GM", "unit_kg": 4.0}, {"code": "CSHWCRCY002", "name": "HALLOUMI CHEESE CHRISTIS 20*225 GM", "unit_kg": 4.5}, {"code": "CSHWDRCY01T", "name": "HALLOUMI CHEESE DARI 20*225 GM", "unit_kg": 4.5}, {"code": "CSHWDRCY02T", "name": "HALLOUMI CHEESE GOAT AND SHEEP DARI 18*225 GM", "unit_kg": 4.05}, {"code": "CSKBDRBG001", "name": "KASHKAVAL CHEESE DARI 2*8 KG (BU)", "unit_kg": 16.0}, {"code": "CSKWDRHU001", "name": "KASHKAVAL CHEESE DARI 2*8 KG", "unit_kg": 16.0}, {"code": "CSLLPNSA001", "name": "SLICES CHEESE  PRESIDENT LIGHT 0.9% FAT  36*200 GM", "unit_kg": 7.2}, {"code": "CSLWDRSA001", "name": "SLICES YELLOW CHEESE DARI 8*2.27 KG", "unit_kg": 18.16}, {"code": "CSLWDRSA002", "name": "SLICES WHITE CHEESE DARI 8*2.27 KG", "unit_kg": 18.16}, {"code": "CSLWPNNL001", "name": "SLICES CHEESE PRESIDENT EDAM 10*150 GM", "unit_kg": 1.5}, {"code": "CSLWPNNL002", "name": "SLICES CHEESE PRESIDENT GOUDA 10*150 GM", "unit_kg": 1.5}, {"code": "CSLWPNNL003", "name": "SLICES CHEESE PRESIDENT MAASDAM 10*150 GM", "unit_kg": 1.5}, {"code": "CSLWPNSA01T", "name": "SLICES BURGER CHEESE PRESIDENT 36*200 GM", "unit_kg": 7.2}, {"code": "CSLWPNSA02T", "name": "SLICES BURGER CHEESE PRESIDENT 18*400 GM", "unit_kg": 7.2}, {"code": "CSLWPNSA03T", "name": "SLICES SANDWICH CHEESE PRESIDENT 18*400 GM", "unit_kg": 7.2}, {"code": "CSLWPNSA04T", "name": "SLICES SANDWICH CHEESE PRESIDENT 36*200 GM", "unit_kg": 7.2}, {"code": "CSMB3CDK001", "name": "MOZARILLA CHEESE BLOCK 3COWS 8*2.3", "unit_kg": null}, {"code": "CSMBDRPL01T", "name": "MOZARILLA CHEESE BLOCK DARI 4*2.3 KG", "unit_kg": 9.2}, {"code": "CSMLPNSA001", "name": "SLICES MOZARILLA CHEESE PRESIDENT 36*200 GM", "unit_kg": 7.2}, {"code": "CSMSDRPL002", "name": "MOZARILLA CHEESE SHREDED DARI 5*2 KG", "unit_kg": 10.0}, {"code": "CSMSDRPL003", "name": "MOZARILLA CHEESE SHREDED DARI 20*200 GM (PL)", "unit_kg": 4.0}, {"code": "CSMSDRSA001", "name": "MOZARILLA CHEESE SHREDED DARI 4*1 KG (PL)", "unit_kg": 4.0}, {"code": "CSMSDRSA002", "name": "MOZARILLA CHEESE SHREDED DARI 8*500 GM (PL)", "unit_kg": 4.0}, {"code": "CSMSDRSA003", "name": "MOZARILLA CHEESE SHREDED DARI 20*200 GM(UF)", "unit_kg": 4.0}, {"code": "CSMSDRSA007", "name": "MOZARILLA CHEESE SHREDED DARI 2*2 KG (UF)", "unit_kg": 4.0}, {"code": "CSMSPNSA001", "name": "MOZARILLA CHEESE SHREDED PRESIDENT 8*450 GM", "unit_kg": 3.6}, {"code": "CSMSPNSA002", "name": "MOZARILLA CHEESE SHREDED PRESIDENT 4*900 GM", "unit_kg": 3.6}, {"code": "CSMSPNSA003", "name": "MOZARILLA CHEESE SHREDED PRESIDENT 20*200 GM", "unit_kg": 4.0}, {"code": "CSMSPNSA004", "name": "MOZARILLA & KASHKAVAL CHEESE SHREDED PRESIDENT 10*400 GM", "unit_kg": 4.0}, {"code": "CSMSPNSA005", "name": "MOZARILLA CHEESE SHREDED LIGHT PRESIDENT 10*400 GM", "unit_kg": 4.0}, {"code": "CSMSPNSA006", "name": "MOZARILLA & CHEDDAR CHEESE SHREDED PRESIDENT 8*450 GM", "unit_kg": 3.6}, {"code": "CSMSPNSA007", "name": "MOZARILLA CHEESE SHREDED FOUR FLAVORS PRESIDENT 10*400 GM", "unit_kg": 4.0}, {"code": "CSMWPNSA001", "name": "MOZARILLA & EMMENTAL CHEESE PRESIDENT 8*450 GM", "unit_kg": 3.6}, {"code": "CSRJDREG001", "name": "CREAM CHEESE JAR DARI 6*900 GM", "unit_kg": 5.4}, {"code": "CSRJDRSA001", "name": "CREAM CHEESE JAR DARI 12*500 GM", "unit_kg": 6.0}, {"code": "CSRWPNFR001", "name": "CREAM PRESIDENT UHT WHIPPING CREAM 35.1% FDM 6*1 LITER", "unit_kg": 6.0}, {"code": "CSRWPNFR003", "name": "CREAM PRESIDENT UHT COOKING CREAM 18% FDM 6*1 LITER", "unit_kg": 6.0}, {"code": "CSTWALSA001", "name": "TRIANGLE CHEESE PRESIDENT ALVITA 32 P 12*480 GM", "unit_kg": 5.76}, {"code": "CSTWALSA002", "name": "TRIANGLE CHEESE PRESIDENT ALVITA 24 P 24*360 GM", "unit_kg": 8.64}, {"code": "CSTWALSA003", "name": "TRIANGLE CHEESE PRESIDENT ALVITA 8 P 24*120 GM", "unit_kg": 2.88}, {"code": "CSWBPNEG001", "name": "WHITE CHEESE PRESIDENT 12*500 GM", "unit_kg": 6.0}, {"code": "CSWBPNEG002", "name": "WHITE CHEESE PRESIDENT 27*250 GM", "unit_kg": 6.75}, {"code": "CSWBVAFR002", "name": "WHITE CHEESE FETA MINI BLOCK VALBRESO 8*600 GM", "unit_kg": 4.8}, {"code": "CSWBVAFR003", "name": "WHITE CHEESE FETA BLOCK VALBRESO", "unit_kg": null}, {"code": "CSWLVAFR001", "name": "SLICES CHEESE FETA VALBRESO 12*200 GM", "unit_kg": 2.4}, {"code": "CSWLVAFR002", "name": "SLICES CHEESE FETA LIGHT VALBRESO 12*200 GM", "unit_kg": 2.4}, {"code": "CSWLVAFR003", "name": "SLICES CHEESE FETA WITH ZATAR VALBRESO 12*200 GM", "unit_kg": 2.4}, {"code": "CSWODRSA001", "name": "CLASSIC MACARONI CHEESE DARI 12*350 GM", "unit_kg": 4.2}, {"code": "CSWW3CDK006", "name": "WHITE CHEESE (3COWS) 1*16 KGM", "unit_kg": 16.0}, {"code": "CSWWDRDK001", "name": "WHITE CHEESE DARI 1*16 KGM", "unit_kg": 16.0}, {"code": "CSWWDRGR001", "name": "WHITE CHEESE DARI 12*500 GM", "unit_kg": 6.0}, {"code": "CSWWDRGR002", "name": "WHITE CHEESE DARI 27*200 GM", "unit_kg": 5.4}, {"code": "CSWWMRHU01T", "name": "WHITE CHEESE HUNGARIAN DOUBLE CREAM MARIETTA 1*16 KGM", "unit_kg": 16.0}, {"code": "CSWWPNFR001", "name": "WHITE CHEESE PRESIDENT EMMENTAL 14*220 GM", "unit_kg": 3.08}, {"code": "CSWWPNNL001", "name": "WHITE CHEESE PRESIDENT EDAM BALL", "unit_kg": null}, {"code": "CSWWPNNL003", "name": "WHITE CHEESE PRESIDENT GOUDA WHEEL", "unit_kg": null}, {"code": "CUPCBASA01W", "name": "STO - CORN ALBAIK - WS", "unit_kg": null}, {"code": "CUPCBASA02W", "name": "STO - CORN KERNEL ALBAIK - WS", "unit_kg": null}, {"code": "CUUWMRJO01T", "name": "TAHINA PREMIUM MARIETTA 1*10 KG", "unit_kg": 10.0}, {"code": "DUWWDRBR09T", "name": "WHOLE DUCK W/G DARI 8*2000 GM", "unit_kg": 16.0}, {"code": "DUWWDRBR10T", "name": "WHOLE DUCK W/G DARI 6*2200 GM", "unit_kg": 13.2}, {"code": "DUWWDRBR11T", "name": "WHOLE DUCK W/G DARI 8*1800 GM", "unit_kg": 14.4}, {"code": "DUWWGRBR004", "name": "WHOLE DUCK W/G GERMANIA 6*2200 GM", "unit_kg": 13.2}, {"code": "DUWWGRBR005", "name": "WHOLE DUCK W/G GERMANIA 6*2400 GM", "unit_kg": 14.4}, {"code": "DUWWGRBR09T", "name": "WHOLE DUCK W/G GERMANIA 8*2000 GM", "unit_kg": 16.0}, {"code": "DUWWGRBR10T", "name": "WHOLE DUCK W/G GERMANIA 8*1800 GM", "unit_kg": 14.4}, {"code": "EGWEBASA01W", "name": "STO - EGGS ALBAIK - WS", "unit_kg": null}, {"code": "FRKPDREG001", "name": "POMEGRANATE KERNEL DARI 8*1 KG (G)", "unit_kg": 8.0}, {"code": "FRKPDRIN001", "name": "POMEGRANATE KERNEL DARI 8*1 KG", "unit_kg": 8.0}, {"code": "FRKPMREG001", "name": "POMEGRANATE KERNEL MARIETTA - EG 8*1 KG", "unit_kg": 8.0}, {"code": "FRPADRMX001", "name": "AVOCADO PULP DARI 6*454 GM", "unit_kg": 2.724}, {"code": "FRPAMRMX01T", "name": "AVOCADO PULP MARIETTA 8*1 KG", "unit_kg": 8.0}, {"code": "FRPCDRRS001", "name": "CRANBERRY DARI 16*350 GM", "unit_kg": 5.6}, {"code": "FRPJDRIN002", "name": "GUAVA PULP WOS DARI 16  KG (4*250 GM)", "unit_kg": null}, {"code": "FRPJMOIN002", "name": "GUAVA PULP WOS MONTANA 16*1 KG", "unit_kg": 16.0}, {"code": "FRPMDRIN004", "name": "ALPHONSO MANGO PULP WOS DARI 16  KG (4*250 GM)", "unit_kg": null}, {"code": "FRPMDRIN005", "name": "TOTAPURI MANGO PULP WOS DARI 16  KG (4*250 GM)", "unit_kg": null}, {"code": "FRPMDRIN006", "name": "MANGO PULP ALPHONSO WOS DARI 16*1 KG", "unit_kg": 16.0}, {"code": "FRPMMOIN003", "name": "MANGO PULP WOS MONTANA 16*1 KG", "unit_kg": 16.0}, {"code": "FRRBSXBR002", "name": "SAMBAZON SCOOPABLE ACAI  2X3.6 L", "unit_kg": 7.2}, {"code": "FRRBSXBR003", "name": "SAMBAZON ACAI SORBET ON THE GO 24*173 GM", "unit_kg": 4.152}, {"code": "FRRBSXBR004", "name": "SAMBAZON ACAI BOWL RTE AMAZON SUPER BERRY 8*173G", "unit_kg": 1.384}, {"code": "FRRBSXBR005", "name": "SAMBAZON ACAI BOWL RTE BERRY BLISS 8*173G", "unit_kg": 1.384}, {"code": "FRRBSXBR006", "name": "SAMBAZON ACAI PURE UNSWEETENED SUPER FRUIT PACK 15*400G", "unit_kg": 6.0}, {"code": "FRRBSXBR007", "name": "SAMBAZON ACAI ORIGINAL BLEND SUPER FRUITS PACK 15*400G", "unit_kg": 6.0}, {"code": "FRRBSXBR008", "name": "SAMBAZON ACAI SCOOPABLE SORBET 18*500 ML", "unit_kg": 9.0}, {"code": "FRRBSXBR009", "name": "SAMBAZON ACAI + BANANA SCOOPABLE SORBET 18*500ML", "unit_kg": 9.0}, {"code": "FRWBDRYU001", "name": "BLUEBERRY DARI 16*350 GM", "unit_kg": 5.6}, {"code": "FRWHDRRS001", "name": "FROZEN SWEET CHERRIES DARI 16*350 GM", "unit_kg": 5.6}, {"code": "FRWHDRRS002", "name": "FROZEN SOUR CHERRIES DARI 16*350 GM", "unit_kg": 5.6}, {"code": "FRWKDRYU001", "name": "BLACKBERRY DARI 16*350 GM", "unit_kg": 5.6}, {"code": "FRWRDRYU001", "name": "RASBERRY DARI 16*350 GM", "unit_kg": 5.6}, {"code": "FRWSDREG003", "name": "STRAWBERRY DARI  (M) 8*1 KG", "unit_kg": 8.0}, {"code": "FRWSDRRS001", "name": "VERY BERRY DARI MIX 16*350 GM", "unit_kg": 5.6}, {"code": "FRWSMOEG001", "name": "STRAWBERRY MONTANA 8*1 KG", "unit_kg": 8.0}, {"code": "FRWSMREG001", "name": "STRAWBERRY MARIETTA 8*1 KG (M)", "unit_kg": 8.0}, {"code": "FRWSMREG003", "name": "STRAWBERRY MARIETTA 2*5 KG", "unit_kg": 10.0}, {"code": "FSPEASAE01T", "name": "FROZEN FISH FILLET ASMAK 10*1 KG", "unit_kg": 10.0}, {"code": "FSPRNPTZ002", "name": "FROZEN NILE PERCH FISH FILLET 500/1000 1*6 KG", "unit_kg": 6.0}, {"code": "FSPRNPTZ003", "name": "FROZEN NILE PERCH FISH FILLET 1000/2000 1*6 KG", "unit_kg": 6.0}, {"code": "FSPRNPTZ004", "name": "FROZEN NILE PERCH FISH FILLET 2000/3000 1*6 KG", "unit_kg": 6.0}, {"code": "FSPRNPUG001", "name": "FROZEN NILE PERCH FISH FILLET 500/1000 1*6 KG - UG", "unit_kg": 6.0}, {"code": "FSPRNPUG002", "name": "FROZEN NILE PERCH FISH FILLET 1000/2000 1*6 KG - UG", "unit_kg": 6.0}, {"code": "FSRTMRTH001", "name": "CANNED TUNA MARIETTA CHUNK IN VEGETABLE OIL 48*95 GM", "unit_kg": 4.56}, {"code": "FSRTMRTH002", "name": "CANNED TUNA MARIETTA CHUNK IN VEGETABLE OIL 48*185 GM", "unit_kg": 8.88}, {"code": "FSRTMRTH003", "name": "CANNED TUNA MARIETTA CHUNK IN VEGETABLE OIL WITH CHILLI 48*95 GM", "unit_kg": 4.56}, {"code": "FSRTMRTH004", "name": "CANNED TUNA MARIETTA CHUNK IN VEGETABLE OIL WITH CHILLI 48*185 GM", "unit_kg": 8.88}, {"code": "FSWEXXBH002", "name": "FROZEN WHITE FISH FILLET 5*2 KG", "unit_kg": 10.0}, {"code": "FSWRASAE001", "name": "FROZEN MEDIUM SHRIMPS ASMAK 20*400 GM", "unit_kg": 8.0}, {"code": "FSWRASAE01T", "name": "FROZEN COOKING SHRIMPS ASMAK 20*400 GM", "unit_kg": 8.0}, {"code": "FSWRASAE02T", "name": "FROZEN COOKING SHRIMPS ASMAK 10*1000 GM", "unit_kg": 10.0}, {"code": "FSWRASAE03T", "name": "FROZEN LARGE SHRIMPS ASMAK 20*400 GM", "unit_kg": 8.0}, {"code": "FSWRASAE04T", "name": "FROZEN JUMBO SHRIMPS ASMAK 20*400 GM", "unit_kg": 8.0}, {"code": "FYWXDRSA01T", "name": "WHOLE QUAILS DARI 16*600 GM", "unit_kg": 9.6}, {"code": "GHPUMASA001", "name": "UNSALTED MARGARINE MARIETTA 10*2.5 GM", "unit_kg": null}, {"code": "GRWRMRIN01T", "name": "MARIETTA LONG GRAIN SELA BASMATI RICE 40 KG", "unit_kg": null}, {"code": "HSHTDRJO001", "name": "THYME DARI 12*450 GM", "unit_kg": 5.4}, {"code": "HSHTDRJO002", "name": "THYME DARI 12*225 GM", "unit_kg": 2.7}, {"code": "ICCCKWSA02W", "name": "STO - KWALITY CARAMAEL COMPOUND / 511197 - WS", "unit_kg": null}, {"code": "ICCCKWSA03W", "name": "STO - KWALITY COLOR SHEDE PINKISH RED - WS", "unit_kg": null}, {"code": "ICCCKWSA04W", "name": "STO - KWALITY CARAMEL REVEL TOFFEE - WS", "unit_kg": null}, {"code": "ICCPKWSA02W", "name": "STO - KWALITY BLACK BERRY PUREE - WS", "unit_kg": null}, {"code": "ICCPKWSA03W", "name": "STO - KWALITY RASPBERRY BERRY PUREE - WS", "unit_kg": null}, {"code": "ICCXKWSA01W", "name": "STO - KWALITY MILK CHOCOLTE BALL CRUNCH - WS", "unit_kg": null}, {"code": "ICCXKWSA05W", "name": "STO - KWALITY YOUGHURT FLAVOURED ICE DIP COATING - WS", "unit_kg": null}, {"code": "KMKRMROM01T", "name": "KETCHUP MARIETTA 1000*9 GM", "unit_kg": 9.0}, {"code": "KMKRMROM03T", "name": "KETCHUP MARIETTA 4*5 KG", "unit_kg": 20.0}, {"code": "KMMRMROM01T", "name": "MAYONNAISSE MARIETTA 1000*10 GM", "unit_kg": 10.0}, {"code": "KMRKDRES001", "name": "TOMATO KETCHUP DARI 12*340 GM", "unit_kg": 4.08}, {"code": "KMRKDRES002", "name": "TOMATO HOT KETCHUP DARI 12*340 GM", "unit_kg": 4.08}, {"code": "KMRMDRES001", "name": "MAYONNAISE DARI 12*300 ML", "unit_kg": 3.6}, {"code": "KMRMDRES002", "name": "MAYONNAISE DARI LIGHT 12*300 ML", "unit_kg": 3.6}, {"code": "KMSHMROM01T", "name": "HOT SAUCE MARIETTA 36*88 ML", "unit_kg": 3.168}, {"code": "LBRLULTR001", "name": "PRESIDENT LABNEH LOW FAT 32*275 GM", "unit_kg": 8.8}, {"code": "LBRWDRBG002", "name": "LABNEH DARI 36*180 GM (BU)", "unit_kg": 6.48}, {"code": "LBRWDRSA001", "name": "LABNEH DARI 4*2.75 KG", "unit_kg": 11.0}, {"code": "LBRWDRTR002", "name": "LABNEH DARI 24*375 GM", "unit_kg": 9.0}, {"code": "LBRWDRTR003", "name": "LABNEH DARI 18*700 GM", "unit_kg": 12.6}, {"code": "LBRWDRTR004", "name": "LABNEH DARI 4*2750 GM", "unit_kg": 11.0}, {"code": "LBRWDRTR005", "name": "LABNEH DARI 36*180 GM", "unit_kg": 6.48}, {"code": "LBRWPLTR001", "name": "PRESIDENT LABNEH 18*700 GM", "unit_kg": 12.6}, {"code": "LBRWPNSA001", "name": "LABNEH PRESIDENT 4*2750 GM (SA)", "unit_kg": 11.0}, {"code": "LBRWULTR002", "name": "PRESIDENT LABNEH 18*550 GM", "unit_kg": 9.9}, {"code": "LBRWULTR003", "name": "PRESIDENT LABNEH 32*275 GM", "unit_kg": 8.8}, {"code": "LBRWULTR004", "name": "PRESIDENT LABNEH 36*180 GM", "unit_kg": 6.48}, {"code": "LMPOXXAU01T", "name": "LAMB RACKS BONE IN AUSTRALIAN", "unit_kg": null}, {"code": "LMPQSLNZ002", "name": "LAMB FOREQUARTER SILVER FERN FARMS", "unit_kg": null}, {"code": "LMPQXXNZ001", "name": "LAMB FOREQUARTER NEW ZEALAND", "unit_kg": null}, {"code": "LMPUFLAU001", "name": "LAMB BONE IN HINDSHANK FLETCHER", "unit_kg": null}, {"code": "LMPUSWAU01T", "name": "LAMB HINDSHANK SWIFT", "unit_kg": null}, {"code": "LMPVANNZ001", "name": "LAMB LIVER ANZCO", "unit_kg": null}, {"code": "LMPVMFAU001", "name": "LAMB LIVER MIDFIELD", "unit_kg": null}, {"code": "LMPVPRNZ001", "name": "LAMB LIVER PROGRESSIVE", "unit_kg": null}, {"code": "LMPVXXAU02T", "name": "LAMB LIVER AUSTRALIAN SWIFT", "unit_kg": null}, {"code": "LMWXXXNZ002", "name": "LAMB CARCASS NEW ZEALAND - YM", "unit_kg": null}, {"code": "MKEFDRAE002", "name": "DARI  EVOPORATED MILK 48*170 GM", "unit_kg": 8.16}, {"code": "MTPLARAU01T", "name": "MUTTON LEGS BONE IN ARARAT", "unit_kg": null}, {"code": "MTPOARAU01T", "name": "MUTTON BONE IN LOIN ARARAT", "unit_kg": null}, {"code": "MTPOMFAU01T", "name": "MUTTON BONEIN LOIN MIDFIELD", "unit_kg": null}, {"code": "MTPVAFNZ01T", "name": "SHEEP LIVER AFFCO", "unit_kg": null}, {"code": "MTPVPPNZ003", "name": "MUTTON LIVER PPCS", "unit_kg": null}, {"code": "MTPWCSAU001", "name": "MUTTON CLASSIC 6 WAY CUTS", "unit_kg": null}, {"code": "MTWXXXNZ001", "name": "MUTTON CARCASS NEW ZEALAND", "unit_kg": null}, {"code": "OLOBCOES08T", "name": "OLIVE OIL COPOLIVA GOLD EXTRA VIRGIN 12*500 ML", "unit_kg": 6.0}, {"code": "OLOBCOES09T", "name": "OLIVE OIL COPOLIVA POMACE 12*250 ML", "unit_kg": 3.0}, {"code": "OLOBCOES10T", "name": "OLIVE OIL COPOLIVA POMACE 12*500 ML", "unit_kg": 6.0}, {"code": "OVLBCOES002", "name": "BLACK OLIVES SLICES COPOLIVA 6*510 GM", "unit_kg": 3.06}, {"code": "OVLBCOES003", "name": "BLACK OLIVES SLICES COPOLIVA 6*360 GM", "unit_kg": 2.16}, {"code": "OVLBCOES004", "name": "BLACK OLIVES SLICES COPOLIVA 12*114 GM", "unit_kg": 1.368}, {"code": "OVLBCOES006", "name": "BLACK OLIVES SLICES COPOLIVA 10*936 GM", "unit_kg": 9.36}, {"code": "OVLBMREG001", "name": "OLIVES SLICES BLACK MARIETTA 6*1560 GM", "unit_kg": 9.36}, {"code": "OVLBOLES002", "name": "BLACK OLIVES SLICES OLICOP 10*936 GM", "unit_kg": 9.36}, {"code": "OVLBXXMA001", "name": "OLIVES SLICES BLACK MOROCCO 10*936 GM", "unit_kg": 9.36}, {"code": "OVLGCOES002", "name": "GREEN OLIVES SLICES COPOLIVA 6*510 GM", "unit_kg": 3.06}, {"code": "OVLGCOES003", "name": "GREEN OLIVES SLICES COPOLIVA 6*360 GM", "unit_kg": 2.16}, {"code": "OVLGCOES004", "name": "GREEN OLIVES SLICES COPOLIVA 12*114 GM", "unit_kg": 1.368}, {"code": "OVLGCOES006", "name": "GREEN OLIVES SLICES COPOLIVA 10*936 GM", "unit_kg": 9.36}, {"code": "OVLGCOES009", "name": "GREEN OLIVES SLICES HOT COPOLIVA 12*114 GM", "unit_kg": 1.368}, {"code": "OVLGCOES10T", "name": "GREEN OLIVES SLICES HOT COPOLIVA 6*510 GM", "unit_kg": 3.06}, {"code": "OVLGMREG001", "name": "OLIVES SLICES GREEN MARIETTA 6*1560 GM", "unit_kg": 9.36}, {"code": "OVLGOLES002", "name": "GREEN OLIVES SLICES OLICOP 10*936 GM", "unit_kg": 9.36}, {"code": "OVLGXXMA001", "name": "OLIVES SLICES GREEN MOROCCO 10*936 GM", "unit_kg": 9.36}, {"code": "OVOBCNES002", "name": "OLIVE OIL CONSUL POMACE BLENDED WITH EXTRA VIRGIN 1*10 LITER", "unit_kg": 10.0}, {"code": "OVSGCOES001", "name": "GREEN OLIVES STFFED 300/320 COPOLIVA 2*5 KG", "unit_kg": 10.0}, {"code": "OVSGCOES002", "name": "GREEN OLIVES STFFED COPOLIVA 12*142 GM", "unit_kg": 1.704}, {"code": "OVTBCOES001", "name": "BLACK OLIVES PITTED COPOLIVA 6*1200 GM", "unit_kg": 7.2}, {"code": "OVTBCOES002", "name": "BLACK OLIVES PITTED COPOLIVA 12*150 GM", "unit_kg": 1.8}, {"code": "OVTBCOES003", "name": "BLACK OLIVES PITTED COPOLIVA 12*75 GM", "unit_kg": 0.9}, {"code": "OVTGCOES001", "name": "GREEN OLIVES PITTED COPOLIVA 6*1200 GM", "unit_kg": 7.2}, {"code": "OVTGCOES002", "name": "GREEN OLIVES PITTED COPOLIVA 12*150 GM", "unit_kg": 1.8}, {"code": "OVTGCOES003", "name": "GREEN OLIVES PITTED COPOLIVA 12*75 GM", "unit_kg": 0.9}, {"code": "OVTGCOES04T", "name": "GREEN OLIVES PITTED COPOLIVA 12*180 GM (150 GM+20% FREE)", "unit_kg": 2.16}, {"code": "OVWBCOES002", "name": "BLACK OLIVES 160/180 COPOLIVA 2*5 KG", "unit_kg": 10.0}, {"code": "OVWBCOES004", "name": "BLACK OLIVES 320/360 COPOLIVA 2*5 KG", "unit_kg": 10.0}, {"code": "OVWBCOES006", "name": "BLACK OLIVES COPOLIVA 12*200 GM", "unit_kg": 2.4}, {"code": "OVWBCOES007", "name": "BLACK OLIVES COPOLIVA 12*100 GM", "unit_kg": 1.2}, {"code": "OVWBCOES010", "name": "BLACK OLIVES 180/220 COPOLIVA 2*5 KG", "unit_kg": 10.0}, {"code": "OVWBCOES013", "name": "BLACK OLIVES 140\\160 COPOLIVA 2*5 KG", "unit_kg": 10.0}, {"code": "OVWBCOGR01T", "name": "BLACK WHOLE OLIVE GREEK COPOLIVA 161/180 15*145 GM", "unit_kg": 2.175}, {"code": "OVWBCOGR02T", "name": "BLACK WHOLE OLIVE GREEK COPOLIVA 161/180 15*250 GM", "unit_kg": 3.75}, {"code": "OVWBMRCL01T", "name": "BLACK OLIVES KALAMATA COLOSSAL MARIETTA 7 KG", "unit_kg": null}, {"code": "OVWBMRCL02T", "name": "BLACK OLIVES KALAMATA GIANT MARIETTA  7 KG", "unit_kg": null}, {"code": "OVWBOLES001", "name": "BLACK OLIVES OLICOP 2*5 KG", "unit_kg": 10.0}, {"code": "OVWGCOES004", "name": "GREEN OLIVES 320/360 COPOLIVA 2*5 KG", "unit_kg": 10.0}, {"code": "OVWGCOES006", "name": "GREEN OLIVES COPOLIVA 12*200 GM", "unit_kg": 2.4}, {"code": "OVWGCOES007", "name": "GREEN OLIVES COPOLIVA 12*100 GM", "unit_kg": 1.2}, {"code": "OVWGCOES008", "name": "GREEN OLIVES 180/220 COPOLIVA 2*5 KG", "unit_kg": 10.0}, {"code": "OVWGOLES001", "name": "GREEN OLIVES OLICOP 2*5 KG", "unit_kg": 10.0}, {"code": "OVWGXXMA001", "name": "GREEN OLIVES CARTIER ANDALOUSIAN WITH CHILLI 1*8 KG", "unit_kg": 8.0}, {"code": "OVWGXXMA002", "name": "GREEN OLIVES CARTIER MOROCCO WITH LEMON 1*8 KG", "unit_kg": 8.0}, {"code": "PSRCXXNL02W", "name": "STO- ALTTYIBIN CAKE WITH CREAM AND BERRIES -WS", "unit_kg": null}, {"code": "PSRDDRAE001", "name": "PLAIN PARATHA DARI  24*400 GM", "unit_kg": 9.6}, {"code": "PSRIDRSA001", "name": "FOUR CHEESE PIZZA DARI12*400 GM", "unit_kg": 4.8}, {"code": "PSRIDRSA002", "name": "MUSHROOM AND PESTO PIZZA DARI 12*400 GM", "unit_kg": 4.8}, {"code": "PSRIDRSA003", "name": "VEGETABLE PIZZA DARI 12*400 GM", "unit_kg": 4.8}, {"code": "PSRIDRSA004", "name": "CHICKEN PIZZA DARI12*400 GM", "unit_kg": 4.8}, {"code": "PSRLDRGR001", "name": "BAKLAVA DOUGH DARI (FILO) 12*450 GM", "unit_kg": 5.4}, {"code": "PSRMDRGR001", "name": "SAMBOSA LEAVES DARI 24*500 GM", "unit_kg": 12.0}, {"code": "PSRPDRSA001", "name": "CHICKEN PASTA DARI WITH TOMATO RAGO SAUCE  12*385 GM", "unit_kg": 4.62}, {"code": "PSRSDRAE001", "name": "PUFF PASTRY DARI 18*400 GM", "unit_kg": 7.2}, {"code": "PSRSDRAE002", "name": "PUFF PASTRY DARI 9*800 GM", "unit_kg": 7.2}, {"code": "PSRSDRSG001", "name": "SPRING ROLL DARI PASTRY  40*340 GM", "unit_kg": null}, {"code": "PSRUDRGR001", "name": "KUNAFA DOUGH DARI 12*500 GM", "unit_kg": 6.0}, {"code": "SARNPNFR001", "name": "CREAM PRESIDENT UHT COOKING CREAM 18% FDM 18*500 ML", "unit_kg": 9.0}, {"code": "TUWWDXFR002", "name": "WHOLE TURKEY W/G DOUX 4*3600 GM", "unit_kg": 14.4}, {"code": "TUWWDXFR003", "name": "WHOLE TURKEY W/G DOUX 4*3800 GM", "unit_kg": 15.2}, {"code": "TUWWDXFR004", "name": "WHOLE TURKEY W/G DOUX 4*4000 GM", "unit_kg": 16.0}, {"code": "TUWWDXFR09T", "name": "WHOLE TURKEY W/G DOUX 5*3400 GM", "unit_kg": 17.0}, {"code": "TUWWDXFR28T", "name": "WHOLE TURKEY W/G SELF BASTING + COOKING TIMER DOUX 5*3400 GM", "unit_kg": 17.0}, {"code": "VGCCDRIN01T", "name": "SWEET CORN KERNEL DARI 20*400 GM", "unit_kg": 8.0}, {"code": "VGPBDRAE001", "name": "DARI CANNED RED BEANS KIDNEY 24*400 GM", "unit_kg": 9.6}, {"code": "VGPBDRAE002", "name": "DARI CANNED BAKED BEANS/TOMATO SAUCE 24*400 GM", "unit_kg": 9.6}, {"code": "VGPBDREG001", "name": "GREEN BEANS DARI (M) 20*400 GM", "unit_kg": 8.0}, {"code": "VGPBDRES001", "name": "GREEN BEANS DARI 20*400 GM", "unit_kg": 8.0}, {"code": "VGPBLFEG01T", "name": "GREEN BEANS LIFE 20*400 GM", "unit_kg": 8.0}, {"code": "VGPBMOEG001", "name": "GREEN BEANS MONTANA 20*400 GM", "unit_kg": 8.0}, {"code": "VGPBMOES001", "name": "GREEN BEANS MONTANA - SP 20*400 GM", "unit_kg": 8.0}, {"code": "VGPBMREG01T", "name": "GREEN BEANS MARIETTA 20*400 GM", "unit_kg": 8.0}, {"code": "VGPCMOIN001", "name": "CORN KERNEL (MONTANA) 20*400 GM", "unit_kg": 8.0}, {"code": "VGPCMRIN001", "name": "CORN KERNEL MARIETTA 20*400 GM", "unit_kg": 8.0}, {"code": "VGPDDRES001", "name": "MIXED VEGETABLE W/CORN DARI 20*400 GM", "unit_kg": 8.0}, {"code": "VGPDDRES002", "name": "MIXED VEGETABLE W/CORN DARI 10*900 GM", "unit_kg": 9.0}, {"code": "VGPDLWNL001", "name": "POTATO DIPPERS LAMBWESTON 10*1 KG (RT)", "unit_kg": 10.0}, {"code": "VGPDMOEG001", "name": "MIXED VEGETABLE W/CORN MONTANA 20*400 GM", "unit_kg": 8.0}, {"code": "VGPDMOES001", "name": "MIXED VEGETABLE W/CORN MONTANA - SP 20*400 GM", "unit_kg": 8.0}, {"code": "VGPEMOES001", "name": "PEAS/CARROTS MONTANA 20*400 GM", "unit_kg": 8.0}, {"code": "VGPIDRES001", "name": "MIXED VEGETABLE DARI 20*400 GM", "unit_kg": 8.0}, {"code": "VGPILFEG01T", "name": "MIXED VEGETABLES LIFE 20*400 GM", "unit_kg": 8.0}, {"code": "VGPIMOEG001", "name": "MIXED VEGETABLE MONTANA 20*400 GM", "unit_kg": 8.0}, {"code": "VGPIMOES001", "name": "MIXED VEGETABLE MONTANA - SP 20*400 GM", "unit_kg": 8.0}, {"code": "VGPIMREG001", "name": "MIXED VEGETABLE MARIETTA - EG 20*400 GM", "unit_kg": 8.0}, {"code": "VGPKLWNL001", "name": "POTATO STEALTH W/SKIN 9*9 LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPLDRES001", "name": "BROCCOLI DARI 20*400 GM", "unit_kg": 8.0}, {"code": "VGPLMOEG001", "name": "BROCCOLI MONTANA 20*250 GM", "unit_kg": 5.0}, {"code": "VGPMDREG001", "name": "MOLOKHIA DARI (M) 20*400 GM", "unit_kg": 8.0}, {"code": "VGPMLFEG01T", "name": "MOLOKHIA LIFE 20*400 GM", "unit_kg": 8.0}, {"code": "VGPMMOEG001", "name": "MOLOKHIA MONTANA 20*400 GM", "unit_kg": 8.0}, {"code": "VGPMMREG01T", "name": "MOLOKHIA MARIETTA 20*400 GM", "unit_kg": 8.0}, {"code": "VGPPBASA01W", "name": "STO - POTATO CHIPS ALBAIK - WS", "unit_kg": null}, {"code": "VGPPDRAE001", "name": "DARI CANNED GREEN PEAS 24*400 GM", "unit_kg": 9.6}, {"code": "VGPPDRBE01T", "name": "POTATO 9*9 DARI 5*2 KG (A)", "unit_kg": 10.0}, {"code": "VGPPDRBE02T", "name": "POTATO 9*9 DARI 4*2.5 KG (A)", "unit_kg": 10.0}, {"code": "VGPPDRBE03T", "name": "POTATO 6*6 DARI 4*2.5 KG (A)", "unit_kg": 10.0}, {"code": "VGPPDRBE04T", "name": "POTATO 6*6 DARI 5*2 KG (A)", "unit_kg": 10.0}, {"code": "VGPPDRES001", "name": "PEAS DARI 20*400 GM", "unit_kg": 8.0}, {"code": "VGPPDRES002", "name": "PEAS DARI 10*900 GM", "unit_kg": 9.0}, {"code": "VGPPDRES02T", "name": "GREEN PEAS/CARROTS DARI 10*900 GM", "unit_kg": 9.0}, {"code": "VGPPDRES03T", "name": "GREEN PEAS/CARROTS DARI 20*400 GM", "unit_kg": 8.0}, {"code": "VGPPDRNL002", "name": "POTATO 9*9 DARI 10*1 KG (A)", "unit_kg": 10.0}, {"code": "VGPPFFEG002", "name": "POTATO 10*10 FARM FRITES 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPPLFIN01T", "name": "GREEN PEAS LIFE- R 20*400 GM", "unit_kg": 8.0}, {"code": "VGPPLWNL001", "name": "POTATO 6*6 LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPPLWNL002", "name": "POTATO 9*9 LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPPLWNL006", "name": "POTATO LAMBWESTON 9*9 HOT2HOME 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPPLWNL009", "name": "POTATO CRISPY CHIPS LAMBWESTON 5*2 KG", "unit_kg": 10.0}, {"code": "VGPPLWNL010", "name": "POTATO REALLY CRUNCHY 9*9 LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPPLWNL012", "name": "POTATO REALLY CRUNCHY 6*6 THIN LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPPLWNL03W", "name": "STO - ALBAIK POTATO CRISPY CHIPS LAMBWESTON 5*2 KG - WS", "unit_kg": null}, {"code": "VGPPLWNL06T", "name": "POTATO CHEFS TRADITIONAL CUBES LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPPLWNL09T", "name": "POTATO 9*9 LAMBWESTON 4*2.5 KG (RT)", "unit_kg": 10.0}, {"code": "VGPPLWNL10T", "name": "POTATO 9*9 LAMBWESTON 10*1 KG (RT)", "unit_kg": 10.0}, {"code": "VGPPMOES001", "name": "PEAS MONTANA - SP 20*400 GM", "unit_kg": 8.0}, {"code": "VGPPMOIN001", "name": "PEAS (MONTANA) 20*400 GM", "unit_kg": 8.0}, {"code": "VGPPMRIN01T", "name": "PEAS MARIETTA 20*400 GM", "unit_kg": 8.0}, {"code": "VGPPXXSA001", "name": "POTATO 9*9  4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPQMOEG001", "name": "KULKAS MONTANA 20*400 GM", "unit_kg": 8.0}, {"code": "VGPRLWNL001", "name": "POTATO PRIVATE 6*6 LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPRLWNL03T", "name": "POTATO PRIVATE 9*18 LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPRLWNL04T", "name": "POTATO PRIVATE 9*9 LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPSDREG001", "name": "SPINACH DARI (M) 20*400 GM", "unit_kg": 8.0}, {"code": "VGPSDRES001", "name": "SPINACH PORTIONS DARI 20*400 GM", "unit_kg": 8.0}, {"code": "VGPSLFEG001", "name": "SPINACH LIFE 20*400 GM", "unit_kg": 8.0}, {"code": "VGPSLWNL001", "name": "POTATO STEALTH 6*6 LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPSLWNL002", "name": "POTATO STEALTH 13*13 LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPSLWNL003", "name": "POTATO STEALTH 9*9 LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPSLWNL01W", "name": "STO - POTATO AL BAIK 5*2.5 KG", "unit_kg": null}, {"code": "VGPSLWNL02T", "name": "POTATO STEALTH 6*6 SKIN ON LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPSLWNL05T", "name": "POTATO EXTRA CRISPY 9*9 LAMBWESTON 4*2.5 KG (RT)", "unit_kg": 10.0}, {"code": "VGPSLWNL06T", "name": "POTATO EXTRA CRISPY 9*9 LAMBWESTON 12*750 GM (RT)", "unit_kg": 9.0}, {"code": "VGPSLWNL07T", "name": "POTATO ZIGGY 9*9 LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPSLWNL11T", "name": "POTATO AL BAIK 5*2.5 KG", "unit_kg": 12.5}, {"code": "VGPSMOEG001", "name": "SPINACH MONTANA 20*400 GM", "unit_kg": 8.0}, {"code": "VGPSMREG01T", "name": "SPINACH MARIETTA 20*400 GM", "unit_kg": 8.0}, {"code": "VGPSMRES001", "name": "SPINACH MARIETTA 10*1 KG", "unit_kg": 10.0}, {"code": "VGPTLWNL001", "name": "SWEET POTATO LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGPUDRAE001", "name": "DARI CANNED FOUL MEDAMAS 24*400 GM", "unit_kg": 9.6}, {"code": "VGPZLWNL001", "name": "POTATO ZIGGY LAMBWESTON 12*750 GM (RT)", "unit_kg": 9.0}, {"code": "VGRCLWNL001", "name": "POTATO CRISSCUTS LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGRCLWNL06T", "name": "POTATO CRISSCUTS LAMBWESTON 4*2.5 KG (RT)", "unit_kg": 10.0}, {"code": "VGRCLWNL07T", "name": "POTATO CRISSCUTS LAMBWESTON 12*750 GM (RT)", "unit_kg": 9.0}, {"code": "VGRDLWNL01T", "name": "POTATO DIPPERS LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGRHLWNL001", "name": "POTATO HASH BROWNS LAMBWESTON 10*1 KG", "unit_kg": 10.0}, {"code": "VGRHLWNL02T", "name": "POTATO HASH BROWNS LAMBWESTON 10*1 KG (RT)", "unit_kg": 10.0}, {"code": "VGRJLWNL01T", "name": "JALAPENOS CHEDDAR CHEESE LAMBWESTON 6*1 KG", "unit_kg": 6.0}, {"code": "VGRLLWNL001", "name": "POTATO CHIPS 11 MM STRAIGHT CUT LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGROLWNL001", "name": "ONION RINGS LAMBWESTON 6*1 KG", "unit_kg": 6.0}, {"code": "VGROLWNL02T", "name": "ONION RINGS LAMBWESTON 12*600 GM (RT)", "unit_kg": 7.2}, {"code": "VGRPDRBE002", "name": "POTATO DARI WEDGES 12*750 GMS", "unit_kg": 9.0}, {"code": "VGRPDRBE003", "name": "POTATO DARI WAFFLES 10*750 GMS", "unit_kg": 7.5}, {"code": "VGRPDRBE004", "name": "POTATO 6*6 DARI 10*1 KG", "unit_kg": 10.0}, {"code": "VGRPDRBE005", "name": "POTATO EXTRA CRISPY 9*9 DARI 10*1 KG", "unit_kg": 10.0}, {"code": "VGRPDRBE006", "name": "POTATO EXTRA CRISPY 6*6 DARI 10*1 KG", "unit_kg": 10.0}, {"code": "VGRTDRBE01T", "name": "POTATO CURLY DARI 10*1 KG ( A )", "unit_kg": 10.0}, {"code": "VGRTLWNL001", "name": "POTATO TWISTERS LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGRTLWNL03T", "name": "POTATO TWISTERS LAMBWESTON 4*2.5 KG (RT)", "unit_kg": 10.0}, {"code": "VGRTLWNL04T", "name": "POTATO TWISTERS LAMBWESTON 12*750 GM (RT)", "unit_kg": 9.0}, {"code": "VGRVLWNL001", "name": "POTATO WEDGES WAVES LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGRWDRBE01T", "name": "POTATO WEDGES DARI 10*1 KG ( A )", "unit_kg": 10.0}, {"code": "VGRWLWNL001", "name": "POTATO WEDGES SKIN ON SEASONED LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGRWLWNL03T", "name": "POTATO WEDGES W/SKIN LAMBWESTON 4*2.5 KG (RT)", "unit_kg": 10.0}, {"code": "VGRWLWNL04T", "name": "POTATO WEDGES W/SKIN LAMBWESTON 12*750 GM (RT)", "unit_kg": 9.0}, {"code": "VGRWLWNL05T", "name": "POTATO WEDGES SKIN ON LAMBWESTON 4*2.5 KG", "unit_kg": 10.0}, {"code": "VGWADREG001", "name": "ARTICHOKE DARI 20*400 GM", "unit_kg": 8.0}, {"code": "VGWAMOEG001", "name": "ARTICHOKE MONTANA 20*400 GM", "unit_kg": 8.0}, {"code": "VGWBDRTH001", "name": "FROZEN EDAMAME DARI 20*454 GM", "unit_kg": 9.08}, {"code": "VGWCDRIN001", "name": "WHOLE CORN ON COB DARI 10*1 KG", "unit_kg": 10.0}, {"code": "VGWODREG001", "name": "OKRA EXTRA DARI (M) 20*400 GM", "unit_kg": 8.0}, {"code": "VGWODREG002", "name": "OKRA FINE DARI (M) 20*400 GM", "unit_kg": 8.0}, {"code": "VGWODREG003", "name": "OKRA ZERO DARI (M) 20*400 GM", "unit_kg": 8.0}, {"code": "VGWOLFEG01T", "name": "OKRA FINE LIFE 20*400 GM", "unit_kg": 8.0}, {"code": "VGWOMOEG001", "name": "OKRA EXTRA MONTANA 20*400 GM", "unit_kg": 8.0}, {"code": "VGWOMOEG002", "name": "OKRA ZERO MONTANA 20*400 GM", "unit_kg": 8.0}, {"code": "VGWOMOEG003", "name": "OKRA MUMTAZA MONTANA 20*400 GM", "unit_kg": 8.0}, {"code": "VGWOMREG002", "name": "OKRA MEDIUM MARIETTA 20*400 GM", "unit_kg": 8.0}, {"code": "VGWOMREG003", "name": "OKRA EXTRA MARIETTA 20*400 GM", "unit_kg": 8.0}, {"code": "VLPBSLNZ001", "name": "BOBY VEAL BACKSTRAP SILVER FERN FARMS", "unit_kg": null}, {"code": "VLPEHBIN003", "name": "HABRA VEAL TERNDERLION 18 KG", "unit_kg": null}, {"code": "VLPLHBIN001", "name": "VEAL LEGS AL HABRA 20*900 GM", "unit_kg": 18.0}, {"code": "VLPRHBIN001", "name": "VEAL ROLLS AL HABRA 4.5 KG", "unit_kg": null}, {"code": "VLWCSLNZ001", "name": "BOBBY VEAL BONEIN CARCASS 6 CUTS SILVER FERN FARMS W/T", "unit_kg": null}, {"code": "VLWCXXNZ001", "name": "NEW ZEALAND BOBY VEAL BONEIN CARCASE 6 CUTS", "unit_kg": null}]}];
 const CODE_MAP = {};
 const WEIGHT_MAP = {};
 const FLAT_ITEMS = [];
@@ -885,6 +1052,7 @@ function rowHTML(){
     <td><input type="text" class="expiry date-field" placeholder="DD/MM/YYYY" maxlength="10" oninput="formatDateInput(this)"></td>
     <td><input type="text" class="crt" oninput="onCrtInput(this)"></td>
     <td><input type="text" class="kg" oninput="calcTotals()"></td>
+    <td><input type="text" class="plt" oninput="calcTotals()"></td>
     <td class="no-print row-actions">
       <button class="row-btn add-btn" title="Add row below" onclick="addRowAfter(this)">+</button>
       <button class="row-btn edit-btn" title="Lock/Unlock row" onclick="toggleLock(this)">✎</button>
@@ -994,12 +1162,45 @@ function delRow(btn){
   calcTotals();
 }
 const MAX_TRUCK_TONS = 24;
+const EXPIRY_WARN_DAYS = 90;
+
+// --- Fix 5: highlight rows whose expiry is near or passed ---
+function checkExpiries(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  document.querySelectorAll('#itemsBody tr').forEach(tr=>{
+    const el = tr.querySelector('.expiry');
+    tr.classList.remove('exp-warn','exp-expired');
+    if(!el) return;
+    const p = el.value.split('/');
+    if(p.length !== 3 || p[2].length !== 4) return;
+    const d = new Date(+p[2], +p[1]-1, +p[0]);
+    if(isNaN(d)) return;
+    const days = Math.round((d - today) / 86400000);
+    if(days < 0) tr.classList.add('exp-expired');
+    else if(days <= EXPIRY_WARN_DAYS) tr.classList.add('exp-warn');
+  });
+}
+
+// --- Fix 6: From/To branch must differ ---
+function checkBranches(){
+  const f = document.getElementById('fromBranch');
+  const t = document.getElementById('toBranch');
+  const bad = f.value && t.value && f.value === t.value;
+  [f,t].forEach(el=> el.classList.toggle('branch-clash', bad));
+  const msg = document.getElementById('branchWarn');
+  if(msg) msg.style.display = bad ? 'block' : 'none';
+  return !bad;
+}
+
 function calcTotals(){
-  let crt=0, kg=0;
+  let crt=0, kg=0, plt=0;
   document.querySelectorAll('.crt').forEach(i=>{ crt += parseFloat(i.value.replace(/,/g,''))||0; });
   document.querySelectorAll('.kg').forEach(i=>{ kg += parseFloat(i.value.replace(/,/g,''))||0; });
+  document.querySelectorAll('.plt').forEach(i=>{ plt += parseFloat(i.value.replace(/,/g,''))||0; });
   document.getElementById('totalCrt').textContent = crt.toLocaleString('en-US');
   document.getElementById('totalKg').textContent = kg.toLocaleString('en-US');
+  document.getElementById('totalPlt').textContent = plt.toLocaleString('en-US');
+  checkExpiries();
 
   const tons = kg / 1000;
   document.getElementById('wsKg').textContent = kg.toLocaleString('en-US');
@@ -1013,6 +1214,76 @@ function calcTotals(){
     statusEl.className = 'status-ok';
   }
 }
+// ===== Export: build a clean file name from the form data =====
+function buildExportName(){
+  const clean = v => (v||'').toString().trim().replace(/[\\/:*?"<>|]/g,'-').replace(/\s+/g,'_');
+  const wb    = clean(document.getElementById('wayBillNo')?.value);
+  const truck = clean(document.getElementById('driverIdInput')?.value);
+  const date  = clean(document.getElementById('documentDate')?.value).replace(/\//g,'-');
+  const parts = ['Transfer', wb, truck, date].filter(Boolean);
+  return parts.join('_');
+}
+
+/* ===== One-page auto-fit: shrink content until it fits a single A4 landscape page ===== */
+const PAGE_H_PX = 771;   // A4 landscape usable height @96dpi minus 3mm margins
+const PAGE_W_PX = 1110;
+let fitStyleEl = null;
+
+function applyOnePageFit(){
+  removeOnePageFit();
+  const sheet = document.querySelector('.sheet');
+  if(!sheet) return;
+
+  // measure with print rules approximated: temporarily hide no-print items
+  const hidden = [];
+  document.querySelectorAll('.no-print').forEach(el=>{
+    if(el.offsetParent !== null){ hidden.push([el, el.style.display]); el.style.display = 'none'; }
+  });
+
+  const h = sheet.scrollHeight;
+  const w = sheet.scrollWidth;
+
+  hidden.forEach(([el,d])=>{ el.style.display = d; });
+
+  // printed layout is denser than screen, so allow headroom before scaling
+  const raw = Math.min(PAGE_H_PX / h, PAGE_W_PX / w);
+  const scale = Math.min(1, raw * 1.35);
+  if(scale >= 0.999) return;
+
+  const pct = (scale * 100).toFixed(2);
+  fitStyleEl = document.createElement('style');
+  fitStyleEl.id = 'onePageFit';
+  fitStyleEl.textContent =
+    `@media print{
+       .sheet{ zoom:${pct}%; }
+       @supports not (zoom:1){
+         .sheet{ zoom:normal; transform:scale(${scale.toFixed(4)}); transform-origin:top left;
+                 width:${(100/scale).toFixed(2)}% !important; }
+       }
+     }`;
+  document.head.appendChild(fitStyleEl);
+}
+function removeOnePageFit(){
+  if(fitStyleEl){ fitStyleEl.remove(); fitStyleEl = null; }
+}
+window.addEventListener('beforeprint', applyOnePageFit);
+window.addEventListener('afterprint', removeOnePageFit);
+
+// Save as PDF: sets the file name, then opens the print dialog (choose "Save as PDF")
+function savePdf(){
+  const original = document.title;
+  document.title = buildExportName();
+  const restore = ()=>{ document.title = original; window.removeEventListener('afterprint', restore); };
+  window.addEventListener('afterprint', restore);
+  window.print();
+  setTimeout(restore, 3000);
+}
+
+// Print: sends straight to the printer dialog
+function printDirect(){
+  window.print();
+}
+
 function downloadForm(){
   const clone = document.documentElement.cloneNode(true);
 
@@ -1057,8 +1328,12 @@ function resetForm(){
   document.querySelectorAll('.sheet input[type=checkbox]').forEach(i=>i.checked=false);
   document.getElementById('itemsBody').innerHTML='';
   for(let i=0;i<4;i++) addRow();
+  try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+  document.getElementById('docNo').value = makeDocNo();
   calcTotals();
   setTodayDate();
+  refreshBarcode();
+  checkBranches();
 }
 function setTodayDate(){
   const d = new Date();
@@ -1087,6 +1362,140 @@ attachDatePicker(document.getElementById('documentDate'));
 attachTimePicker(document.getElementById('loadingTime'));
 attachTimePicker(document.getElementById('departureTime'));
 
+/* ===== Fix 2: automatic document number  TRO-YYYY-DD-MM-HHMM-NN ===== */
+function makeDocNo(){
+  const d = new Date();
+  const p = n => String(n).padStart(2,'0');
+  const key = `docseq_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}`;
+  let seq = 1;
+  try{
+    seq = (parseInt(localStorage.getItem(key)) || 0) + 1;
+    localStorage.setItem(key, seq);
+  }catch(e){}
+  return `TRO-${d.getFullYear()}-${p(d.getDate())}-${p(d.getMonth()+1)}-${p(d.getHours())}${p(d.getMinutes())}-${p(seq)}`;
+}
+
+/* ===== Fix 4: Code128-B barcode for the Way Bill No. (pure SVG, offline) ===== */
+const C128 = ["11011001100","11001101100","11001100110","10010011000","10010001100","10001001100","10011001000","10011000100","10001100100","11001001000","11001000100","11000100100","10110011100","10011011100","10011001110","10111001100","10011101100","10011100110","11001110010","11001011100","11001001110","11011100100","11001110100","11101101110","11101001100","11100101100","11100100110","11101100100","11100110100","11100110010","11011011000","11011000110","11000110110","10100011000","10001011000","10001000110","10110001000","10001101000","10001100010","11010001000","11000101000","11000100010","10110111000","10110001110","10001101110","10111011000","10111000110","10001110110","11101110110","11010001110","11000101110","11011101000","11011100010","11011101110","11101011000","11101000110","11100010110","11101101000","11101100010","11100011010","11101111010","11001000010","11110001010","10100110000","10100001100","10010110000","10010000110","10000101100","10000100110","10110010000","10110000100","10011010000","10011000010","10000110100","10000110010","11000010010","11001010000","11110111010","11000010100","10001111010","10100111100","10010111100","10010011110","10111100100","10011110100","10011110010","11110100100","11110010100","11110010010","11011011110","11011110110","11110110110","10101111000","10100011110","10001011110","10111101000","10111100010","11110101000","11110100010","10111011110","10111101110","11101011110","11110101110","11010000100","11010010000","11010011100","1100011101011"];
+function drawBarcode(text, el){
+  el.innerHTML = '';
+  if(!text){ return; }
+  const data = String(text).toUpperCase().replace(/[^\x20-\x7E]/g,'');
+  if(!data){ return; }
+  let codes = [104];                      // Start B
+  for(let i=0;i<data.length;i++){
+    const v = data.charCodeAt(i) - 32;
+    if(v < 0 || v > 94) continue;
+    codes.push(v);
+  }
+  let sum = 104;
+  for(let i=1;i<codes.length;i++) sum += codes[i] * i;
+  codes.push(sum % 103);
+  codes.push(106);                        // Stop
+  const bits = codes.map(c=>C128[c]).join('');
+  const H = 34, W = bits.length;
+  let rects = '', x = 0;
+  while(x < W){
+    if(bits[x] === '1'){
+      let run = 0;
+      while(x+run < W && bits[x+run] === '1') run++;
+      rects += `<rect x="${x}" y="0" width="${run}" height="${H}" fill="#000"/>`;
+      x += run;
+    } else x++;
+  }
+  el.innerHTML =
+    `<svg viewBox="0 0 ${W} ${H+11}" preserveAspectRatio="none" style="width:100%;height:46px;display:block">
+       ${rects}
+       <text x="${W/2}" y="${H+9}" font-size="9" text-anchor="middle" font-family="monospace"
+             transform="scale(1,1)" style="font-size:9px">${data}</text>
+     </svg>`;
+}
+function refreshBarcode(){
+  const el = document.getElementById('wbBarcode');
+  if(el) drawBarcode(document.getElementById('wayBillNo').value.trim(), el);
+}
+
+/* ===== Fix 3: autosave to localStorage ===== */
+const SAVE_KEY = 'transfer_form_draft_v1';
+let saveTimer = null;
+function serializeForm(){
+  const data = {fields:{}, rows:[]};
+  document.querySelectorAll('.sheet input:not(.code-input), .sheet textarea, .sheet select').forEach((el,i)=>{
+    if(el.closest('#itemsBody')) return;
+    const k = el.id || ('idx_'+i);
+    data.fields[k] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  document.querySelectorAll('#itemsBody tr').forEach(tr=>{
+    data.rows.push({
+      code: tr.querySelector('.code-value')?.value || '',
+      codeText: tr.querySelector('.code-input')?.value || '',
+      desc: tr.querySelector('.desc')?.value || '',
+      lot:  tr.querySelector('.lot')?.value || '',
+      exp:  tr.querySelector('.expiry')?.value || '',
+      crt:  tr.querySelector('.crt')?.value || '',
+      kg:   tr.querySelector('.kg')?.value || '',
+      plt:  tr.querySelector('.plt')?.value || ''
+    });
+  });
+  return data;
+}
+function saveDraft(){
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify(serializeForm()));
+    const b = document.getElementById('saveBadge');
+    if(b){ b.textContent = '✓ Saved ' + new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+           b.classList.add('show'); setTimeout(()=>b.classList.remove('show'), 1800); }
+  }catch(e){}
+}
+function scheduleSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(saveDraft, 800); }
+function restoreDraft(){
+  let raw = null;
+  try{ raw = localStorage.getItem(SAVE_KEY); }catch(e){}
+  if(!raw) return false;
+  let data; try{ data = JSON.parse(raw); }catch(e){ return false; }
+  if(!data || !data.rows) return false;
+  const filled = data.rows.some(r=>r.code||r.desc||r.crt) ||
+                 Object.values(data.fields||{}).some(v=> v && v !== true && String(v).trim());
+  if(!filled) return false;
+  if(!confirm('A saved draft was found. Restore it?\nيوجد مسودة محفوظة — هل تريد استرجاعها؟')) return false;
+
+  Object.entries(data.fields||{}).forEach(([k,v])=>{
+    const el = document.getElementById(k);
+    if(!el) return;
+    if(el.type === 'checkbox') el.checked = !!v; else el.value = v;
+  });
+  document.getElementById('itemsBody').innerHTML = '';
+  data.rows.forEach(r=>{
+    document.getElementById('itemsBody').insertAdjacentHTML('beforeend', rowHTML());
+    const tr = document.getElementById('itemsBody').lastElementChild;
+    attachDatePicker(tr.querySelector('.expiry'));
+    tr.querySelector('.code-value').value = r.code;
+    tr.querySelector('.code-input').value = r.codeText;
+    tr.querySelector('.desc').value = r.desc;
+    tr.querySelector('.lot').value  = r.lot;
+    tr.querySelector('.expiry').value = r.exp;
+    tr.querySelector('.crt').value  = r.crt;
+    tr.querySelector('.kg').value   = r.kg;
+    tr.querySelector('.plt').value  = r.plt;
+    if(r.code && WEIGHT_MAP[r.code.toUpperCase()]){
+      const k = tr.querySelector('.kg');
+      k.readOnly = true; k.classList.add('readonly-name');
+    }
+  });
+  calcTotals(); refreshBarcode(); checkBranches();
+  return true;
+}
+document.addEventListener('input', scheduleSave);
+document.addEventListener('change', scheduleSave);
+
+/* ===== wiring ===== */
+document.getElementById('wayBillNo').addEventListener('input', refreshBarcode);
+document.getElementById('fromBranch').addEventListener('change', checkBranches);
+document.getElementById('toBranch').addEventListener('change', checkBranches);
+document.getElementById('docNo').value = makeDocNo();
+if(!restoreDraft()){ calcTotals(); }
+refreshBarcode();
+
 // ===== Required-field validation before print/download =====
 const REQUIRED_FIELDS = [
   {id:'goodsType', label:'Goods Type / نوع البضاعة'},
@@ -1103,35 +1512,6 @@ const REQUIRED_FIELDS = [
   {id:'driverName', label:'Driver Name / اسم السائق'},
   {id:'driverIqama', label:'Iqama Number / رقم الإقامة'}
 ];
-// Real PDF export — captures the sheet as an image and builds an actual
-// .pdf file with jsPDF, then downloads it directly. No print dialog.
-async function savePDF(){
-  if(!validateRequired()) return;
-  const sheet = document.querySelector('.sheet');
-  const noPrintEls = document.querySelectorAll('.no-print');
-  const btnBar = document.querySelector('.btnbar');
-  noPrintEls.forEach(el=>{ el.dataset.prevVis = el.style.visibility; el.style.visibility = 'hidden'; });
-  if(btnBar) btnBar.style.display = 'none';
-  try{
-    const canvas = await html2canvas(sheet, {scale:2, useCORS:true, backgroundColor:'#ffffff'});
-    const imgData = canvas.toDataURL('image/png');
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const imgProps = pdf.getImageProperties(imgData);
-    const ratio = Math.min(pageW / imgProps.width, pageH / imgProps.height);
-    const w = imgProps.width * ratio;
-    const h = imgProps.height * ratio;
-    pdf.addImage(imgData, 'PNG', (pageW - w) / 2, (pageH - h) / 2, w, h);
-    pdf.save('transfer_document.pdf');
-  } catch(err){
-    alert('تعذر إنشاء PDF: ' + err.message);
-  } finally {
-    noPrintEls.forEach(el=>{ el.style.visibility = el.dataset.prevVis || ''; });
-    if(btnBar) btnBar.style.display = '';
-  }
-}
 function validateRequired(){
   let missing = [];
   REQUIRED_FIELDS.forEach(f=>{
@@ -1146,6 +1526,7 @@ function validateRequired(){
   const hasItem = Array.from(document.querySelectorAll('#itemsBody .code-value'))
     .some(i=>i.value && i.value.trim());
   if(!hasItem) missing.push('At least one item row / صف صنف واحد على الأقل');
+  if(!checkBranches()) missing.push('From / To Branch must differ / الفرع المرسل والمستلم متطابقان');
 
   if(missing.length){
     const first = document.querySelector('.field-missing');
