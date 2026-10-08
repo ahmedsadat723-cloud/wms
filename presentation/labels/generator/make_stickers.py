@@ -144,7 +144,7 @@ def item_lines(item, big, small):
             '<div data-fit dir="ltr" style="white-space:nowrap;font-weight:700;font-size:%smm;line-height:1.15;opacity:.85">%s</div>'
             % (big, ar, small, html.escape(item['en'].strip())))
 
-def sticker(z, br, rack_no, lvl, pal, item, half, levels, tiers):
+def sticker(z, br, rack_no, lvl, pal, item, half, levels, tiers, spare_copy=False):
     T = TYPES[z]
     bname = BRANDS[br][0]
     L = LETTERS[lvl - 1]
@@ -176,9 +176,12 @@ def sticker(z, br, rack_no, lvl, pal, item, half, levels, tiers):
            % (bh, barcode_svg(code, svgh), code))
     pal_b = ('<div dir="ltr" style="position:absolute;right:1.6mm;bottom:1.4mm;background:%s;color:%s;border-radius:2mm;'
              'padding:0 1.8mm;font-weight:900;font-size:4.6mm;line-height:1.35">P%d</div>' % (INK, YEL, pal))
+    note = ('<div style="position:absolute;left:2.4mm;bottom:1.3mm;display:flex;flex-direction:column;align-items:center;'
+            'line-height:1.05;font-weight:800;font-size:2.5mm;opacity:.55;color:%s"><span dir="ltr">SPARE</span>'
+            '<span dir="rtl">احتياطي</span></div>' % INK) if spare_copy else ''
     return ('<div class="stk" style="width:78mm;height:50mm;box-sizing:border-box;background:%s;border:1.1mm solid %s;'
             'border-radius:4mm;overflow:hidden;direction:ltr;display:flex;flex-direction:column;font-family:\'Cairo\',sans-serif;'
-            'color:%s;position:relative">%s%s%s%s%s</div>' % (YEL, INK, INK, head, panel, mid, bar, pal_b))
+            'color:%s;position:relative">%s%s%s%s%s%s</div>' % (YEL, INK, INK, head, panel, mid, bar, pal_b, note))
 
 # ---------------------------------------------------------------- cut guides
 def overlay(W, H, L, T, cols, rows):
@@ -210,13 +213,35 @@ def overlay(W, H, L, T, cols, rows):
             % (W, H, W, H, ''.join(k), rects))
 
 # ---------------------------------------------------------------- rack stickers (ordered top level first)
-def rack_stickers(r, pals):
-    out = []
+SPARES = {'a4': 0, 'sra3': 0}
+
+def mk(r, lvl, p, spare=False, fmt=None):
+    h = next(h for h in r['halves'] if lvl in h['levels'])
+    if spare and fmt:
+        SPARES[fmt] += 1
+    return sticker(r['zone'], r['brand'], r['no'], lvl, p, h['item'], h['name'], h['levels'], r['tiers'], spare)
+
+def sra3_cells(r):
+    cells = [mk(r, lvl, p) for lvl in range(r['tiers'], 0, -1) for p in (1, 2, 3, 4, 5)]
+    rows = r['tiers']
+    while rows < 5:                       # empty row(s): spare copies of the floor level (most exposed)
+        cells += [mk(r, 1, p, True, 'sra3') for p in (1, 2, 3, 4, 5)]
+        rows += 1
+    return ''.join(cells)
+
+def a4_cells(r, ch):
+    cells = []
     for lvl in range(r['tiers'], 0, -1):
-        h = next(h for h in r['halves'] if lvl in h['levels'])
-        for p in pals:
-            out.append(sticker(r['zone'], r['brand'], r['no'], lvl, p, h['item'], h['name'], h['levels'], r['tiers']))
-    return ''.join(out)
+        cells += [mk(r, lvl, p) for p in ch]
+        if len(ch) == 1:                  # empty second column: spare copy of the same sticker
+            cells.append(mk(r, lvl, ch[0], True, 'a4'))
+    rows = r['tiers']
+    while rows < 5:                       # empty row(s): spare copies of the floor level
+        cells += [mk(r, 1, p, True, 'a4') for p in ch]
+        if len(ch) == 1:
+            cells.append(mk(r, 1, ch[0], True, 'a4'))
+        rows += 1
+    return ''.join(cells)
 
 def rack_title_ar(r):
     hs = r['halves']
@@ -240,7 +265,7 @@ def a4_pages(racks):
             bname = BRANDS[r['brand']][0]
             chunks = [[1, 2], [3, 4], [5]]
             for ci, ch in enumerate(chunks, 1):
-                rows = r['tiers']
+                rows = 5
                 gh = rows * 50 + (rows - 1) * 5
                 pr = ('PALLETS %d–%d' % (ch[0], ch[-1])) if len(ch) > 1 else ('PALLETS %d' % ch[0])
                 secs.append(
@@ -250,8 +275,8 @@ def a4_pages(racks):
                     'white-space:nowrap"><span dir="ltr">%s · %s · RACK %d · %s</span><span dir="ltr">%s · PAGE %d/3</span></div>'
                     '<div style="position:absolute;left:24.5mm;top:18mm;width:161mm;height:%dmm;display:grid;direction:ltr;'
                     'grid-template-columns:repeat(2,78mm);grid-auto-rows:50mm;gap:5mm">%s</div>%s</section>'
-                    % (T['tag'], bname, r['no'], T['code'], pr, ci, gh, rack_stickers(r, ch),
-                       overlay(210, 297, 24.5, 18, len(ch), rows)))
+                    % (T['tag'], bname, r['no'], T['code'], pr, ci, gh, a4_cells(r, ch),
+                       overlay(210, 297, 24.5, 18, 2, rows)))
     return secs
 
 # ---------------------------------------------------------------- SRA3 pages
@@ -265,10 +290,10 @@ def sra3_pages(racks):
         T = TYPES[z]
         for r in racks[z]:
             bname, bcol, _ = BRANDS[r['brand']]
-            rows = r['tiers']
+            rows = 5
             gh = rows * 50 + (rows - 1) * 5
             titles = ''.join(rack_title_ar(r))
-            sub = '%s · RACK #%d · LEVELS A–%s × 5 PALLETS' % (T['desc'], r['gno'], LETTERS[rows - 1])
+            sub = '%s · RACK #%d · LEVELS A–%s × 5 PALLETS' % (T['desc'], r['gno'], LETTERS[r['tiers'] - 1])
             secs.append(
                 '<section class="pg" style="width:450mm;height:320mm">'
                 '<div style="position:absolute;left:20mm;top:12mm;width:410mm;height:21mm;display:flex;align-items:center;'
@@ -280,7 +305,7 @@ def sra3_pages(racks):
                 '<div style="position:absolute;left:20mm;top:40mm;width:410mm;height:%dmm;display:grid;direction:ltr;'
                 'grid-template-columns:repeat(5,78mm);grid-auto-rows:50mm;gap:5mm">%s</div>%s</section>'
                 % (chip(T['hdr'], T['tag']), chip(bcol, bname), r['no'], r['no'], titles, sub, gh,
-                   rack_stickers(r, [1, 2, 3, 4, 5]), overlay(450, 320, 20, 40, 5, rows)))
+                   sra3_cells(r), overlay(450, 320, 20, 40, 5, rows)))
     return secs
 
 # ---------------------------------------------------------------- legend (SRA3-size page)
@@ -370,7 +395,8 @@ def legend_page(racks):
     note = ('<div style="position:absolute;left:300mm;top:218mm;width:130mm;font-family:Cairo;direction:rtl;color:#111;'
             'font-weight:700;font-size:3.6mm;line-height:1.55">الإجمالي: %d ملصق · خط القص الوردي المتقطع حول كل ملصق.<br>'
             'الراك المشترك: النصف السفلي بلاصق أسود، والعلوي بلاصق بإطار — كل نصف باسم صنفه فقط، وحروف مستوياته مكتوبة على العلامة.<br>'
-            'اطبع بحجم 100%% بدون «ملاءمة الصفحة» ثم قصّ على الخط الوردي.</div>' % total)
+            'الأماكن الفارغة في الصفحات فيها ملصقات احتياطية (نفس الكود) عليها علامة «احتياطي» خفيفة: %d في SRA3 و%d في A4.<br>'
+            'اطبع بحجم 100%% بدون «ملاءمة الصفحة» ثم قصّ على الخط الوردي.</div>' % (total, SPARES['sra3'], SPARES['a4']))
     return ('<section class="pg" data-row="legend" style="width:450mm;height:320mm;font-family:Cairo;color:#111;background:#FBF7EE;'
             'direction:ltr"><div style="position:absolute;left:18mm;top:12mm;right:18mm;display:flex;justify-content:space-between;'
             'align-items:baseline"><span dir="ltr" style="font-weight:900;font-size:7.5mm;letter-spacing:1.4mm">PALLET LOCATION STICKERS · '
@@ -382,11 +408,12 @@ def legend_page(racks):
 def build(out_dir):
     racks = build_racks()
     os.makedirs(out_dir, exist_ok=True)
+    pages_sra, pages_a4 = sra3_pages(racks), a4_pages(racks)
     leg, total = legend_page(racks)
     head = '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>%s</title><style>%s</style></head><body>'
     stamp = '<!-- VERSION: %s | %s -->' % (VERSION, DATE)
     # SRA3
-    sra = (stamp + head % ('ملصقات مواقع البالتات SRA3', page_css(450, 320)) + leg + ''.join(sra3_pages(racks)) + FIT_JS + '</body></html>')
+    sra = (stamp + head % ('ملصقات مواقع البالتات SRA3', page_css(450, 320)) + leg + ''.join(pages_sra) + FIT_JS + '</body></html>')
     p1 = os.path.join(out_dir, 'almunajem_location_stickers_%s_SRA3_%s.html' % (VERSION, DATE))
     open(p1, 'w', encoding='utf-8').write(sra)
     # A4 : legend page = scaled SRA3 legend + notes
@@ -395,10 +422,10 @@ def build(out_dir):
               'transform-origin:top left;width:450mm;height:320mm">%s</div></div>'
               '<div style="position:absolute;left:12mm;top:165mm;width:186mm;direction:rtl;font-family:Cairo;color:#111;font-weight:700;'
               'font-size:3.8mm;line-height:1.6"><b>طريقة الطباعة (A4):</b><br>اطبع بحجم 100%% بدون «ملاءمة الصفحة».<br>'
-              'كل صفحة: عمودان (بالتان) × مستويات الراك — 8 ملصقات للكراتين و10 للبلاستيك والعلب، بمقاس 78×50 مم.<br>'
+              'كل صفحة 10 ملصقات (عمودان × 5 صفوف) بمقاس 78×50 مم؛ الأماكن الفارغة فيها ملصقات احتياطية عليها علامة «احتياطي» خفيفة.<br>'
               'لكل راك 3 صفحات: البالتات 1–2، ثم 3–4، ثم 5. قصّ على الخط الوردي المتقطع.<br>'
               'الباركود: تأكد أن الطابعة لا تُصغّر الصفحة.</div></section>' % leg.replace('<section class="pg"', '<div class="pg"', 1).replace('</section>', '</div>'))
-    a4 = (stamp + head % ('ملصقات مواقع البالتات A4', page_css(210, 297)) + leg_a4 + ''.join(a4_pages(racks)) + FIT_JS + '</body></html>')
+    a4 = (stamp + head % ('ملصقات مواقع البالتات A4', page_css(210, 297)) + leg_a4 + ''.join(pages_a4) + FIT_JS + '</body></html>')
     p2 = os.path.join(out_dir, 'almunajem_location_stickers_%s_A4_%s.html' % (VERSION, DATE))
     open(p2, 'w', encoding='utf-8').write(a4)
     return racks, total, (p1, p2)
