@@ -166,8 +166,8 @@ def sticker(z, br, rack_no, lvl, pal, item, half, levels, tiers):
     else:
         panel = '<div style="height:8.2mm;%s">%s</div>' % (panel_css, item_lines(item, 3.3, 2.6))
         big, bh, svgh = 17, 11.8, 6
-    left = side(BAR_FLOOR, 'FLOOR') if lvl == 1 else side(arrow(True), '%d%s' % (rack_no, LETTERS[lvl - 2]))
-    right = side(BAR_TOP, 'TOP') if lvl == tiers else side(arrow(False), '%d%s' % (rack_no, LETTERS[lvl]))
+    left = side(arrow(True), 'FLOOR' if lvl == 1 else '%d%s' % (rack_no, LETTERS[lvl - 2]))
+    right = side(arrow(False), 'TOP' if lvl == tiers else '%d%s' % (rack_no, LETTERS[lvl]))
     mid = ('<div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 2.6mm;position:relative">'
            '%s<div dir="ltr" style="font-weight:900;font-size:%smm;line-height:.82;letter-spacing:-.5mm;padding-bottom:1mm">%d'
            '<span style="margin-left:1mm">%s</span></div>%s</div>' % (left, big, rack_no, L, right))
@@ -328,8 +328,8 @@ def legend_page(racks):
         ('اسم الصنف كاملاً بالعربي والإنجليزي — صنف واحد فقط على كل ملصق', 'ONE ITEM ONLY ON EACH STICKER'),
         ('علامة النصف: تظهر في الراكات المشتركة فقط (↓ سفلي / ↑ علوي) مع حروف مستوياته', 'HALF TAG · SHARED RACKS ONLY'),
         ('رقم الراك داخل المجموعة + حرف المستوى (1C = الراك 1، المستوى C)', 'RACK No. + LEVEL LETTER (A = FLOOR LEVEL)'),
-        ('سهم لأسفل = المستوى الأدنى (FLOOR = الأرض)', 'ARROW DOWN = LEVEL BELOW'),
-        ('سهم لأعلى = المستوى الأعلى (TOP = القمة)', 'ARROW UP = LEVEL ABOVE'),
+        ('سهم لأسفل + اسم المستوى الذي تحته (FLOOR = أنت في الدور الأرضي)', 'ARROW DOWN = LEVEL BELOW · FLOOR = GROUND LEVEL'),
+        ('سهم لأعلى + اسم المستوى الذي فوقه (TOP = أنت في أعلى مستوى)', 'ARROW UP = LEVEL ABOVE · TOP = HIGHEST LEVEL'),
         ('باركود Code 128 قابل للمسح: المنطقة-المجموعة-الراك+المستوى-البالت', 'SCANNABLE · 3L-DX-1C-2'),
         ('رقم البالت داخل المستوى P1–P5', 'PALLET No. IN THE LEVEL'),
     ]
