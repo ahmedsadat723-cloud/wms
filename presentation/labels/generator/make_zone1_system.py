@@ -13,7 +13,7 @@ import make_stickers as m
 from make_stickers import TYPES, LETTERS, build_racks, overlay, arrow, font_css, FIT_JS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION, DATE = 'v1', '2026-10-11'
+VERSION, DATE = 'v2', '2026-10-11'
 LOGO = os.path.join(HERE, 'assets', 'almunajem_logo.png')
 esc = html.escape
 INK, YEL = '#111111', '#FFD400'
@@ -304,25 +304,36 @@ def page_for_pallets_only():
             % (css(), ''.join(pallet_page(b) for b in ('DX', 'DR', 'HB', 'SA', 'GN'))))
 
 # ------------------------------------------------------------------ build
+def old_sticker_pages():
+    """the ORIGINAL rack-label design (stickers v3, untouched): legend page + 3 A4 pages per rack"""
+    import re, tempfile
+    tmp = tempfile.mkdtemp()
+    m.build(tmp)
+    src = open(os.path.join(tmp, 'almunajem_location_stickers_%s_A4_%s.html' % (m.VERSION, m.DATE)), encoding='utf-8').read()
+    secs = re.findall(r'<section class="pg".*?</section>', src, flags=re.S)
+    return [x.replace('<section class="pg"', '<section class="pg p"', 1) for x in secs]
+
 def build(out_dir):
     racks = build_racks()
     os.makedirs(out_dir, exist_ok=True)
-    stk, total = sticker_pages(racks)
+    stk = old_sticker_pages()
+    total = len(stk)
     pal = [pallet_page(b) for b in ('DX', 'DR', 'HB', 'SA', 'GN')]
     nav = ('<div class="nav"><b>AL-MUNAJEM · DRY SECTION PART 1 · القسم الجاف الجزء 1 · %s</b>'
            '<a href="#guide">Colour scale · المقياس</a><a href="#method">Method · الطريقة</a>%s'
-           '<a href="#stk-%s-%s-1">Level letters · حروف المستويات</a><a href="#pal-DX">Pallet labels · ليبل البالت</a></div>'
-           % (VERSION, ''.join('<a href="#tbl-%s">%s</a>' % (z, TYPES[z]['tag']) for z in TYPES), 'c', 'DX'))
+           '<a href="#stickers">Rack labels · ليبل الراك</a><a href="#pal-DX">Pallet labels · ليبل البالت</a></div>'
+           % (VERSION, ''.join('<a href="#tbl-%s">%s</a>' % (z, TYPES[z]['tag']) for z in TYPES)))
+    stk[0] = stk[0].replace('<section class="pg p"', '<section id="stickers" class="pg p"', 1)
     body = nav + guide_page(racks) + ''.join(table_page(z, racks) for z in TYPES) + ''.join(stk) + ''.join(pal)
     doc = ('<!-- VERSION: %s | %s -->\n<!doctype html><html lang="ar" dir="ltr"><head><meta charset="utf-8"><title>Al-Munajem Dry Part 1 — %s</title>'
            '<style>%s</style></head><body>%s%s</body></html>' % (VERSION, DATE, VERSION, css(), body, FIT_JS))
     p1 = os.path.join(out_dir, 'almunajem_dry_part1_system_%s_%s.html' % (VERSION, DATE))
     open(p1, 'w', encoding='utf-8').write(doc)
-    p2 = os.path.join(out_dir, 'almunajem_pallet_labels_fillable_%s_%s.html' % (VERSION, DATE))
-    open(p2, 'w', encoding='utf-8').write('<!-- VERSION: %s | %s -->\n' % (VERSION, DATE) + page_for_pallets_only())
+    p2 = os.path.join(out_dir, 'almunajem_pallet_labels_fillable_%s_%s.html' % ('v1', DATE))
+    open(p2, 'w', encoding='utf-8').write('<!-- VERSION: v1 | %s -->\n' % DATE + page_for_pallets_only())
     return p1, p2, total, len(stk)
 
 if __name__ == '__main__':
     out = sys.argv[1] if len(sys.argv) > 1 else '.'
     p1, p2, total, npg = build(out)
-    print('level stickers (without spares):', total, 'sticker pages:', npg); print(p1); print(p2)
+    print('old sticker pages:', total); print(p1); print(p2)
