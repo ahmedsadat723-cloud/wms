@@ -19,7 +19,7 @@ for i, m in enumerate(meta):
         w.field_name = '%s_%s%d%s_P%d_%s' % (BN[m['brand']], m['tag'], m['rack'], m['half'][0].upper(), m['n'], key)
         w.field_type = pymupdf.PDF_WIDGET_TYPE_TEXT
         w.rect = pymupdf.Rect(x0 * z.SC, y0 * z.SC, x1 * z.SC, y1 * z.SC)
-        w.text_fontsize = 12; w.text_font = 'Helv'; w.border_width = 0; w.fill_color = None
+        w.text_fontsize = 14; w.text_font = 'TiBo'; w.border_width = 0; w.fill_color = None
         pg.add_widget(w)
     k1 = (m['tag'])
     if k1 not in last:

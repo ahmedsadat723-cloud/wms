@@ -15,8 +15,8 @@ for i, br in enumerate(BRS):
         w.field_name = '%s_%s' % (names[br], key)
         w.field_type = pymupdf.PDF_WIDGET_TYPE_TEXT
         w.rect = pymupdf.Rect(x0 * z.SC, y0 * z.SC, x1 * z.SC, y1 * z.SC)
-        w.text_fontsize = 12
-        w.text_font = 'Helv'
+        w.text_fontsize = 14
+        w.text_font = 'TiBo'
         w.border_width = 0
         w.fill_color = None
         w.field_flags = pymupdf.PDF_TX_FIELD_IS_MULTILINE if multi else 0

@@ -13,7 +13,8 @@ import make_stickers as m
 from make_stickers import TYPES, LETTERS, build_racks, overlay, arrow, font_css, FIT_JS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION, DATE = 'v4', '2026-10-11'
+VERSION, DATE = 'v5', '2026-10-11'
+NUM_VER, FILL_VER = 'v2', 'v2'
 LOGO = os.path.join(HERE, 'assets', 'almunajem_logo.png')
 esc = html.escape
 INK, YEL = '#111111', '#FFD400'
@@ -49,7 +50,7 @@ def css():
 .nav b{margin-inline-end:auto}
 @media screen{body{background:#8a8f98}.pg{margin:10px auto;box-shadow:0 0 8px #0007}}
 @media print{.nav{display:none}}
-.pl input,.pl textarea{font:700 12pt 'Cairo',sans-serif;border:0;background:transparent;width:100%;height:100%;padding:2pt 4pt;outline:0;color:#111;resize:none}
+.pl input,.pl textarea{font:700 14pt 'Times New Roman','Tinos','FreeSerif','Liberation Serif','Cairo',serif;border:0;background:transparent;width:100%;height:100%;padding:2pt 4pt;outline:0;color:#111;resize:none}
 .pl input:focus,.pl textarea:focus{background:#FFF8C2}
 @media print{.pl input,.pl textarea{background:transparent}}
 """)
@@ -342,9 +343,9 @@ def numbered_sheets():
 def numbered_build(out_dir):
     import json
     pages, meta = numbered_sheets()
-    doc = ('<!-- VERSION: v1 | %s -->\n<!doctype html><html lang="ar" dir="ltr"><head><meta charset="utf-8"><title>Pallet labels P1–P25</title>'
-           '<style>%s</style></head><body>%s</body></html>' % (DATE, css(), ''.join(pages)))
-    p = os.path.join(out_dir, 'almunajem_pallet_labels_numbered_v1_%s.html' % DATE)
+    doc = ('<!-- VERSION: %s | %s -->\n<!doctype html><html lang="ar" dir="ltr"><head><meta charset="utf-8"><title>Pallet labels P1–P25</title>'
+           '<style>%s</style></head><body>%s</body></html>' % (NUM_VER, DATE, css(), ''.join(pages)))
+    p = os.path.join(out_dir, 'almunajem_pallet_labels_numbered_%s_%s.html' % (NUM_VER, DATE))
     open(p, 'w', encoding='utf-8').write(doc)
     json.dump(meta, open(os.path.join(out_dir, 'numbered_meta.json'), 'w', encoding='utf-8'), ensure_ascii=False)
     return p, len(pages)
@@ -365,18 +366,20 @@ def build(out_dir):
     stk = old_sticker_pages()
     total = len(stk)
     pal = [pallet_page(b) for b in ('DX', 'DR', 'HB', 'SA', 'GN')]
+    npages, nmeta = numbered_sheets()
+    first_pn = npages[0].split('id="')[1].split('"')[0]
     nav = ('<div class="nav"><b>AL-MUNAJEM · DRY SECTION PART 1 · القسم الجاف الجزء 1 · %s</b>'
            '<a href="#guide">Colour scale · المقياس</a><a href="#method">Method · الطريقة</a>%s'
-           '<a href="#stickers">Rack labels · ليبل الراك</a><a href="#pal-DX">Pallet labels · ليبل البالت</a></div>'
-           % (VERSION, ''.join('<a href="#tbl-%s">%s</a>' % (z, TYPES[z]['tag']) for z in TYPES)))
+           '<a href="#stickers">Rack labels · ليبل الراك</a><a href="#%s">Pallet labels P1–P25 · أوراق البالت المرقمة</a><a href="#pal-DX">Blank pallet labels · ورقة البالت الفارغة</a></div>'
+           % (VERSION, ''.join('<a href="#tbl-%s">%s</a>' % (zz, TYPES[zz]['tag']) for zz in TYPES), first_pn))
     stk[0] = stk[0].replace('<section class="pg p"', '<section id="stickers" class="pg p"', 1)
-    body = nav + guide_page(racks) + ''.join(table_page(z, racks) for z in TYPES) + ''.join(stk) + ''.join(pal)
+    body = nav + guide_page(racks) + ''.join(table_page(z, racks) for z in TYPES) + ''.join(stk) + ''.join(npages) + ''.join(pal)
     doc = ('<!-- VERSION: %s | %s -->\n<!doctype html><html lang="ar" dir="ltr"><head><meta charset="utf-8"><title>Al-Munajem Dry Part 1 — %s</title>'
            '<style>%s</style></head><body>%s%s</body></html>' % (VERSION, DATE, VERSION, css(), body, FIT_JS))
     p1 = os.path.join(out_dir, 'almunajem_dry_part1_system_%s_%s.html' % (VERSION, DATE))
     open(p1, 'w', encoding='utf-8').write(doc)
-    p2 = os.path.join(out_dir, 'almunajem_pallet_labels_fillable_%s_%s.html' % ('v1', DATE))
-    open(p2, 'w', encoding='utf-8').write('<!-- VERSION: v1 | %s -->\n' % DATE + page_for_pallets_only())
+    p2 = os.path.join(out_dir, 'almunajem_pallet_labels_fillable_%s_%s.html' % (FILL_VER, DATE))
+    open(p2, 'w', encoding='utf-8').write('<!-- VERSION: %s | %s -->\n' % (FILL_VER, DATE) + page_for_pallets_only())
     return p1, p2, total, len(stk)
 
 if __name__ == '__main__':
