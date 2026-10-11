@@ -40,18 +40,26 @@ for (zone, br, rl), its in _old:
         ITEMS[f'{z}.{br}.{rl}.{i}'] = dict(ar=ar, size=size, en=en)
 
 # A4 packing supplies (catalog PKG-CLP / ZIP / RIB / RWX / LBL / TAP / COL / GLU / RSW) — general, no brand
-_ACC = [('رول ستريتش تغليف البالتات', '', 'STRETCH WRAP ROLL'),
-        ('كلبسات غلق محكم', '', 'SEALING CLIPS'),
-        ('كلبسات عنق أكياس البرجر', '', 'POLY CLIPS FOR BURGER BAGS'),
-        ('أكياس سحاب ذاتية اللصق', '', 'ZIP-PAK SELF-ADHESIVE ZIP BAGS'),
-        ('حبر حراري للكيس (ريبون)', '', 'THERMAL TRANSFER RIBBON'),
-        ('أشرطة الشمع الحراري للكرتون', '', 'THERMAL TRANSFER WAX RIBBONS'),
-        ('لفة ملصقات شبه لامعة أبيض', '', 'SEMI-GLOSS LABEL ROLL WHITE'),
-        ('شريط تثبيت لاصق أبيض / بني', '', 'TAN TAB / WHITE TAB'),
-        ('شريط الترميز اللوني', '', 'COLORED TAB'),
-        ('غراء مصهور ساخن', '', 'HOT MELT GLUE')]
-for _i, (_ar, _sz, _en) in enumerate(_ACC):
-    ITEMS['a.GN.%s.0' % 'ABCDEFGHIJ'[_i]] = dict(ar=_ar, size=_sz, en=_en)
+_ACC = [  # (ar, size, en, header bg, header text, pill, colour AR, colour EN, use AR, use EN)
+    ('رول ستريتش تغليف البالتات', '', 'STRETCH WRAP ROLL', '#9DB4C0', '#111', False, 'شفاف (أزرق رمادي)', 'CLEAR (GREY-BLUE)', 'تغليف البالتات', 'Pallet wrapping'),
+    ('كلبسات غلق محكم', '', 'SEALING CLIPS', '#A9B2BC', '#111', False, 'فضي', 'SILVER', 'غلق الأكياس', 'Bag sealing'),
+    ('كلبسات عنق أكياس البرجر', '', 'POLY CLIPS FOR BURGER BAGS', '#A9B2BC', '#111', False, 'فضي', 'SILVER', 'عنق أكياس البرجر', 'Burger bag necks'),
+    ('أكياس سحاب ذاتية اللصق', '', 'ZIP-PAK SELF-ADHESIVE ZIP BAGS', '#4DB6C9', '#111', False, 'سماوي شفاف', 'CLEAR CYAN', 'أكياس سحاب', 'Resealable zip bags'),
+    ('حبر حراري للكيس (ريبون)', '', 'THERMAL TRANSFER RIBBON', '#6B2FA0', '#fff', False, 'بنفسجي', 'PURPLE', 'طباعة حرارية على الكيس', 'Bag thermal printing'),
+    ('أشرطة الشمع الحراري للكرتون', '', 'THERMAL TRANSFER WAX RIBBONS', '#B58AE0', '#111', False, 'بنفسجي فاتح', 'LIGHT PURPLE', 'طباعة حرارية على الكرتون', 'Carton thermal printing'),
+    ('لفة ملصقات شبه لامعة أبيض', '', 'SEMI-GLOSS LABEL ROLL WHITE', '#FFFFFF', '#111', False, 'أبيض', 'WHITE', 'ملصقات', 'Labels'),
+    ('شريط تثبيت لاصق أبيض / بني', '', 'TAN TAB / WHITE TAB', 'linear-gradient(90deg,#FFFFFF 0 50%,#7A4A2B 50% 100%)', '#111', True, 'أبيض وبني', 'WHITE & BROWN', 'تثبيت لاصق', 'Adhesive fixing'),
+    ('شريط الترميز اللوني', '', 'COLORED TAB', 'linear-gradient(90deg,#D32F2F 0 25%,#F5C400 25% 50%,#2E7D32 50% 75%,#1F5FA8 75% 100%)', '#111', True, 'ألوان متعددة', 'MULTICOLOUR', 'ترميز لوني بصري', 'Visual colour-coding'),
+    ('غراء مصهور ساخن', '', 'HOT MELT GLUE', '#F5C400', '#111', False, 'أصفر', 'YELLOW', 'لصق الكراتين', 'Carton hot-melt gluing'),
+]
+for _i, (_ar, _sz, _en, _bg, _fg, _pill, _car, _cen, _uar, _uen) in enumerate(_ACC):
+    ITEMS['a.GN.%s.0' % 'ABCDEFGHIJ'[_i]] = dict(ar=_ar, size=_sz, en=_en, bg=_bg, fg=_fg, pill=_pill, car=_car, cen=_cen, uar=_uar, uen=_uen)
+
+def hdr_style(T, item):
+    """header colours of a sticker/paper: the item's own product colour when it has one (supplies), else the type colour"""
+    if item and item.get('bg'):
+        return item['bg'], item['fg'], bool(item.get('pill'))
+    return T['hdr'], '#fff', False
 
 # ---------------------------------------------------------------- layout v2
 # equal division: every item gets its own rack first; only the leftover items share a rack
@@ -495,11 +503,14 @@ def lvl_sticker(z, br, rack_no, lvl, item, half, levels, tiers, spare_copy=False
     code = '%s-%s-%d%s' % (T['code'], br, rack_no, L)
     spare = item is None
     shared = half in ('lower', 'upper')
-    head = ('<div style="height:9mm;background:%s;color:#fff;display:flex;align-items:center;justify-content:space-between;'
-            'padding:0 3mm;font-weight:900;font-size:%smm;line-height:1;white-space:nowrap">'
-            '<span dir="ltr" style="min-width:16mm;font-size:%smm">%s</span><span dir="rtl" style="color:#fff;letter-spacing:.2mm">%s · %s</span>'
-            '<span dir="ltr" style="min-width:16mm;text-align:right">%s</span></div>'
-            % (T['hdr'], 4.2, 4.2 if len(bname) <= 5 else 3.4, bname, T['ar'], T['en'], T['code']))
+    hbg, hfg, pill = hdr_style(T, item)
+    pl = ';background:#fff;color:#111;border-radius:2mm;padding:0 1.6mm' if pill else ''
+    border = 'border-bottom:.5mm solid %s;' % INK if (item and item.get('bg')) else ''
+    head = ('<div style="height:9mm;background:%s;color:%s;%sdisplay:flex;align-items:center;justify-content:space-between;'
+            'padding:0 3mm;font-weight:900;font-size:4.2mm;line-height:1;white-space:nowrap">'
+            '<span dir="ltr" style="min-width:16mm;font-size:%smm%s">%s</span><span dir="rtl" style="letter-spacing:.2mm%s">%s · %s</span>'
+            '<span dir="ltr" style="min-width:16mm;text-align:right%s">%s</span></div>'
+            % (hbg, hfg, border, 4.2 if len(bname) <= 5 else 3.4, pl, bname, pl, T['ar'], T['en'], pl, T['code']))
     panel_css = ('background:#F2C200;border-bottom:.5mm solid %s;display:flex;flex-direction:column;align-items:center;'
                  'justify-content:center;padding:0 1.5mm;overflow:hidden' % INK)
     if spare:

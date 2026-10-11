@@ -13,8 +13,8 @@ import make_stickers as m
 from make_stickers import TYPES, LETTERS, build_racks, overlay, arrow, font_css, FIT_JS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION, DATE = 'v5', '2026-10-11'
-NUM_VER, FILL_VER = 'v2', 'v2'
+VERSION, DATE = 'v6', '2026-10-11'
+NUM_VER, FILL_VER = 'v3', 'v3'
 LOGO = os.path.join(HERE, 'assets', 'almunajem_logo.png')
 esc = html.escape
 INK, YEL = '#111111', '#FFD400'
@@ -77,9 +77,13 @@ UNIT = 13.3   # mm per rack — the same length for every rack, so strips are co
 def strip(label_en, label_ar, loc_en, loc_ar, segs, total_racks=19):
     """segs: list of (brand, text, half_split, tiers_note)"""
     cells = ''
-    for br, txt, split, empty in segs:
+    for sg in segs:
+        br, txt, split, empty = sg[:4]
+        ov = sg[4] if len(sg) > 4 else None
         name, nar, col = BR[br] if br else ('', '', '#fff')
-        if empty:
+        if ov:
+            bg, fg, bd = ov[0], ov[1], ('.3mm solid #777' if ov[0].upper() == '#FFFFFF' else '.3mm solid #fff')
+        elif empty:
             bg = 'repeating-linear-gradient(135deg,#fff 0 1.6mm,#DDD 1.6mm 2.2mm)'
             fg, bd = '#999', '.3mm dashed #999'
         elif split:
@@ -88,9 +92,10 @@ def strip(label_en, label_ar, loc_en, loc_ar, segs, total_racks=19):
         else:
             bg, fg, bd = col, '#fff', '.3mm solid #fff'
         cells += ('<div style="width:%smm;height:15mm;background:%s;color:%s;border:%s;display:flex;flex-direction:column;'
-                  'align-items:center;justify-content:center;font-weight:900;line-height:1.05;flex:none"><span dir="ltr" '
-                  'style="font-size:4.6mm">%s</span><span dir="ltr" style="font-size:2.3mm;opacity:.95">%s</span></div>'
-                  % (UNIT, bg, fg, bd, esc(txt[0]), esc(txt[1])))
+                  'align-items:center;justify-content:center;font-weight:900;line-height:1.05;flex:none"><span style="display:flex;flex-direction:column;'
+                  'align-items:center;%s"><span dir="ltr" '
+                  'style="font-size:4.6mm">%s</span><span dir="ltr" style="font-size:2.3mm;opacity:.95">%s</span></span></div>'
+                  % (UNIT, bg, fg, bd, 'background:#fff;color:#111;border-radius:1.2mm;padding:.3mm 1.6mm;' if 'gradient' in bg and ov else '', esc(txt[0]), esc(txt[1])))
     ticks = ''.join('<div style="width:%smm;flex:none;border-left:.25mm solid #333;height:2.6mm;font-size:2.4mm;font-weight:800;'
                     'padding-left:.6mm;line-height:3.2mm;margin-top:.3mm;direction:ltr">%d</div>' % (UNIT, i + 1) for i in range(len(segs)))
     return ('<div style="margin-bottom:5mm"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:6mm;'
@@ -107,10 +112,14 @@ def guide_page(racks):
         out = []
         for r in racks[z]:
             split = len(r['halves']) == 2
-            out.append((r['brand'], (BR[r['brand']][0][:2] if r['brand'] != 'AL' else 'HB', str(r['no'])), split, False))
+            ov = None
+            if z == 'a':
+                itx = r['halves'][0]['item']
+                ov = (itx['bg'], itx['fg'])
+            out.append((r['brand'], (BR[r['brand']][0][:2] if r['brand'] != 'AL' else 'HB', str(r['no'])), split, False, ov))
         # replace brand abbreviation text
         ab = {'DX': 'DOUX', 'DR': 'DARI', 'HB': 'HABRA', 'SA': 'SAUDI', 'GN': 'GEN', 'SP': 'SPARE'}
-        return [(b, (str(t[1]), ab[b]), s, e) for (b, t, s, e) in out]
+        return [(b, (str(t[1]), ab[b]), s, e, ov) for (b, t, s, e, ov) in out]
     s_c, s_p = segs_of('c'), segs_of('p')
     s_left = segs_of('b') + segs_of('a')
     s_left += [(None, ('', 'FREE · فارغ'), False, True)] * (19 - len(s_left))
@@ -134,6 +143,8 @@ def guide_page(racks):
          'The rack carries the level letter only: A = floor, then B C D E upwards — 4 levels for cartons (A–D), 5 for the rest (A–E).'),
         ('البالتات داخل المستوى (بالعرض وبالعمق) بلا ملصق موقع؛ تُوضع على كل بالت ورقة «ليبل بالت» بلون ماركته وفيها رقم البالت والموقع (رقم الراك + الحرف).',
          'Pallets inside a level (across and in depth) carry no location sticker; each pallet gets one “Pallet Label” paper in its brand colour with the pallet no. and location (rack no. + letter).'),
+        ('المستلزمات (A4) تُميَّز بلون المنتج نفسه أو استخدامه (كلبس فضي، غراء أصفر، ملصقات أبيض، شريط أبيض/بني، ريبون بنفسجي) — انظر صفحة مفتاح الألوان.',
+         'Supplies (A4) are distinguished by the product’s own colour or use (clips silver, glue yellow, label roll white, tape white/brown, ribbon purple) — see the colour-key page.'),
         ('عرض المستوى 5 بالتات؛ سعة الراك = المستويات × 5 (الكراتين 20 بالت، البقية 25 بالت).',
          'A level holds 5 pallets across; rack capacity = levels × 5 (cartons 20 pallets, the rest 25 pallets).'),
     ]
@@ -143,7 +154,7 @@ def guide_page(racks):
                    % (i, esc(e), i, esc(a)) for i, (a, e) in enumerate(paras, 1))
     ptxt = ('<div style="display:flex;justify-content:space-between;font-weight:900;font-size:4.6mm;border-bottom:.4mm solid #111;'
             'padding-bottom:1mm;margin-bottom:2.4mm"><span dir="ltr">DISTRIBUTION METHOD</span><span dir="rtl">طريقة التوزيع</span></div>' + ptxt)
-    ptxt2 = ptxt[ptxt.index('</div>', ptxt.index('border-bottom')) + 6:].replace('font-size:3.35mm', 'font-size:4.3mm').replace('font-size:3.7mm', 'font-size:4.9mm').replace('margin-bottom:2.6mm', 'margin-bottom:6.5mm')
+    ptxt2 = ptxt[ptxt.index('</div>', ptxt.index('border-bottom')) + 6:].replace('font-size:3.35mm', 'font-size:4.3mm').replace('font-size:3.7mm', 'font-size:4.9mm').replace('margin-bottom:2.6mm', 'margin-bottom:5mm')
     p1 = ('<section class="pg l" id="guide"><div style="position:absolute;left:14mm;right:14mm;top:9mm">'
           '<div style="margin-bottom:3mm"><div dir="ltr" style="font-weight:900;font-size:5.6mm">DRY SECTION · PART 1 — LINEAR COLOUR SCALE</div>'
           '<div dir="rtl" style="font-weight:900;font-size:6.4mm">القسم الجاف · الجزء 1 — المقياس الخطي بالألوان</div></div>'
@@ -155,6 +166,23 @@ def guide_page(racks):
           '<div style="margin-bottom:6mm"><div dir="ltr" style="font-weight:900;font-size:5.6mm">DRY SECTION · PART 1 — DISTRIBUTION METHOD</div>'
           '<div dir="rtl" style="font-weight:900;font-size:6.4mm">القسم الجاف · الجزء 1 — طريقة التوزيع</div></div>%s</div></section>' % ptxt2)
     return p1 + p2
+
+def key_page():
+    rows = ''
+    for ar, sz, en, bg, fg, pill, car, cen, uar, uen in m._ACC:
+        rows += ('<tr><td style="width:26mm"><div style="height:9mm;background:%s;border:.4mm solid #111;border-radius:1.5mm"></div></td>'
+                 '<td dir="ltr" style="font-weight:900">%s</td><td dir="rtl" style="font-weight:800">%s</td>'
+                 '<td dir="ltr" style="font-weight:800">%s<br><span dir="rtl">%s</span></td>'
+                 '<td dir="ltr" style="font-weight:700">%s<br><span dir="rtl">%s</span></td></tr>' % (bg, esc(en), esc(ar), cen, car, uen, uar))
+    head = ('<tr style="background:#14181F;color:#fff"><th>COLOUR · اللون</th><th dir="ltr">ITEM (EN)</th><th dir="rtl">الصنف</th>'
+            '<th>PRODUCT COLOUR<br>لون المنتج</th><th>USE · الاستخدام</th></tr>')
+    return ('<section class="pg l" id="suppkey"><div style="position:absolute;left:14mm;right:14mm;top:10mm">'
+            '<div style="margin-bottom:4mm"><div dir="ltr" style="font-weight:900;font-size:5.6mm">A4 PACKING SUPPLIES — COLOUR KEY</div>'
+            '<div dir="rtl" style="font-weight:900;font-size:6.4mm">A4 مستلزمات التعبئة — مفتاح الألوان</div>'
+            '<div dir="ltr" style="font-size:3.2mm;font-weight:700;color:#555">Each supply item takes the colour of the product itself (or its use) on the rack label, the pallet paper, the scale strip and the tables.</div>'
+            '<div dir="rtl" style="font-size:3.4mm;font-weight:700;color:#555">كل صنف مستلزمات يأخذ لون المنتج نفسه (أو استخدامه) على ليبل الراك وورقة البالت والمقياس والجداول.</div></div>'
+            '<table style="border-collapse:collapse;width:100%%;font-size:3.3mm;line-height:1.25" class="tb">%s%s</table>'
+            '<style>.tb td,.tb th{border:.25mm solid #888;padding:1.4mm 2mm}.tb th{font-size:2.8mm}</style></div></section>' % (head, rows))
 
 # ------------------------------------------------------------------ PAGE 2..5 : distribution tables
 def table_page(z, racks):
@@ -173,7 +201,8 @@ def table_page(z, racks):
             rows += ('<tr>%s<td dir="ltr" style="font-weight:900">%s%s</td><td dir="ltr" style="font-weight:900;color:#fff;background:%s;text-align:center">'
                      '%s · %s</td><td dir="ltr" style="font-weight:700">%s</td><td dir="rtl" style="font-weight:800">%s</td></tr>'
                      % (('<td rowspan="%d" dir="ltr" style="font-weight:900;text-align:center">%d</td>' % (len(r['halves']), r['gno'])) if first else '',
-                        rng, tag, col, be, bar, esc(nm_en), nm_ar))
+                        rng, tag, col, be, bar, esc(nm_en), nm_ar)).replace(
+                'color:#fff;background:%s;text-align:center' % col, ('color:%s;background:%s;text-align:center' % (it['fg'], it['bg'])) if (it and it.get('bg')) else 'color:#fff;background:%s;text-align:center' % col)
             if first:
                 rows = rows.replace('<tr><td rowspan', '<tr><td rowspan', 1)
         if len(r['halves']) == 2:
@@ -257,8 +286,9 @@ def _abs(x0, y0, x1, y1, inner, extra=''):
 def logo_uri():
     return 'data:image/png;base64,' + base64.b64encode(open(LOGO, 'rb').read()).decode()
 
-def pallet_page(br, fillable=True, pre=None, sid=None):
+def pallet_page(br, fillable=True, pre=None, sid=None, hdr=None):
     be, bar, col = BR[br]
+    hbg, hfg, hpill = hdr if hdr else (col, '#fff', False)
     pre = pre or {}
     def inp(key, rect, ml=False):
         if key in pre:
@@ -272,9 +302,10 @@ def pallet_page(br, fillable=True, pre=None, sid=None):
     o += _abs(380, 78, 558.4, 108.3, '<span style="font-weight:800;font-size:16pt;color:#444">ليبل بالت</span>', 'text-align:right;direction:rtl;line-height:30pt')
     # frame + header
     o += _abs(36.75, 111, 558.75, 729, '', 'border:4.5pt solid #111;background:#fff')
-    o += _abs(36.75, 111, 558.75, 221.25, '', 'background:%s;border:4.5pt solid #111;border-bottom:0' % col)
-    o += _abs(36.75, 116, 558.75, 160, '<span style="font-weight:900;font-size:25pt;color:#fff">مصنع المنجم لإنتاج اللحوم</span>', 'text-align:center;direction:rtl;line-height:44pt')
-    o += _abs(36.75, 160, 558.75, 177, '<span style="font-family:%s;font-weight:700;font-size:12.5pt;color:#fff;letter-spacing:.8pt">ALMUNAJEM MEAT PRODUCTION FACTORY</span>' % TIMES, 'text-align:center;direction:ltr;line-height:17pt')
+    o += _abs(36.75, 111, 558.75, 221.25, '', 'background:%s;border:4.5pt solid #111;border-bottom:0' % hbg)
+    pill = 'background:#fff;border-radius:6pt;padding:0 14pt;' if hpill else ''
+    o += _abs(36.75, 116, 558.75, 160, '<span style="font-weight:900;font-size:25pt;color:%s;%s">مصنع المنجم لإنتاج اللحوم</span>' % ('#111' if hpill else hfg, pill), 'text-align:center;direction:rtl;line-height:44pt')
+    o += _abs(36.75, 160, 558.75, 177, '<span style="font-family:%s;font-weight:700;font-size:12.5pt;color:%s;letter-spacing:.8pt;%s">ALMUNAJEM MEAT PRODUCTION FACTORY</span>' % (TIMES, '#111' if hpill else hfg, pill), 'text-align:center;direction:ltr;line-height:17pt')
     chx = (202.5, 392.2) if len(be) <= 5 else (178, 417)
     o += _abs(chx[0], 183, chx[1], 207, ('<span dir="ltr" style="font-family:%s;font-weight:700;font-size:10.5pt;color:#333">BRAND / <span dir="rtl" style="font-weight:800">الماركة</span></span>'
               '<span dir="ltr" style="font-family:%s;font-weight:700;font-size:15pt;color:%s;margin-left:10pt">%s&nbsp; | &nbsp;<span dir="rtl" style="font-weight:900;font-size:14pt">%s</span></span>' % (TIMES, TIMES, col, be, bar)),
@@ -335,7 +366,7 @@ def numbered_sheets():
                     if it['size']:
                         pre['SIZE'] = '<div dir="ltr" style="font-weight:900;font-size:15pt">%s</div>' % esc(it['size'])
                     sid = 'pn-%s-%s-%d-%s-%d' % (zt, r['brand'], r['no'], h['name'], n)
-                    pages.append(pallet_page(r['brand'], True, pre, sid))
+                    pages.append(pallet_page(r['brand'], True, pre, sid, m.hdr_style(T, it) if zt == 'a' else None))
                     meta.append(dict(z=zt, tag=T['tag'], name_ar=T['name_ar'], en=T['en'], brand=r['brand'], rack=r['no'], half=h['name'],
                                      n=n, loc=loc, item=it['en'].strip()))
     return pages, meta
@@ -369,11 +400,11 @@ def build(out_dir):
     npages, nmeta = numbered_sheets()
     first_pn = npages[0].split('id="')[1].split('"')[0]
     nav = ('<div class="nav"><b>AL-MUNAJEM · DRY SECTION PART 1 · القسم الجاف الجزء 1 · %s</b>'
-           '<a href="#guide">Colour scale · المقياس</a><a href="#method">Method · الطريقة</a>%s'
+           '<a href="#guide">Colour scale · المقياس</a><a href="#method">Method · الطريقة</a><a href="#suppkey">Supplies colours · ألوان المستلزمات</a>%s'
            '<a href="#stickers">Rack labels · ليبل الراك</a><a href="#%s">Pallet labels P1–P25 · أوراق البالت المرقمة</a><a href="#pal-DX">Blank pallet labels · ورقة البالت الفارغة</a></div>'
            % (VERSION, ''.join('<a href="#tbl-%s">%s</a>' % (zz, TYPES[zz]['tag']) for zz in TYPES), first_pn))
     stk[0] = stk[0].replace('<section class="pg p"', '<section id="stickers" class="pg p"', 1)
-    body = nav + guide_page(racks) + ''.join(table_page(z, racks) for z in TYPES) + ''.join(stk) + ''.join(npages) + ''.join(pal)
+    body = nav + guide_page(racks) + key_page() + ''.join(table_page(z, racks) for z in TYPES) + ''.join(stk) + ''.join(npages) + ''.join(pal)
     doc = ('<!-- VERSION: %s | %s -->\n<!doctype html><html lang="ar" dir="ltr"><head><meta charset="utf-8"><title>Al-Munajem Dry Part 1 — %s</title>'
            '<style>%s</style></head><body>%s%s</body></html>' % (VERSION, DATE, VERSION, css(), body, FIT_JS))
     p1 = os.path.join(out_dir, 'almunajem_dry_part1_system_%s_%s.html' % (VERSION, DATE))
