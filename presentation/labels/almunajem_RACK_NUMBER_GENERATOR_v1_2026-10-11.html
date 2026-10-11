@@ -1,0 +1,244 @@
+<!doctype html>
+<!-- VERSION: v1 | 2026-10-11 -->
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rack Number Generator · مولّد أرقام وحروف الأعمدة</title>
+<style>
+:root{--bg:#EEF1F5;--ink:#0F172A;--y:#FFD400;--card:#fff;--mut:#64748B;--line:#D5DBE4}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--ink);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{margin:0;font-size:20px}header h1 small{display:block;font-size:12px;color:var(--y);font-weight:600;margin-top:2px}
+.btns{display:flex;gap:8px}
+.btn{background:var(--y);color:#111;border:0;border-radius:10px;padding:10px 18px;font-weight:800;font-size:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.2}
+.btn small{font-weight:600;font-size:11px}
+.btn.alt{background:#fff}
+main{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:16px;max-width:1400px;margin:auto}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.panel{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 1px 4px #0001;align-self:start}
+.panel h2{margin:0 0 10px;font-size:15px;border-bottom:3px solid var(--y);padding-bottom:6px}
+label{display:block;font-size:12.5px;font-weight:700;margin:10px 0 4px}
+label span{color:var(--mut);font-weight:500}
+input,select,textarea{width:100%;padding:9px 10px;border:1.5px solid var(--line);border-radius:8px;font:inherit;font-size:14px;background:#fff}
+textarea{min-height:64px;resize:vertical;direction:ltr}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chk{display:flex;gap:8px;align-items:center;font-weight:600;margin:8px 0}.chk input{width:auto}
+.info{font-size:12.5px;background:#FFF8CC;border:1px solid #F2C200;border-radius:8px;padding:8px 10px;margin-top:12px;line-height:1.6}
+#preview{display:flex;flex-direction:column;gap:14px;align-items:center}
+.sheet{background:#fff;box-shadow:0 2px 10px #0003;position:relative;width:210mm;height:297mm;overflow:hidden;flex:none;transform-origin:top center}
+.sheet .meta{position:absolute;bottom:3mm;left:0;right:0;text-align:center;font-size:8px;color:#888;font-family:Arial}
+.tag{position:absolute;background:#fff}
+.tag svg{display:block;width:100%;height:100%}
+.cm{position:absolute;background:#000}
+.hint{font-size:12px;color:var(--mut);text-align:center}
+@media print{
+  @page{size:A4 portrait;margin:0}
+  body{background:#fff}header,.panel,.hint,main>.panel{display:none!important}
+  main{display:block;padding:0}
+  #preview{display:block;gap:0}
+  .sheet{box-shadow:none;transform:none!important;margin:0;page-break-after:always;break-after:page}
+  .sheet:last-child{page-break-after:auto;break-after:auto}
+  .sheet .meta{display:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>مولّد أرقام وحروف الأعمدة · Rack Number &amp; Letter Generator<small>Print A4 · Scale 100% · Margins: None · قابل للطباعة والمشاركة</small></h1>
+  <div class="btns">
+    <button class="btn" onclick="window.print()">🖨 PRINT<small>طباعة</small></button>
+    <button class="btn alt" onclick="share()">↗ SHARE<small>مشاركة</small></button>
+  </div>
+</header>
+<main>
+<section class="panel">
+  <h2>الإعدادات · Settings</h2>
+
+  <label>النوع · Mode</label>
+  <select id="mode">
+    <option value="both">رقم فوق + حرف تحت (مثل الصورة) · Number + Letter</option>
+    <option value="num">أرقام فقط · Numbers only</option>
+    <option value="let">حروف فقط · Letters only</option>
+    <option value="custom">قائمة حرة · Custom list (top|bottom)</option>
+  </select>
+
+  <div id="gNum">
+    <label>الأرقام · Numbers <span>مثال: 1-80 أو 64,65,70-72</span></label>
+    <input id="nums" value="64" dir="ltr">
+  </div>
+  <div id="gLet">
+    <label>الحروف · Letters <span>مثال: A-E أو A,B,C أو أ-د</span></label>
+    <input id="lets" value="A-E" dir="ltr">
+  </div>
+  <div id="gCus" style="display:none">
+    <label>قائمة حرة · Custom <span>سطر لكل لوحة: أعلى|أسفل — مثال 64|A</span></label>
+    <textarea id="cus">64|A
+64|B
+65|A</textarea>
+  </div>
+
+  <div class="row">
+    <div><label>عدد النسخ · Copies</label><input id="copies" type="number" min="1" value="1"></div>
+    <div><label>ترتيب · Order</label>
+      <select id="ord"><option value="n">رقم ثم حرف</option><option value="l">حرف ثم رقم</option></select></div>
+  </div>
+
+  <h2 style="margin-top:18px">القياس · Size</h2>
+  <div class="row">
+    <div><label>الطول · Height (cm)</label><input id="h" type="number" step="0.1" value="8.5"></div>
+    <div><label>العرض · Width (cm)</label><input id="w" type="number" step="0.1" value="2.5"></div>
+  </div>
+  <div class="row">
+    <div><label>الفراغ بين اللوحات · Gap (mm)</label><input id="gap" type="number" value="4"></div>
+    <div><label>هامش الصفحة · Margin (mm)</label><input id="mar" type="number" value="10"></div>
+  </div>
+
+  <h2 style="margin-top:18px">الشكل · Style</h2>
+  <div class="row">
+    <div><label>لون الحبر · Ink</label><input id="ink" type="color" value="#000000"></div>
+    <div><label>لون الخلفية · Background</label><input id="bg" type="color" value="#ffffff"></div>
+  </div>
+  <div class="row">
+    <div><label>حجم الخط · Font %</label><input id="fs" type="number" value="100" min="40" max="140"></div>
+    <div><label>الخط · Font</label>
+      <select id="ff"><option>Arial</option><option>Calibri</option><option>Tahoma</option><option>Impact</option><option>Courier New</option></select></div>
+  </div>
+  <div class="chk"><input type="checkbox" id="cut" checked><label style="margin:0">علامات القص · Cut marks</label></div>
+  <div class="chk"><input type="checkbox" id="brd" checked><label style="margin:0">إطار رفيع · Thin outline</label></div>
+  <div class="chk"><input type="checkbox" id="fold" checked><label style="margin:0">خطوط الطي · Fold guides (middle blank)</label></div>
+
+  <div class="info" id="stat"></div>
+</section>
+
+<section>
+  <div id="preview"></div>
+  <p class="hint">المعاينة مصغّرة على الشاشة، والطباعة بحجم A4 الحقيقي 100%.</p>
+</section>
+</main>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const IDS=['mode','nums','lets','cus','copies','ord','h','w','gap','mar','ink','bg','fs','ff','cut','brd','fold'];
+const AR='أبتثجحخدذرزسشصضطظعغفقكلمنهوي';
+
+function expand(s,isLetter){
+  const out=[];
+  String(s).split(/[,،;\s]+/).filter(Boolean).forEach(tok=>{
+    const m=tok.match(/^(.+?)\s*[-–—~]\s*(.+)$/);
+    if(m){
+      const a=m[1],b=m[2];
+      if(!isLetter&&/^\d+$/.test(a)&&/^\d+$/.test(b)){
+        const x=+a,y=+b,st=x<=y?1:-1,pad=a.length>1&&a[0]==='0'?a.length:0;
+        for(let i=x;st>0?i<=y:i>=y;i+=st)out.push(pad?String(i).padStart(pad,'0'):String(i));
+      }else if(a.length===1&&b.length===1){
+        let seq=null;
+        if(/[A-Za-z]/.test(a)){const x=a.charCodeAt(0),y=b.charCodeAt(0),st=x<=y?1:-1;seq=[];for(let i=x;st>0?i<=y:i>=y;i+=st)seq.push(String.fromCharCode(i));}
+        else if(AR.includes(a)&&AR.includes(b)){let x=AR.indexOf(a),y=AR.indexOf(b),st=x<=y?1:-1;seq=[];for(let i=x;st>0?i<=y:i>=y;i+=st)seq.push(AR[i]);}
+        if(seq)out.push(...seq);else out.push(tok);
+      }else out.push(tok);
+    }else out.push(tok);
+  });
+  return out;
+}
+
+function items(){
+  const mode=$('mode').value,c=Math.max(1,+$('copies').value||1);let L=[];
+  if(mode==='num')expand($('nums').value,false).forEach(n=>L.push([n,'']));
+  else if(mode==='let')expand($('lets').value,true).forEach(l=>L.push([l,'']));
+  else if(mode==='both'){
+    const N=expand($('nums').value,false),Lt=expand($('lets').value,true);
+    if($('ord').value==='n')N.forEach(n=>Lt.forEach(l=>L.push([n,l])));
+    else Lt.forEach(l=>N.forEach(n=>L.push([n,l])));
+  }else{
+    $('cus').value.split(/\n/).forEach(r=>{r=r.trim();if(!r)return;const p=r.split('|');L.push([p[0].trim(),(p[1]||'').trim()]);});
+  }
+  const out=[];L.forEach(x=>{for(let i=0;i<c;i++)out.push(x)});return out;
+}
+
+function tagSVG(top,bot,W,H,o){
+  // W,H in mm; viewBox in mm
+  const pad=1.2,iw=W-2*pad;
+  const two=bot!=='';
+  let s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">';
+  s+='<rect width="'+W+'" height="'+H+'" fill="'+o.bg+'"/>';
+  if(o.brd)s+='<rect x=".15" y=".15" width="'+(W-.3)+'" height="'+(H-.3)+'" fill="none" stroke="#999" stroke-width=".25"/>';
+  function txt(t,cy,boxH){
+    // font-size so that text fits width and box height
+    const n=Math.max(1,t.length);
+    let fsz=Math.min(boxH*0.95,(iw/(n*0.62)))*o.fs;
+    return '<text x="'+W/2+'" y="'+cy+'" text-anchor="middle" dominant-baseline="central" font-family="'+o.ff+',Arial,sans-serif" font-weight="700" font-size="'+fsz.toFixed(2)+'" fill="'+o.ink+'">'+t.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text>';
+  }
+  if(two){
+    const bh=H*0.33;
+    s+=txt(top,H*0.19,bh*1.0)+txt(bot,H*0.81,bh*1.0);
+    if(o.fold){s+='<line x1="0" x2="'+W+'" y1="'+H*0.36+'" y2="'+H*0.36+'" stroke="#bbb" stroke-width=".2" stroke-dasharray="1 1"/>'
+              +'<line x1="0" x2="'+W+'" y1="'+H*0.64+'" y2="'+H*0.64+'" stroke="#bbb" stroke-width=".2" stroke-dasharray="1 1"/>';}
+  }else{
+    s+=txt(top,H/2,H*0.55);
+  }
+  return s+'</svg>';
+}
+
+function build(){
+  const o={ink:$('ink').value,bg:$('bg').value,fs:(+$('fs').value||100)/100,ff:$('ff').value,brd:$('brd').checked,fold:$('fold').checked};
+  const W=(+$('w').value||2.5)*10,H=(+$('h').value||8.5)*10,gap=+$('gap').value||0,mar=+$('mar').value||0;
+  const cols=Math.max(1,Math.floor((210-2*mar+gap)/(W+gap))),rows=Math.max(1,Math.floor((297-2*mar-6+gap)/(H+gap)));
+  const per=cols*rows,L=items(),pages=Math.max(1,Math.ceil(L.length/per));
+  const gw=cols*W+(cols-1)*gap,gh=rows*H+(rows-1)*gap,x0=(210-gw)/2,y0=(297-6-gh)/2;
+  const P=$('preview');P.innerHTML='';
+  for(let p=0;p<pages;p++){
+    const sh=document.createElement('div');sh.className='sheet';
+    let h='';
+    for(let i=0;i<per;i++){
+      const it=L[p*per+i];if(!it)break;
+      const c=i%cols,r=Math.floor(i/cols),x=x0+c*(W+gap),y=y0+r*(H+gap);
+      h+='<div class="tag" style="left:'+x+'mm;top:'+y+'mm;width:'+W+'mm;height:'+H+'mm">'+tagSVG(it[0],it[1],W,H,o)+'</div>';
+      if($('cut').checked){
+        const L2=2.2,o2=1.2;
+        [[x,y],[x+W,y],[x,y+H],[x+W,y+H]].forEach((pt,k)=>{
+          const lx=k%2?pt[0]+o2:pt[0]-o2-L2,ty=k<2?pt[1]-0.1:pt[1]-0.1;
+          h+='<div class="cm" style="left:'+lx+'mm;top:'+(pt[1]-.1)+'mm;width:'+L2+'mm;height:.2mm"></div>';
+          const vy=k<2?pt[1]-o2-L2:pt[1]+o2;
+          h+='<div class="cm" style="left:'+(pt[0]-.1)+'mm;top:'+vy+'mm;width:.2mm;height:'+L2+'mm"></div>';
+        });
+      }
+    }
+    h+='<div class="meta">'+(p+1)+' / '+pages+' · A4 · '+(W/10)+'×'+(H/10)+' cm · Scale 100% · Margins: None</div>';
+    sh.innerHTML=h;P.appendChild(sh);
+  }
+  $('stat').innerHTML='العدد: <b>'+L.length+'</b> لوحة · '+cols+' × '+rows+' = '+per+' في الصفحة · <b>'+pages+'</b> صفحة<br>Total '+L.length+' tags · '+per+' per page · '+pages+' page(s)<br>الحجم: '+(W/10)+' × '+(H/10)+' سم (العرض × الطول)';
+  fit();save();
+}
+function fit(){
+  const avail=Math.min(window.innerWidth-(window.innerWidth>900?420:32),794);
+  const k=Math.min(1,avail/794);
+  document.querySelectorAll('.sheet').forEach(s=>{s.style.transform='scale('+k+')';s.style.marginBottom=(-(297*3.7795*(1-k)))+'px';s.style.height='297mm'});
+}
+window.addEventListener('resize',fit);
+function save(){
+  const d={};IDS.forEach(i=>{const e=$(i);d[i]=e.type==='checkbox'?e.checked:e.value});
+  try{history.replaceState(null,'','#'+encodeURIComponent(JSON.stringify(d)))}catch(e){}
+  try{localStorage.setItem('rackgen',JSON.stringify(d))}catch(e){}
+}
+function load(){
+  let d=null;
+  try{if(location.hash.length>2)d=JSON.parse(decodeURIComponent(location.hash.slice(1)))}catch(e){}
+  if(!d)try{d=JSON.parse(localStorage.getItem('rackgen')||'null')}catch(e){}
+  if(d)IDS.forEach(i=>{if(i in d){const e=$(i);if(e.type==='checkbox')e.checked=d[i];else e.value=d[i]}});
+}
+function vis(){const m=$('mode').value;$('gNum').style.display=(m==='both'||m==='num')?'':'none';$('gLet').style.display=(m==='both'||m==='let')?'':'none';$('gCus').style.display=m==='custom'?'':'none';}
+window.share=async function(){
+  save();const url=location.href,txt='Rack tags · أرقام وحروف الأعمدة — '+$('stat').innerText.split('\n')[0];
+  try{if(navigator.share){await navigator.share({title:'Rack Number Generator',text:txt,url});return}}catch(e){if(e&&e.name==='AbortError')return}
+  try{await navigator.clipboard.writeText(url);alert('تم نسخ الرابط (يحفظ كل الإعدادات) · Link copied')}catch(e){prompt('Copy:',url)}
+};
+IDS.forEach(i=>$(i).addEventListener('input',()=>{vis();build()}));
+load();vis();build();
+})();
+</script>
+</body>
+</html>
