@@ -156,7 +156,20 @@ def table(side):
     return sec('l', 'f-table-' + side, inner)
 
 # ---------------------------------------------------------------- rack-level sticker (78 x 50 mm), modern
-def arr(down, col='#fff'):
+YEL, YEL2 = '#FFD400', '#F2C200'
+ICONS = {  # 24x24 simple symbols, drawn in white on the brand circle
+    'OL': '<path d="M12 2C12 2 5 10 5 15a7 7 0 0014 0C19 10 12 2 12 2z" fill="#fff"/><path d="M9 15a3 3 0 003 3" stroke="%(c)s" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    'FL': '<path d="M12 1l2.6 8.4L23 12l-8.4 2.6L12 23l-2.6-8.4L1 12l8.4-2.6z" fill="#fff"/>',
+    'CR': '<circle cx="7" cy="8" r="2.6" fill="#fff"/><circle cx="15" cy="6" r="2.2" fill="#fff"/><circle cx="18" cy="13" r="2.8" fill="#fff"/><circle cx="10" cy="14" r="3" fill="#fff"/><circle cx="6" cy="19" r="2" fill="#fff"/><circle cx="15" cy="19" r="2.2" fill="#fff"/>',
+    'BR': '<path d="M5 8h14l2 13H3z" fill="#fff"/><path d="M8 8c0-3 1.5-5 4-5s4 2 4 5" stroke="#fff" stroke-width="2" fill="none"/><path d="M8 14h8" stroke="%(c)s" stroke-width="1.8"/>',
+    'BT': '<path d="M3 11h18a8 8 0 01-8 9h-2a8 8 0 01-8-9z" fill="#fff"/><path d="M8 8c1-3 3-3 4 0s3 3 4 0" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/>',
+}
+
+def icon(ty, bc, size):
+    return ('<span style="width:%smm;height:%smm;border-radius:50%%;background:%s;border:.5mm solid %s;display:inline-flex;align-items:center;justify-content:center;flex:none"><svg viewBox="0 0 24 24" width="%smm" height="%smm">%s</svg></span>'
+            % (size, size, bc, INK, size * .62, size * .62, ICONS[ty] % dict(c=bc)))
+
+def arr(down, col=YEL):
     st = ' style="transform:rotate(180deg)"' if down else ''
     return ('<svg%s viewBox="0 0 100 110" width="5.4mm" height="5.9mm"><polygon points="50,2 98,52 68,52 68,108 32,108 32,52 2,52" fill="%s"/></svg>' % (st, col))
 
@@ -174,25 +187,28 @@ def fsticker(r, lv):
     L = LETTERS[lv - 1]
     dn = ('FLOOR', 'DOWN', 'أسفل') if lv == 1 else (LETTERS[lv - 2], 'DOWN', 'أسفل')
     up = ('TOP', 'UP', 'أعلى') if lv == LEVELS else (LETTERS[lv], 'UP', 'أعلى')
-    te, ta = TYPES_F[it['type']]
     code = '2%s-%02d%s' % (r['side'], r['no'], L)
     p0 = (lv - 1) * DEEP + 1
-    top = ('<div style="height:7.6mm;background:%s;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 3mm;font-weight:900;white-space:nowrap">'
+    stripes = 'background:repeating-linear-gradient(135deg,%s 0 1.1mm,transparent 1.1mm 2.2mm)' % YEL
+    top = ('<div style="height:7.6mm;background:%s;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 0 0 3mm;font-weight:900;white-space:nowrap;position:relative;border-bottom:.5mm solid %s">'
            '<span style="display:flex;gap:1.4mm;align-items:center;font-size:3mm"><span dir="ltr">FORMING</span><span>·</span><span dir="rtl">التشكيل</span></span>'
-           '<span dir="ltr" style="font-size:3.4mm;letter-spacing:.2mm">%s · %s</span></div>' % (bc, code[:2] + '-' + code[3:5], 'RACK %s' % r['id']))
-    name = ('<div style="height:10.6mm;padding:0 2.4mm;display:flex;flex-direction:column;justify-content:center;align-items:center;border-bottom:.3mm solid #E2E8F0;overflow:hidden">'
+           '<span style="display:flex;align-items:center;height:100%%"><span dir="ltr" style="font-size:3.3mm;letter-spacing:.2mm;padding-right:2mm">%s</span><span style="width:13mm;height:100%%;%s"></span></span></div>'
+           % (bc, INK, code[:2] + '-' + code[3:5], stripes))
+    name = ('<div style="height:10.8mm;padding:0 2.2mm;display:flex;align-items:center;gap:2mm;background:%s;border-bottom:.5mm solid %s;overflow:hidden">%s'
+            '<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center">'
             '<div data-fit dir="rtl" style="white-space:nowrap;font-weight:900;font-size:3.3mm;line-height:1.15">%s</div>'
-            '<div data-fit dir="ltr" style="white-space:nowrap;font-weight:700;font-size:2.4mm;line-height:1.15;color:%s">%s</div></div>' % (esc(it['ar']), SLATE, esc(it['en'])))
+            '<div data-fit dir="ltr" style="white-space:nowrap;font-weight:700;font-size:2.4mm;line-height:1.15">%s</div></div></div>'
+            % (YEL2, INK, icon(it['type'], bc, 7.4), esc(it['ar']), esc(it['en'])))
     mid = ('<div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 2mm 0 2mm;position:relative">%s'
-           '<div style="display:flex;align-items:center;gap:1.6mm"><div dir="ltr" style="font-weight:900;font-size:6.2mm;line-height:1;color:%s;padding-top:1mm">%s</div>'
-           '<div dir="ltr" style="width:17mm;height:17mm;border-radius:3.4mm;background:%s;color:#fff;font-weight:900;font-size:14mm;line-height:17mm;text-align:center">%s</div></div>%s</div>'
-           % (fside(True, dn[0], dn[1], dn[2]), bc, r['id'], bc, L, fside(False, up[0], up[1], up[2])))
+           '<div style="display:flex;align-items:center;gap:1.6mm"><div dir="ltr" style="background:%s;color:#fff;font-weight:900;font-size:4.8mm;line-height:1;padding:.9mm 1.8mm;border-radius:1.8mm">%s</div>'
+           '<div dir="ltr" style="width:17mm;height:17mm;border-radius:3.4mm;background:%s;color:#fff;border:.8mm solid %s;box-shadow:1mm 1mm 0 %s;font-weight:900;font-size:14mm;line-height:15.4mm;text-align:center">%s</div></div>%s</div>'
+           % (fside(True, dn[0], dn[1], dn[2]), INK, r['id'], bc, INK, INK, L, fside(False, up[0], up[1], up[2])))
     pill = lambda t, bg, fg, bd='': '<span dir="ltr" class="chip" style="background:%s;color:%s;%sfont-size:2.9mm;padding:0 1.8mm">%s</span>' % (bg, fg, bd, t)
     bot = ('<div style="height:8.6mm;display:flex;align-items:center;justify-content:space-between;padding:0 2.2mm 1mm;gap:2mm"><div style="display:flex;gap:1.2mm">%s%s</div>'
-           '<div style="display:flex;flex-direction:column;align-items:center;gap:.2mm">%s<span dir="ltr" style="font-weight:800;font-size:2.2mm;letter-spacing:.5mm;line-height:1">%s</span></div></div>'
-           % (pill('P%d–P%d' % (p0, p0 + DEEP - 1), INK, '#fff'), pill('%s1–%s%d' % (L, L, DEEP), '#fff', INK, 'border:.3mm solid %s;' % INK), fbar(code, 4.6, 26), code))
-    return ('<div class="stk" style="width:78mm;height:50mm;box-sizing:border-box;background:#fff;border:.9mm solid %s;border-radius:4mm;overflow:hidden;direction:ltr;display:flex;flex-direction:column;font-family:\'Cairo\',sans-serif;color:%s;position:relative">%s%s%s%s</div>'
-            % (INK, INK, top, name, mid, bot))
+           '<div style="display:flex;flex-direction:column;align-items:center;gap:.2mm;background:#fff;border-radius:1.4mm;padding:.5mm 1.4mm .3mm;border:.3mm solid %s">%s<span dir="ltr" style="font-weight:800;font-size:2.2mm;letter-spacing:.5mm;line-height:1">%s</span></div></div>'
+           % (pill('P%d–P%d' % (p0, p0 + DEEP - 1), INK, YEL), pill('%s1–%s%d' % (L, L, DEEP), '#fff', INK, 'border:.3mm solid %s;' % INK), INK, fbar(code, 3.8, 24), code))
+    return ('<div class="stk" style="width:78mm;height:50mm;box-sizing:border-box;background:%s;border:1.1mm solid %s;border-radius:4mm;overflow:hidden;direction:ltr;display:flex;flex-direction:column;font-family:\'Cairo\',sans-serif;color:%s;position:relative">%s%s%s%s</div>'
+            % (YEL, INK, INK, top, name, mid, bot))
 
 def label_pages():
     out = []
@@ -216,22 +232,25 @@ def big_pages():
         rl = [r['id'] for r in RACKS if r['item'] is it]
         rng = '%s – %s' % (rl[0], rl[-1])
         side_en, side_ar = ('RIGHT · 175 cm', 'اليمين · 175 سم') if it['side'] == 'R' else ('LEFT · 195 cm', 'اليسار · 195 سم')
-        inner = ('<div style="position:absolute;left:10mm;top:12mm;width:277mm;height:186mm;background:#fff;border-radius:12mm;border:.6mm solid #E2E8F0;box-shadow:0 1mm 5mm #0f172a22;overflow:hidden;display:flex;flex-direction:column;direction:ltr">'
-                 '<div style="height:44mm;background:%s;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14mm;font-weight:900;white-space:nowrap">'
-                 '<span style="font-size:15mm;display:flex;gap:6mm;align-items:baseline"><span dir="ltr">FORMING</span><span>·</span><span dir="rtl">التشكيل</span></span>'
-                 '<span style="font-size:15mm;display:flex;gap:6mm;align-items:baseline"><span dir="ltr">%s</span><span>|</span><span dir="rtl">%s</span></span></div>'
-                 '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6mm;padding:0 14mm">'
-                 '<div data-fit dir="rtl" style="white-space:nowrap;font-weight:900;font-size:30mm;line-height:1.1">%s</div>'
-                 '<div data-fit dir="ltr" style="white-space:nowrap;font-weight:800;font-size:17mm;line-height:1.1;color:%s">%s</div>'
-                 '<div style="display:flex;gap:6mm;margin-top:2mm"><span class="chip" style="background:%s;color:#fff;font-size:8mm;padding:0 8mm"><span dir="ltr">%s</span><span dir="rtl">%s</span></span>'
-                 '<span class="chip" style="background:%s;color:#fff;font-size:8mm;padding:0 8mm" dir="ltr">%s</span></div></div>'
-                 '<div style="height:38mm;border-top:.5mm solid #E2E8F0;display:flex;align-items:center;justify-content:space-between;padding:0 14mm">'
-                 '<div style="display:flex;flex-direction:column"><span dir="ltr" style="font-weight:800;font-size:7mm;color:%s">%s</span><span dir="rtl" style="font-weight:800;font-size:7mm;color:%s">%s</span></div>'
-                 '<div style="display:flex;flex-direction:column;align-items:center"><span dir="ltr" style="font-weight:900;font-size:19mm;line-height:1;color:%s">%s</span><span style="font-weight:800;font-size:6.4mm"><span dir="ltr">RACKS</span> · <span dir="rtl">الراكات</span></span></div>'
-                 '<div style="display:flex;flex-direction:column;align-items:center;gap:1mm">%s<span dir="ltr" style="font-weight:800;font-size:5mm;letter-spacing:2mm">%s</span></div></div></div>'
-                 % (bc, be, ba, esc(it['ar']), SLATE, esc(it['en']), INK, te, ta, ORG, it['code'], MUTE, esc(side_en), MUTE, esc(side_ar), bc, rng,
-                    fbar(it['code'], 11, 70), it['code']))
-        out.append((sec('l', 'f-big-' + it['code'], inner), 'f-big-' + it['code'], 'Big item label · %s' % it['en'][:40], 'ليبل صنف كبير · %s' % it['ar'][:34]))
+        stripes = 'background:repeating-linear-gradient(135deg,%s 0 4mm,transparent 4mm 8mm)' % YEL
+        inner = ('<div style="position:absolute;left:10mm;top:12mm;width:277mm;height:186mm;background:%s;border:4mm solid %s;border-radius:14mm;overflow:hidden;display:flex;flex-direction:column;direction:ltr;box-sizing:border-box">'
+                 '<div style="height:36mm;background:%s;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 0 0 12mm;font-weight:900;white-space:nowrap;border-bottom:1.6mm solid %s">'
+                 '<span style="font-size:11mm;display:flex;gap:4mm;align-items:baseline"><span dir="ltr">FORMING</span><span>·</span><span dir="rtl">التشكيل</span></span>'
+                 '<span style="display:flex;align-items:center;height:100%%;gap:6mm"><span style="font-size:11mm;display:flex;gap:4mm;align-items:baseline"><span dir="ltr">%s</span><span>|</span><span dir="rtl">%s</span></span><span style="width:40mm;height:100%%;%s"></span></span></div>'
+                 '<div style="flex:1;background:%s;display:flex;align-items:center;gap:12mm;padding:0 14mm;border-bottom:1.6mm solid %s">%s'
+                 '<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4mm">'
+                 '<div data-fit dir="rtl" style="white-space:nowrap;font-weight:900;font-size:26mm;line-height:1.1">%s</div>'
+                 '<div data-fit dir="ltr" style="white-space:nowrap;font-weight:800;font-size:15mm;line-height:1.1">%s</div>'
+                 '<div style="display:flex;gap:6mm;margin-top:1mm"><span class="chip" style="background:%s;color:%s;font-size:7.4mm;padding:0 7mm"><span dir="ltr">%s</span><span dir="rtl">%s</span></span>'
+                 '<span class="chip" style="background:#fff;color:%s;border:.8mm solid %s;font-size:7.4mm;padding:0 7mm" dir="ltr">%s</span></div></div></div>'
+                 '<div style="height:40mm;display:flex;align-items:center;justify-content:space-between;padding:0 14mm 3mm">'
+                 '<div style="display:flex;flex-direction:column"><span dir="ltr" style="font-weight:800;font-size:5.4mm;white-space:nowrap">%s</span><span dir="rtl" style="font-weight:800;font-size:5.4mm;white-space:nowrap">%s</span></div>'
+                 '<div style="display:flex;align-items:center;gap:6mm"><div dir="ltr" style="background:%s;color:#fff;border:1.2mm solid %s;box-shadow:2mm 2mm 0 %s;border-radius:6mm;font-weight:900;font-size:15mm;line-height:1;padding:1mm 6mm;white-space:nowrap">%s</div>'
+                 '<span style="font-weight:800;font-size:6.4mm;line-height:1.1"><span dir="ltr">RACKS</span><br><span dir="rtl">الراكات</span></span></div>'
+                 '<div style="display:flex;flex-direction:column;align-items:center;gap:1mm;background:#fff;border-radius:3mm;padding:2mm 4mm;border:.6mm solid %s">%s<span dir="ltr" style="font-weight:800;font-size:5mm;letter-spacing:2mm">%s</span></div></div></div>'
+                 % (YEL, INK, bc, INK, esc(be), esc(ba), stripes, YEL2, INK, icon(it['type'], bc, 46), esc(it['ar']), esc(it['en']),
+                    INK, YEL, te, ta, INK, INK, it['code'], esc(side_en), esc(side_ar), bc, INK, INK, rng, INK, fbar(it['code'], 11, 70), it['code']))
+        out.append((sec('l', 'f-big-' + it['code'], inner).replace('fm fmpage"', 'fm" style="background:#fff"', 1) if False else sec('l', 'f-big-' + it['code'], inner), 'f-big-' + it['code'], 'Big item label · %s' % it['en'][:40], 'ليبل صنف كبير · %s' % it['ar'][:34]))
     return out
 
 # ---------------------------------------------------------------- pallet paper (A4 portrait), modern + fillable fields (mm layout)
