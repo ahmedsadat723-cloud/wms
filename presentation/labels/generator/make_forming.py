@@ -149,10 +149,10 @@ def table(side):
                  '<td dir="ltr" style="font-weight:700">%s</td><td dir="rtl" style="font-weight:800">%s</td><td style="text-align:center;font-weight:800" dir="ltr">%s · %s</td><td style="text-align:center;font-weight:800" dir="ltr">A–E · P1–P30</td></tr>'
                  % (r['id'], it['no'], bc, be, ba, esc(it['code'] + ' · ' + it['en']), esc(it['ar']), te, ta))
     hd = ('<tr style="background:%s;color:#fff"><th>RACK<br>راك</th><th>ITEM #<br>الصنف</th><th>BRAND · الماركة</th><th dir="ltr">ITEM (EN)</th><th dir="rtl">الصنف (عربي)</th><th>TYPE · النوع</th><th>LEVELS · PALLETS</th></tr>' % INK)
-    en, ar = (('RIGHT SIDE · 19 racks · 175 cm', 'الجهة اليمين · 19 راك · 175 سم') if side == 'R' else ('LEFT SIDE · 20 racks · 195 cm', 'الجهة اليسار · 20 راك · 195 سم'))
+    en, ar = (('RIGHT · 19 racks · 175 cm', 'اليمين · 19 راك · 175 سم') if side == 'R' else ('LEFT · 20 racks · 195 cm', 'اليسار · 20 راك · 195 سم'))
     inner = ('<div style="position:absolute;left:12mm;right:12mm;top:8mm">%s<table class="ft" style="border-collapse:collapse;width:100%%;font-size:%smm;line-height:1.1">%s%s</table>'
              '<style>.ft td,.ft th{border:.2mm solid #CBD5E1;padding:.4mm 1.6mm}.ft tr:nth-child(even) td:not([style*=background]){background:#F8FAFC}</style></div>'
-             % (head('RACK DISTRIBUTION — ' + en, 'توزيع الراكات — ' + ar), 2.9 if side == 'L' else 3.0, hd, rows))
+             % (head('RACK TABLE — ' + en, 'جدول الراكات — ' + ar), 2.9 if side == 'L' else 3.0, hd, rows))
     return sec('l', 'f-table-' + side, inner)
 
 # ---------------------------------------------------------------- rack-level sticker (78 x 50 mm), modern
