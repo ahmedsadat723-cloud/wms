@@ -1,0 +1,93 @@
+{
+ "SPIC-0001": {
+  "nameEn": "BLACK PEPPER POWDER 1*10",
+  "cat": "(مسحوق فلفل أسود 10 × 1)",
+  "supplier": "شركة إسناد / Esnad Company",
+  "oracle": "PKBP002",
+  "nameUr": "کالی مرچ پاؤڈر 1x10"
+ },
+ "SPIC-0002": {
+  "nameEn": "Garlic Powder",
+  "cat": "(مسحوق الثوم)",
+  "supplier": "شركة إسناد / Esnad Company",
+  "oracle": "PKGP004",
+  "nameUr": "لہسن پاؤڈر"
+ },
+ "SPIC-0003": {
+  "nameEn": "Ginger Powder",
+  "cat": "(مسحوق الزنجبيل)",
+  "supplier": "شركة إسناد / Esnad Company",
+  "oracle": "PKGP005",
+  "nameUr": "ادرک پاؤڈر"
+ },
+ "SPIC-0004": {
+  "nameEn": "ONION POWDER 1*10",
+  "cat": "(بصل بودرة 10 × 1)",
+  "supplier": "شركة إسناد / Esnad Company",
+  "oracle": "PKOP002",
+  "nameUr": "پیاز پاؤڈر 1x10"
+ },
+ "SPIC-0005": {
+  "nameEn": "WHITE PEPPER POWDER",
+  "cat": "(فلفل أبيض بودرة)",
+  "supplier": "شركة إسناد / Esnad Company",
+  "oracle": "PKWP003",
+  "nameUr": "سفید مرچ پاؤڈر"
+ },
+ "SPIC-0006": {
+  "nameEn": "ONION POWDER 25",
+  "cat": "(بصل بودرة 25)",
+  "supplier": "شركة إسناد / Esnad Company",
+  "oracle": "VGRNXXCN001",
+  "nameUr": "پیاز پاؤڈر 25"
+ },
+ "SPIC-0007": {
+  "nameEn": "Sweet Paprika",
+  "cat": "بابريكا حلوة",
+  "supplier": "شركة إسناد / Esnad Company",
+  "oracle": "HSREXXSA001",
+  "nameUr": "میٹھی پپریکا"
+ },
+ "SPIC-0008": {
+  "nameEn": "High Pungency Chilli Powder",
+  "cat": "مسحوق الفلفل الحار عالي اللاذعية",
+  "supplier": "شركة إسناد / Esnad Company",
+  "oracle": "HSRHXXSA002",
+  "nameUr": "تیز لال مرچ پاؤڈر"
+ },
+ "SPIC-0009": {
+  "nameEn": "EURO NUGGET SEASONING |",
+  "cat": "خلطة بهارات وتوابل الناجتس الأوروبية",
+  "supplier": "مجموعة كيري (Kerry Group)    )",
+  "oracle": "GRWSZAAT001",
+  "nameUr": "یورو ناگٹ مصالحہ"
+ },
+ "SPIC-0010": {
+  "nameEn": "(Nuggets Spices Mix)",
+  "cat": "مزيج بهارات الناجتس",
+  "supplier": "شركة لاي للبهارات (LAY Gewürze GmbH).",
+  "oracle": "",
+  "nameUr": "ناگٹ مصالحہ مکس"
+ },
+ "SPIC-0011": {
+  "nameEn": "SANACEL® potato",
+  "cat": "مستخلص ألياف البطاطس الطبيعية",
+  "supplier": "CFF GmbH الألمانية المتخصصة في ألياف السليلوز الغذائية",
+  "oracle": "VGRPXXDE001",
+  "nameUr": "آلو فائبر (سناسیل)"
+ },
+ "SPIC-0012": {
+  "nameEn": "POTATO FIBER 1*10 KG",
+  "cat": "مستخلص ألياف البطاطس الطبيعية",
+  "supplier": "CFF GmbH الألمانية المتخصصة في ألياف السليلوز الغذائية",
+  "oracle": "VGRPXXDE002",
+  "nameUr": "آلو فائبر 1x10 کلو"
+ },
+ "SPIC-0014": {
+  "nameEn": "(Rusk Powder)",
+  "cat": "مسحوق الروبر",
+  "supplier": "مجموعة كيري (Kerry Group)    )",
+  "oracle": "GRRRXXSA002",
+  "nameUr": "روسک پاؤڈر"
+ }
+}
