@@ -13,7 +13,7 @@ import make_stickers as m
 from make_stickers import TYPES, LETTERS, build_racks, overlay, arrow, font_css, FIT_JS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION, DATE = 'v2', '2026-10-11'
+VERSION, DATE = 'v3', '2026-10-11'
 LOGO = os.path.join(HERE, 'assets', 'almunajem_logo.png')
 esc = html.escape
 INK, YEL = '#111111', '#FFD400'
@@ -38,7 +38,7 @@ def bil(en, ar, sz_en, sz_ar=None, w=800, col=None, gap=1.5):
 
 # ------------------------------------------------------------------ css
 def css():
-    return (font_css() + """
+    return (font_css() + ':root{--logo:url(%s)}' % logo_uri() + """
 @page port{size:210mm 297mm;margin:0}@page land{size:297mm 210mm;margin:0}
 *{box-sizing:border-box}html,body{margin:0;background:#fff;font-family:'Cairo',sans-serif;color:#111}
 .pg{position:relative;overflow:hidden;background:#fff;break-after:page;page-break-after:always}
@@ -256,11 +256,17 @@ def _abs(x0, y0, x1, y1, inner, extra=''):
 def logo_uri():
     return 'data:image/png;base64,' + base64.b64encode(open(LOGO, 'rb').read()).decode()
 
-def pallet_page(br, fillable=True):
+def pallet_page(br, fillable=True, pre=None, sid=None):
     be, bar, col = BR[br]
-    inp = (lambda key, rect, ml=False: _abs(*rect, ('<textarea name="%s_%s"></textarea>' if ml else '<input name="%s_%s">') % (br, key)) ) if fillable else (lambda *a, **k: '')
+    pre = pre or {}
+    def inp(key, rect, ml=False):
+        if key in pre:
+            return _abs(*rect, pre[key], 'display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center')
+        if not fillable:
+            return ''
+        return _abs(*rect, ('<textarea name="%s_%s"></textarea>' if ml else '<input name="%s_%s">') % (br, key))
     o = ''
-    o += _abs(36.75, 34.5, 93, 102.75, '<img src="%s" style="width:100%%;height:100%%;object-fit:contain">' % logo_uri())
+    o += _abs(36.75, 34.5, 93, 102.75, '', 'background:var(--logo) center/contain no-repeat')
     o += _abs(380, 66, 558.4, 86, '<span style="font-family:%s;font-weight:700;font-size:14pt;letter-spacing:1.6pt;color:#444">PALLET LABEL</span>' % TIMES, 'text-align:right;direction:ltr')
     o += _abs(380, 78, 558.4, 108.3, '<span style="font-weight:800;font-size:16pt;color:#444">ليبل بالت</span>', 'text-align:right;direction:rtl;line-height:30pt')
     # frame + header
@@ -268,7 +274,8 @@ def pallet_page(br, fillable=True):
     o += _abs(36.75, 111, 558.75, 221.25, '', 'background:%s;border:4.5pt solid #111;border-bottom:0' % col)
     o += _abs(36.75, 116, 558.75, 160, '<span style="font-weight:900;font-size:25pt;color:#fff">مصنع المنجم لإنتاج اللحوم</span>', 'text-align:center;direction:rtl;line-height:44pt')
     o += _abs(36.75, 160, 558.75, 177, '<span style="font-family:%s;font-weight:700;font-size:12.5pt;color:#fff;letter-spacing:.8pt">ALMUNAJEM MEAT PRODUCTION FACTORY</span>' % TIMES, 'text-align:center;direction:ltr;line-height:17pt')
-    o += _abs(202.5, 183, 392.2, 207, ('<span dir="ltr" style="font-family:%s;font-weight:700;font-size:10.5pt;color:#333">BRAND / <span dir="rtl" style="font-weight:800">الماركة</span></span>'
+    chx = (202.5, 392.2) if len(be) <= 5 else (178, 417)
+    o += _abs(chx[0], 183, chx[1], 207, ('<span dir="ltr" style="font-family:%s;font-weight:700;font-size:10.5pt;color:#333">BRAND / <span dir="rtl" style="font-weight:800">الماركة</span></span>'
               '<span dir="ltr" style="font-family:%s;font-weight:700;font-size:15pt;color:%s;margin-left:10pt">%s&nbsp; | &nbsp;<span dir="rtl" style="font-weight:900;font-size:14pt">%s</span></span>' % (TIMES, TIMES, col, be, bar)),
               'background:#fff;display:flex;align-items:center;justify-content:center;border-radius:2pt;white-space:nowrap')
     # grid lines
@@ -295,8 +302,52 @@ def pallet_page(br, fillable=True):
         o += _abs(x0, 809.2, x1, 810.0, '', 'background:#111')
         o += _abs(x0, 811, x1, 825, '<span dir="ltr" style="font-family:%s;font-size:9pt;color:#777">Signature / <span dir="rtl" style="font-family:Cairo">التوقيع</span></span>' % TIMES, 'text-align:center')
         o += inp(key, rect)
-    return ('<section class="pg pl p" id="pal-%s"><div style="position:absolute;left:0;top:0;width:%.2fpt;height:%.2fpt;transform:scale(%.5f);'
-            'transform-origin:0 0">%s</div></section>' % (br, PW, PH, SC, o))
+    return ('<section class="pg pl p" id="%s"><div style="position:absolute;left:0;top:0;width:%.2fpt;height:%.2fpt;transform:scale(%.5f);'
+            'transform-origin:0 0">%s</div></section>' % (sid or ('pal-' + br), PW, PH, SC, o))
+
+def numbered_sheets():
+    """one pallet-label paper per pallet: P1..P20 (cartons, 4 levels) / P1..P25 (5 levels); a shared rack numbers each item from P1"""
+    racks = build_racks()
+    pages, meta = [], []
+    for zt in TYPES:
+        T = TYPES[zt]
+        for r in racks[zt]:
+            for h in r['halves']:
+                it = h['item']
+                if not it:
+                    continue                                   # spare rack: nothing assigned
+                n_all = len(h['levels']) * 5
+                for n in range(1, n_all + 1):
+                    lvl = h['levels'][(n - 1) // 5]
+                    L, pos = LETTERS[lvl - 1], (n - 1) % 5 + 1
+                    loc = '%s-%s-%d%s%d' % (T['code'], r['brand'], r['no'], L, pos)
+                    big = ('<div dir="ltr" style="font-weight:900;font-size:96pt;line-height:1;letter-spacing:-2pt;color:#111">P%d</div>' % n)
+                    locb = ('<div dir="ltr" style="font-weight:900;font-size:30pt;line-height:1">%s</div>'
+                            '<div dir="ltr" style="font-weight:800;font-size:8.5pt;margin-top:3pt;color:#333">RACK %d · LEVEL %s · POSITION %d</div>'
+                            '<div dir="rtl" style="font-weight:800;font-size:9.5pt;color:#333">راك %d · مستوى %s · موضع %d</div>'
+                            '<div dir="ltr" style="font-weight:700;font-size:7.5pt;margin-top:3pt;color:#555">%s · %s</div>'
+                            % (loc, r['no'], L, pos, r['no'], L, pos, T['tag'] + ' ' + T['en'], T['name_ar']))
+                    nm_ar = esc(it['ar']) + (' <bdi dir="ltr">%s</bdi>' % esc(it['size']) if it['size'] else '')
+                    prod = ('<div dir="rtl" style="font-weight:800;font-size:11pt;line-height:1.15">%s</div>'
+                            '<div dir="ltr" style="font-family:%s;font-weight:700;font-size:8.5pt;line-height:1.15">%s</div>' % (nm_ar, TIMES, esc(it['en'].strip())))
+                    pre = {'PALLET_NO': big, 'LOCATION': locb, 'PRODUCT': prod}
+                    if it['size']:
+                        pre['SIZE'] = '<div dir="ltr" style="font-weight:900;font-size:15pt">%s</div>' % esc(it['size'])
+                    sid = 'pn-%s-%s-%d-%s-%d' % (zt, r['brand'], r['no'], h['name'], n)
+                    pages.append(pallet_page(r['brand'], True, pre, sid))
+                    meta.append(dict(z=zt, tag=T['tag'], name_ar=T['name_ar'], en=T['en'], brand=r['brand'], rack=r['no'], half=h['name'],
+                                     n=n, loc=loc, item=it['en'].strip()))
+    return pages, meta
+
+def numbered_build(out_dir):
+    import json
+    pages, meta = numbered_sheets()
+    doc = ('<!-- VERSION: v1 | %s -->\n<!doctype html><html lang="ar" dir="ltr"><head><meta charset="utf-8"><title>Pallet labels P1–P25</title>'
+           '<style>%s</style></head><body>%s</body></html>' % (DATE, css(), ''.join(pages)))
+    p = os.path.join(out_dir, 'almunajem_pallet_labels_numbered_v1_%s.html' % DATE)
+    open(p, 'w', encoding='utf-8').write(doc)
+    json.dump(meta, open(os.path.join(out_dir, 'numbered_meta.json'), 'w', encoding='utf-8'), ensure_ascii=False)
+    return p, len(pages)
 
 def page_for_pallets_only():
     return ('<!doctype html><html lang="ar" dir="ltr"><head><meta charset="utf-8"><title>Pallet Label</title><style>%s'
@@ -331,4 +382,5 @@ def build(out_dir):
 if __name__ == '__main__':
     out = sys.argv[1] if len(sys.argv) > 1 else '.'
     p1, p2, total, npg = build(out)
-    print('old sticker pages:', total); print(p1); print(p2)
+    print('level sticker pages:', total); print(p1); print(p2)
+    print(numbered_build(out))
