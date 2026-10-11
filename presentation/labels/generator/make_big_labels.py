@@ -28,19 +28,21 @@ def frame(inner):
     return ('<div style="position:absolute;left:10mm;top:16mm;width:277mm;height:178mm;background:%s;border:4mm solid %s;border-radius:14mm;overflow:hidden;'
             'direction:ltr;display:flex;flex-direction:column;font-family:\'Cairo\',sans-serif;color:%s;box-sizing:border-box">%s</div>' % (YEL, INK, INK, inner))
 
-def level_label(zt, L_idx):
+def level_label(zt, L_idx, br):
     T = TYPES[zt]
+    bn, bar, bcol = z.BR[br]
     L = LETTERS[L_idx - 1]
     tiers = T['tiers']
     dn = ('FLOOR', 'DOWN', 'أسفل · أرضي') if L_idx == 1 else (LETTERS[L_idx - 2], 'DOWN', 'أسفل')
     up = ('TOP', 'UP', 'أعلى · علوي') if L_idx == tiers else (LETTERS[L_idx], 'UP', 'أعلى')
-    code = '%s-%s' % (T['code'], L)
+    code = '%s-%s-%s' % (T['code'], br, L)
     hd = ('<div style="height:34mm;background:%s;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 12mm;font-weight:900;white-space:nowrap">'
           '<span dir="ltr" style="font-size:15mm;min-width:36mm">%s</span><span style="font-size:16mm;display:flex;gap:6mm;align-items:baseline"><span dir="rtl">%s</span><span>·</span><span dir="ltr">%s</span></span>'
-          '<span dir="ltr" style="font-size:15mm;min-width:36mm;text-align:right">%s</span></div>' % (T['hdr'], T['tag'], T['ar'], T['en'], T['code']))
-    pn = ('<div style="height:26mm;background:#F2C200;border-bottom:1.6mm solid %s;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1">'
-          '<div dir="rtl" style="font-weight:800;font-size:12mm">%s <span style="font-weight:700">· LEVEL / المستوى %s</span></div>'
-          '<div dir="ltr" style="font-weight:700;font-size:7mm;opacity:.85">%s</div></div>' % (INK, esc(T['name_ar']), L, esc(T['desc'])))
+          '<span dir="ltr" style="font-size:15mm;min-width:36mm;text-align:right">%s</span></div>' % (bcol, T['tag'], T['ar'], T['en'], T['code']))
+    pn = ('<div style="height:26mm;background:#F2C200;border-bottom:1.6mm solid %s;display:flex;align-items:center;justify-content:center;gap:12mm;line-height:1.1">'
+          '<span dir="ltr" style="font-weight:900;font-size:17mm;color:%s">%s</span><span dir="rtl" style="font-weight:900;font-size:17mm;color:%s">%s</span>'
+          '<span style="font-weight:800;font-size:8mm;display:flex;flex-direction:column;align-items:center"><span dir="rtl">%s · المستوى %s</span><span dir="ltr">%s · LEVEL %s</span></span></div>'
+          % (INK, bcol, esc(bn), bcol, esc(bar), esc(T['name_ar']), L, esc(T['en']), L))
     mid = ('<div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 14mm;position:relative">%s'
            '<div dir="ltr" style="font-weight:900;font-size:96mm;line-height:.8;letter-spacing:-2mm;padding-bottom:2mm">%s</div>%s'
            '</div>' % (side(big_arrow(True), dn[0], dn[1], dn[2]), L, side(big_arrow(False), up[0], up[1], up[2])))
@@ -79,13 +81,22 @@ def supply_label(r):
 def big_pages():
     """list of (section html, id, en, ar)"""
     out = []
+    racks = m.build_racks()
     for zt in ('c', 'p', 'b'):
         T = TYPES[zt]
-        for i in range(1, T['tiers'] + 1):
-            lab, code = level_label(zt, i)
-            L = LETTERS[i - 1]
-            out.append(('<section class="pg l" id="big-%s-%s">%s</section>' % (zt, L, lab), 'big-%s-%s' % (zt, L),
-                       'Big rack label %s %s · level %s' % (T['tag'], T['en'], L), 'ليبل راك كبير %s %s · المستوى %s' % (T['tag'], T['ar'], L)))
+        seen = []
+        for r in racks[zt]:
+            if r['brand'] in seen or r['brand'] == 'SP':
+                continue
+            seen.append(r['brand'])
+        for br in seen:
+            for i in range(1, T['tiers'] + 1):
+                lab, code = level_label(zt, i, br)
+                L = LETTERS[i - 1]
+                pid = 'big-%s-%s-%s' % (zt, br, L)
+                bn, bar, _ = z.BR[br]
+                out.append(('<section class="pg l" id="%s">%s</section>' % (pid, lab), pid,
+                           'Big rack label %s %s · %s · level %s' % (T['tag'], T['en'], bn, L), 'ليبل راك كبير %s %s · %s · المستوى %s' % (T['tag'], T['ar'], bar, L)))
     for r in m.build_racks()['a']:
         lab, code = supply_label(r)
         it = r['halves'][0]['item']

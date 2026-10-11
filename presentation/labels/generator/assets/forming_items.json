@@ -1,0 +1,93 @@
+{
+ "FORM-0001": {
+  "nameEn": "Breaded Crumbs ORANGE 15 KG",
+  "cat": "بقسماط  (الخبز المطحون)  15 كيلو",
+  "supplier": "شركة إسناد / Esnad Company",
+  "oracle": "BRRRXXSA002",
+  "nameUr": "بریڈ کرمبز نارنجی 15 کلو"
+ },
+ "FORM-0002": {
+  "nameEn": "BREADED CRUMBS SO.30 .N",
+  "cat": "بقسماط للتغطية  برتقالي إس أو.30 .إن",
+  "supplier": "مجموعة كيري (Kerry Group)    )",
+  "oracle": "GRCBHAES04T",
+  "nameUr": "بریڈ کرمبز ایس او 30 این"
+ },
+ "FORM-0003": {
+  "nameEn": "ORANGE FLOUR BREADED ME 20 KG",
+  "cat": "برداد الخبز  برتقالي للتغطية",
+  "supplier": "الفرع الإقليمي لشركة/ KERRY TASTE AND NUTRITION ARABIA",
+  "oracle": "GRRFXXES001",
+  "nameUr": "نارنجی بریڈنگ آٹا 20 کلو"
+ },
+ "FORM-0004": {
+  "nameEn": "BREADED FINE CRUMBS T.03-B",
+  "cat": "المسحوق الأولي بقسماط ناعم للتغطية ت.03-ب",
+  "supplier": "مجموعة كيري (Kerry Group)    )",
+  "oracle": "GRCBHAES05T",
+  "nameUr": "باریک بریڈ کرمبز ٹی 03-بی"
+ },
+ "FORM-0005": {
+  "nameEn": "WHITE BREADED CRUMBS MIX 158",
+  "cat": "خليط بقسماط أبيض للتغطية 158",
+  "supplier": "مجموعة كيري (Kerry Group)    )",
+  "oracle": "PSWWXXES01T",
+  "nameUr": "سفید بریڈ کرمبز مکس 158"
+ },
+ "FORM-0006": {
+  "nameEn": "BATTER HA-SJ2-LK",
+  "cat": "خليط تغطية (باتر)",
+  "supplier": "مجموعة كيري (Kerry Group)    )",
+  "oracle": "GRCBHAES06T",
+  "nameUr": "بیٹر (لیپ) HA-SJ2-LK"
+ },
+ "FORM-0007": {
+  "nameEn": "Breading EG",
+  "cat": "خلطة التغطية والقرمشة",
+  "supplier": "مجموعة كيري (Kerry Group)    )",
+  "oracle": "BRRRXXEG001",
+  "nameUr": "بریڈنگ مکسچر ای جی"
+ },
+ "FORM-0008": {
+  "nameEn": "AROMAX CHEESE FLAVOUR EMMENTAL",
+  "cat": "نكهة جبنة إيمنتال أرومكس",
+  "supplier": "سيمرايز الألمانية العالمية (Symrise AG)",
+  "oracle": "DARPXXDE001",
+  "nameUr": "چیز ذائقہ ایمینٹال (اروماکس)"
+ },
+ "FORM-0009": {
+  "nameEn": "/AROMAX FLAVOR INTENSIVE",
+  "cat": "نكهة أرومكس المركزة",
+  "supplier": "سيمرايز الألمانية العالمية (Symrise AG)",
+  "oracle": "HSRXXXDE001",
+  "nameUr": "گاڑھا ذائقہ (اروماکس)"
+ },
+ "FORM-0010": {
+  "nameEn": "FRYLITE  DLENDED OILNOOR",
+  "cat": "زيت نباتي مخلوط فرايلايت / نور",
+  "supplier": "شركة إيفكو  (IFFCO).",
+  "oracle": "OLRSNOSA001",
+  "nameUr": "فرائی لائٹ ملا ہوا تیل (نور)"
+ },
+ "FORM-0011": {
+  "nameEn": "Alfa Corn Oil",
+  "cat": "زيت ذرة ألفا",
+  "supplier": "شركة إيفكو  (IFFCO).",
+  "oracle": "OLWCFASA001",
+  "nameUr": "الفا مکئی کا تیل"
+ },
+ "FORM-0012": {
+  "nameEn": "OIL   (Marietta)",
+  "cat": "زيت ماريتا",
+  "supplier": "شركة المنجم للأغذية   (Almunajem Foods)",
+  "oracle": "OLVCMRSA02T",
+  "nameUr": "تیل (ماریتا)"
+ },
+ "FORM-0013": {
+  "nameEn": "SUNFLOWER OIL AMBER 4*4 LTR",
+  "cat": "زيت عنبر  4 لتر",
+  "supplier": "عنبر              (Amber)",
+  "oracle": "OLRVXXSA001",
+  "nameUr": "سورج مکھی کا تیل عنبر 4x4 لیٹر"
+ }
+}

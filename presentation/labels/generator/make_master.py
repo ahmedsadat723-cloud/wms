@@ -10,7 +10,7 @@ import make_plan_b as pb
 import make_big_labels as bl
 from make_zone1_system import esc, TYPES, BR
 
-VER, DATE = 'v2', '2026-10-11'
+VER, DATE = 'v3', '2026-10-11'
 HERE = os.path.dirname(os.path.abspath(__file__))
 LABELS = os.path.dirname(HERE)
 SECT = re.compile(r'<section.*?</section>', re.S)
@@ -124,7 +124,7 @@ GROUPS = [
     ('A1', 'A · Plan A — rack labels', 'أ · الخطة الأساسية — ليبل الراكات'),
     ('A2', 'A · Plan A — numbered pallet papers', 'أ · الخطة الأساسية — أوراق البالت المرقمة'),
     ('A3', 'A · Plan A — blank pallet papers (5 brands)', 'أ · الخطة الأساسية — أوراق البالت الفارغة (5 ماركات)'),
-    ('C1', 'Big yellow rack labels A4 (cartons 4 · plastic 5 · boxes 5 · supplies 1 per item)', 'ليبل الراك الأصفر الكبير A4 (كراتين 4 · بلاستيك 5 · علب 5 · مستلزمات واحد لكل صنف)'),
+    ('C1', 'Big yellow rack labels A4 — per brand (cartons 16 · plastic 25 · boxes 5 · supplies 10, one per item)', 'ليبل الراك الأصفر الكبير A4 — حسب الماركة (كراتين 16 · بلاستيك 25 · علب 5 · مستلزمات 10 لكل صنف واحد)'),
     ('B0', 'B · Plan B — comparison, method, table', 'ب · الخطة الاحتياطية — المقارنة والطريقة والجدول'),
     ('B1', 'B · Plan B — rack labels (cartons)', 'ب · الخطة الاحتياطية — ليبل راكات الكراتين'),
     ('B2', 'B · Plan B — numbered pallet papers (cartons)', 'ب · الخطة الاحتياطية — أوراق بالت الكراتين المرقمة'),
