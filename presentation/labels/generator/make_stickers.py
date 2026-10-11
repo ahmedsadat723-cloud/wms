@@ -484,8 +484,8 @@ COPIES = 2      # one sticker at each end of the beam
 def lvl_side(arr, letter, word_en, word_ar):
     return ('<div style="width:15mm;display:flex;flex-direction:column;align-items:center;gap:.3mm">%s'
             '<span dir="ltr" style="font-weight:900;font-size:3.3mm;line-height:1">%s</span>'
-            '<span dir="ltr" style="font-weight:800;font-size:2.3mm;line-height:1.05;white-space:nowrap">%s</span>'
-            '<span dir="rtl" style="font-weight:800;font-size:2.4mm;line-height:1.05;white-space:nowrap">%s</span></div>'
+            '<span style="display:flex;gap:1mm;white-space:nowrap;font-weight:800;font-size:2.4mm;line-height:1.05">'
+            '<span dir="ltr">%s</span><span dir="rtl">%s</span></span></div>'
             % (arr.replace('width="9.5mm" height="10.5mm"', 'width="7.2mm" height="7.9mm"'), letter, word_en, word_ar))
 
 def lvl_sticker(z, br, rack_no, lvl, item, half, levels, tiers, spare_copy=False):
@@ -514,17 +514,17 @@ def lvl_sticker(z, br, rack_no, lvl, item, half, levels, tiers, spare_copy=False
     up = ('TOP', 'UP', 'أعلى') if lvl == tiers else (LETTERS[lvl], 'UP', 'أعلى')
     left = lvl_side(arrow(True), dn[0], dn[1], dn[2])
     right = lvl_side(arrow(False), up[0], up[1], up[2])
-    mid = ('<div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 2mm;position:relative">'
+    mid = ('<div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 2mm 3mm;position:relative">'
            '%s<div dir="ltr" style="font-weight:900;font-size:%smm;line-height:.82;letter-spacing:-.4mm;padding-bottom:1mm">%d'
            '<span style="margin-left:1mm">%s</span></div>%s</div>' % (left, big, rack_no, L, right))
     p0 = (lvl - levels[0]) * PER_LEVEL + 1          # pallet numbers run through the item's own levels: P1.. (a shared rack restarts per item)
     prange = 'P%d–P%d' % (p0, p0 + PER_LEVEL - 1)
-    bar = ('<div style="height:10.4mm;padding-right:15.5mm;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.3mm;'
+    bar = ('<div style="height:10.4mm;padding-left:15.5mm;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.3mm;'
            'padding-bottom:1.4mm">%s<span dir="ltr" style="font-weight:900;font-size:3.3mm;line-height:1;letter-spacing:.8mm">%s</span></div>'
            % (barcode_svg(code, 5.4), code))
     badge = lambda t, bg, fg, bd='': ('<div dir="ltr" style="background:%s;color:%s;%sborder-radius:1.8mm;padding:0 1.5mm;font-weight:900;'
                                       'font-size:3.3mm;line-height:1.3;white-space:nowrap;text-align:center">%s</div>' % (bg, fg, bd, t))
-    pos = ('<div style="position:absolute;right:1.4mm;bottom:1.2mm;display:flex;flex-direction:column;gap:.7mm;align-items:stretch">%s%s</div>'
+    pos = ('<div style="position:absolute;left:1.4mm;bottom:1.4mm;display:flex;flex-direction:column;gap:.7mm;align-items:stretch">%s%s</div>'
            % (badge(prange, YEL, INK, 'border:.4mm solid %s;' % INK), badge('%s1–%s%d' % (L, L, PER_LEVEL), INK, YEL)))
     note = ('<div style="position:absolute;left:50%%;transform:translateX(-50%%);bottom:11.6mm;display:flex;gap:1.2mm;align-items:center;'
             'line-height:1.05;font-weight:800;font-size:2.5mm;opacity:.55;color:%s"><span dir="ltr">SPARE</span>'

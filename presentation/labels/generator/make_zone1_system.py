@@ -13,7 +13,7 @@ import make_stickers as m
 from make_stickers import TYPES, LETTERS, build_racks, overlay, arrow, font_css, FIT_JS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION, DATE = 'v3', '2026-10-11'
+VERSION, DATE = 'v4', '2026-10-11'
 LOGO = os.path.join(HERE, 'assets', 'almunajem_logo.png')
 esc = html.escape
 INK, YEL = '#111111', '#FFD400'
