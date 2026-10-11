@@ -7,9 +7,10 @@ import os, re, sys, json, html
 import make_stickers as m
 import make_zone1_system as z
 import make_plan_b as pb
+import make_big_labels as bl
 from make_zone1_system import esc, TYPES, BR
 
-VER, DATE = 'v1', '2026-10-11'
+VER, DATE = 'v2', '2026-10-11'
 HERE = os.path.dirname(os.path.abspath(__file__))
 LABELS = os.path.dirname(HERE)
 SECT = re.compile(r'<section.*?</section>', re.S)
@@ -45,6 +46,7 @@ SPEC = {
     'stk': dict(orient=('Portrait', 'عمودي'), mm='210 × 297', note=('10 stickers · 78 × 50 mm each (2 × 5) · cut on the pink marks', '10 ملصقات · 78 × 50 مم للملصق (2 × 5) · قص على العلامات الوردية'), fmt='p'),
     'pal': dict(orient=('Portrait', 'عمودي'), mm='210 × 297', note=('One pallet paper · full page', 'ورقة بالت واحدة · صفحة كاملة'), fmt='p'),
     'load': dict(orient=('Landscape', 'أفقي'), mm='297 × 210', note=('Rack load plate · full page', 'لوحة حمولة الراك · صفحة كاملة'), fmt='l'),
+    'big': dict(orient=('Landscape', 'أفقي'), mm='297 × 210', note=('ONE big yellow label · 277 × 178 mm · stick on the rack beam', 'ليبل أصفر كبير واحد · 277 × 178 مم · يُلصق على عارضة الراك'), fmt='l'),
     'side': dict(orient=('Portrait', 'عمودي'), mm='210 × 297', note=('Rack side sign · full page', 'لوحة جانب الراك · صفحة كاملة'), fmt='p'),
 }
 COMMON = ('A4 · Scale 100 % · Margins: None · Background graphics: ON · Single-sided', 'A4 · القياس 100% · الهوامش: بدون · الخلفيات: تشغيل · وجه واحد')
@@ -89,6 +91,8 @@ def collect():
     for b in ('DX', 'DR', 'HB', 'SA', 'GN'):
         h = z.pallet_page(b)
         add(h, 'A-' + sec_id(h), 'A3', 'A · Blank pallet paper · ' + BR[b][0], 'أ · ورقة بالت فارغة · ' + BR[b][1], 'pal')
+    for h, pid, en, ar in bl.big_pages():
+        add(h, pid, 'C1', en, ar, 'big')
     # ---- PLAN B (cartons, every rack in halves)
     ra, rb = pb.plan_a(), pb.plan_b()
     z.build_racks, saved_t = pb.plan_b, z.TYPES
@@ -120,13 +124,14 @@ GROUPS = [
     ('A1', 'A · Plan A — rack labels', 'أ · الخطة الأساسية — ليبل الراكات'),
     ('A2', 'A · Plan A — numbered pallet papers', 'أ · الخطة الأساسية — أوراق البالت المرقمة'),
     ('A3', 'A · Plan A — blank pallet papers (5 brands)', 'أ · الخطة الأساسية — أوراق البالت الفارغة (5 ماركات)'),
+    ('C1', 'Big yellow rack labels A4 (cartons 4 · plastic 5 · boxes 5 · supplies 1 per item)', 'ليبل الراك الأصفر الكبير A4 (كراتين 4 · بلاستيك 5 · علب 5 · مستلزمات واحد لكل صنف)'),
     ('B0', 'B · Plan B — comparison, method, table', 'ب · الخطة الاحتياطية — المقارنة والطريقة والجدول'),
     ('B1', 'B · Plan B — rack labels (cartons)', 'ب · الخطة الاحتياطية — ليبل راكات الكراتين'),
     ('B2', 'B · Plan B — numbered pallet papers (cartons)', 'ب · الخطة الاحتياطية — أوراق بالت الكراتين المرقمة'),
     ('X1', 'Rack load plates', 'لوحات حمولة الراكات'),
     ('X2', 'Rack side signs', 'لوحات جانب الراكات'),
 ]
-GKIND = {'A0': 'info', 'A1': 'stk', 'A2': 'pal', 'A3': 'pal', 'B0': 'info', 'B1': 'stk', 'B2': 'pal', 'X1': 'load', 'X2': 'side'}
+GKIND = {'A0': 'info', 'A1': 'stk', 'A2': 'pal', 'A3': 'pal', 'C1': 'big', 'B0': 'info', 'B1': 'stk', 'B2': 'pal', 'X1': 'load', 'X2': 'side'}
 
 def index_page(P, first_ids):
     cnt = {g: sum(1 for p in P if p['grp'] == g) for g, _, _ in GROUPS}
@@ -200,7 +205,7 @@ def build(out):
     opts = '<option value="ALL">🖨 ALL · الملف كله (%d)</option>' % total + ''.join(
         '<option value="%s">%s · %s</option>' % (g, esc(en), esc(ar)) for g, en, ar in GROUPS)
     links = ''.join('<a href="#w-%s">%s</a>' % (first[g], esc(t)) for g, t in (
-        ('A0', 'Plan A · الأساسية'), ('A1', 'Rack labels · ليبل الراك'), ('A2', 'Pallet papers · أوراق البالت'), ('B0', 'Plan B · الاحتياطية'),
+        ('A0', 'Plan A · الأساسية'), ('A1', 'Rack labels · ليبل الراك'), ('A2', 'Pallet papers · أوراق البالت'), ('C1', 'Big labels · الليبل الكبير'), ('B0', 'Plan B · الاحتياطية'),
         ('X1', 'Load plates · الحمولة'), ('X2', 'Side signs · جانب الراك')))
     nav = ('<div class="nav"><b>AL-MUNAJEM · DRY PART 1 · MASTER %s</b><a href="#w-index">Index · الفهرس</a>%s'
            '<select id="gsel">%s</select><button class="topbtn" onclick="PG(document.getElementById(\'gsel\').value)">🖨 Print · طباعة</button></div>' % (VER, links, opts))
