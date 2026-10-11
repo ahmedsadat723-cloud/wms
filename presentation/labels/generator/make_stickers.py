@@ -471,3 +471,100 @@ if __name__ == '__main__':
     racks, total, paths = build(out)
     open(os.path.join(out, 'DISTRIBUTION_%s.md' % VERSION), 'w', encoding='utf-8').write(distribution_md(racks))
     print('stickers:', total, 'racks:', {z: len(v) for z, v in racks.items()}); print(*paths, sep='\n')
+
+
+# ================================================================ v4 : ONE sticker per LEVEL (same design as the pallet sticker above)
+# the original design is kept (header band, item panel, big rack+level mark, 2 arrows, barcode); changes only:
+#  - one sticker per rack level (not per pallet): big mark = rack no. + level letter, badge = positions A1–A5 instead of P#
+#  - each arrow carries its direction word in both languages (UP · أعلى / DOWN · أسفل)
+#  - full item name with size AR + EN on every sticker; shared racks keep the lower/upper tag
+PER_LEVEL = 5   # pallet positions across one level
+COPIES = 2      # one sticker at each end of the beam
+
+def lvl_side(arr, letter, word_en, word_ar):
+    return ('<div style="width:15mm;display:flex;flex-direction:column;align-items:center;gap:.3mm">%s'
+            '<span dir="ltr" style="font-weight:900;font-size:3.3mm;line-height:1">%s</span>'
+            '<span dir="ltr" style="font-weight:800;font-size:2.3mm;line-height:1.05;white-space:nowrap">%s</span>'
+            '<span dir="rtl" style="font-weight:800;font-size:2.4mm;line-height:1.05;white-space:nowrap">%s</span></div>'
+            % (arr, letter, word_en, word_ar))
+
+def lvl_sticker(z, br, rack_no, lvl, item, half, levels, tiers, spare_copy=False):
+    T = TYPES[z]
+    bname = BRANDS[br][0]
+    L = LETTERS[lvl - 1]
+    code = '%s-%s-%d%s' % (T['code'], br, rack_no, L)
+    spare = item is None
+    shared = half in ('lower', 'upper')
+    head = ('<div style="height:9mm;background:%s;color:#fff;display:flex;align-items:center;justify-content:space-between;'
+            'padding:0 3mm;font-weight:900;font-size:%smm;line-height:1;white-space:nowrap">'
+            '<span dir="ltr" style="min-width:16mm;font-size:%smm">%s</span><span dir="rtl" style="color:#fff;letter-spacing:.2mm">%s · %s</span>'
+            '<span dir="ltr" style="min-width:16mm;text-align:right">%s</span></div>'
+            % (T['hdr'], 4.2, 4.2 if len(bname) <= 5 else 3.4, bname, T['ar'], T['en'], T['code']))
+    panel_css = ('background:#F2C200;border-bottom:.5mm solid %s;display:flex;flex-direction:column;align-items:center;'
+                 'justify-content:center;padding:0 1.5mm;overflow:hidden' % INK)
+    if spare:
+        panel, big = '', 25
+    elif shared:
+        panel = '<div style="height:12mm;%s">%s%s</div>' % (panel_css, item_lines(item, 3.0, 2.3), half_tag(half, levels))
+        big = 13.5
+    else:
+        panel = '<div style="height:10mm;%s">%s</div>' % (panel_css, item_lines(item, 3.4, 2.7))
+        big = 15.5
+    dn = ('FLOOR', 'DOWN', 'أسفل') if lvl == 1 else (LETTERS[lvl - 2], 'DOWN', 'أسفل')
+    up = ('TOP', 'UP', 'أعلى') if lvl == tiers else (LETTERS[lvl], 'UP', 'أعلى')
+    left = lvl_side(arrow(True), dn[0], dn[1], dn[2])
+    right = lvl_side(arrow(False), up[0], up[1], up[2])
+    mid = ('<div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 2mm;position:relative">'
+           '%s<div dir="ltr" style="font-weight:900;font-size:%smm;line-height:.82;letter-spacing:-.4mm;padding-bottom:1mm">%d'
+           '<span style="margin-left:1mm">%s</span></div>%s</div>' % (left, big, rack_no, L, right))
+    bar = ('<div style="height:10.4mm;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.3mm;'
+           'padding-bottom:1.4mm">%s<span dir="ltr" style="font-weight:900;font-size:3.3mm;line-height:1;letter-spacing:.8mm">%s</span></div>'
+           % (barcode_svg(code, 5.4), code))
+    pos = ('<div dir="ltr" style="position:absolute;right:1.6mm;bottom:1.2mm;background:%s;color:%s;border-radius:2mm;'
+           'padding:0 1.6mm;font-weight:900;font-size:3.6mm;line-height:1.4">%s1–%s%d</div>' % (INK, YEL, L, L, PER_LEVEL))
+    cap = ('<div style="position:absolute;right:1.6mm;bottom:6.4mm;display:flex;gap:1mm;font-weight:800;font-size:2.1mm;line-height:1;'
+           'opacity:.8"><span dir="ltr">POSITIONS</span><span dir="rtl">المواضع</span></div>')
+    note = ('<div style="position:absolute;left:2.4mm;bottom:1.3mm;display:flex;flex-direction:column;align-items:center;'
+            'line-height:1.05;font-weight:800;font-size:2.5mm;opacity:.55;color:%s"><span dir="ltr">SPARE</span>'
+            '<span dir="rtl">احتياطي</span></div>' % INK) if spare_copy else ''
+    return ('<div class="stk" style="width:78mm;height:50mm;box-sizing:border-box;background:%s;border:1.1mm solid %s;'
+            'border-radius:4mm;overflow:hidden;direction:ltr;display:flex;flex-direction:column;font-family:\'Cairo\',sans-serif;'
+            'color:%s;position:relative">%s%s%s%s%s%s</div>' % (YEL, INK, INK, head, panel, mid, bar, pos, note))
+
+def level_build(out_dir, version='v1', date='2026-10-11'):
+    racks = build_racks()
+    pages = level_a4_pages(racks)
+    doc = ('<!-- VERSION: %s | %s -->\n<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>Rack-level stickers</title>'
+           '<style>%s</style></head><body>%s%s</body></html>' % (version, date, page_css(210, 297), ''.join(pages), FIT_JS))
+    p = os.path.join(out_dir, 'almunajem_rack_level_stickers_%s_A4_%s.html' % (version, date))
+    open(p, 'w', encoding='utf-8').write(doc)
+    return p, len(pages)
+
+def level_a4_pages(racks):
+    """one A4 page per rack: every level x2 copies (one per beam end); empty slots = spare copies of the floor level"""
+    secs = []
+    for z in tuple(TYPES):
+        T = TYPES[z]
+        for r in racks[z]:
+            cells = []
+            for lvl in range(r['tiers'], 0, -1):
+                h = next(h for h in r['halves'] if lvl in h['levels'])
+                for _ in range(COPIES):
+                    cells.append(lvl_sticker(z, r['brand'], r['no'], lvl, h['item'], h['name'], h['levels'], r['tiers']))
+            while len(cells) < 10:
+                h = next(h for h in r['halves'] if 1 in h['levels'])
+                cells.append(lvl_sticker(z, r['brand'], r['no'], 1, h['item'], h['name'], h['levels'], r['tiers'], True))
+            bn = BRANDS[r['brand']]
+            secs.append(
+                '<section class="pg" id="lvl-%s-%s-%d" style="width:210mm;height:297mm">'
+                '<div style="position:absolute;left:24.5mm;top:3.2mm;width:161mm;height:10mm;display:flex;justify-content:space-between;'
+                'align-items:flex-start;font-family:Cairo;direction:ltr;color:#111;font-weight:900;font-size:3.4mm;line-height:1.15;white-space:nowrap">'
+                '<span dir="ltr">%s · %s · RACK %d · %s · LEVELS A–%s<br><span style="font-weight:700;font-size:3mm">RACK-LEVEL STICKERS · 2 PER LEVEL (BOTH BEAM ENDS)</span></span>'
+                '<span dir="rtl" style="text-align:right">%s · %s · راك %d · %s · المستويات A–%s<br><span style="font-weight:700;font-size:3mm">'
+                'ملصقات مستويات الراك · 2 لكل مستوى (طرفا العارضة)</span></span></div>'
+                '<div style="position:absolute;left:24.5mm;top:18mm;width:161mm;height:%dmm;display:grid;direction:ltr;'
+                'grid-template-columns:repeat(2,78mm);grid-auto-rows:50mm;gap:5mm">%s</div>%s</section>'
+                % (z, r['brand'], r['no'], T['tag'], bn[0], r['no'], T['code'], LETTERS[r['tiers'] - 1],
+                   T['tag'], bn[2], r['no'], T['code'], LETTERS[r['tiers'] - 1], 5 * 50 + 4 * 5, ''.join(cells),
+                   overlay(210, 297, 24.5, 18, 2, 5)))
+    return secs

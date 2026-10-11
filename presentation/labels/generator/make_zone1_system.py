@@ -305,13 +305,8 @@ def page_for_pallets_only():
 
 # ------------------------------------------------------------------ build
 def old_sticker_pages():
-    """the ORIGINAL rack-label design (stickers v3, untouched): legend page + 3 A4 pages per rack"""
-    import re, tempfile
-    tmp = tempfile.mkdtemp()
-    m.build(tmp)
-    src = open(os.path.join(tmp, 'almunajem_location_stickers_%s_A4_%s.html' % (m.VERSION, m.DATE)), encoding='utf-8').read()
-    secs = re.findall(r'<section class="pg".*?</section>', src, flags=re.S)
-    return [x.replace('<section class="pg"', '<section class="pg p"', 1) for x in secs]
+    """rack labels = the ORIGINAL sticker design, one sticker per level (2 copies per level), 1 A4 page per rack"""
+    return [x.replace('<section class="pg"', '<section class="pg p"', 1) for x in m.level_a4_pages(build_racks())]
 
 def build(out_dir):
     racks = build_racks()
