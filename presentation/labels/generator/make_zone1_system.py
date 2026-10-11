@@ -13,7 +13,7 @@ import make_stickers as m
 from make_stickers import TYPES, LETTERS, build_racks, overlay, arrow, font_css, FIT_JS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VERSION, DATE = 'v6', '2026-10-11'
+VERSION, DATE = 'v7', '2026-10-11'
 NUM_VER, FILL_VER = 'v3', 'v3'
 LOGO = os.path.join(HERE, 'assets', 'almunajem_logo.png')
 esc = html.escape
@@ -184,6 +184,35 @@ def key_page():
             '<table style="border-collapse:collapse;width:100%%;font-size:3.3mm;line-height:1.25" class="tb">%s%s</table>'
             '<style>.tb td,.tb th{border:.25mm solid #888;padding:1.4mm 2mm}.tb th{font-size:2.8mm}</style></div></section>' % (head, rows))
 
+def capacity_page(racks):
+    zrows = ''
+    for zt in TYPES:
+        T = TYPES[zt]
+        rl = racks[zt]
+        spare = sum(1 for r in rl if not r['halves'][0]['item'])
+        use = len(rl) - spare
+        items = sum(1 for r in rl for h in r['halves'] if h['item'])
+        zrows += ('<tr><td dir="ltr" style="font-weight:900">%s %s</td><td dir="rtl" style="font-weight:800">%s</td><td>%d%s</td><td>%d</td><td>%d × 5 = %d</td><td style="font-weight:900">%d</td><td>%d</td></tr>'
+                  % (T['tag'], esc(T['en']), esc(T['name_ar']), len(rl), (' (+%d spare)' % spare) if spare else '', T['tiers'], T['tiers'], T['tiers'] * 5, use * T['tiers'] * 5, items))
+    crow = ''
+    for b in ('DX', 'DR', 'HB', 'SA'):
+        rl = [r for r in racks['c'] if r['brand'] == b]
+        it = sum(1 for r in rl for h in r['halves'] if h['item'])
+        crow += ('<tr><td style="background:%s;color:#fff;font-weight:900" dir="ltr">%s · %s</td><td>%d</td><td>%d</td><td>%d × 20 = %d</td></tr>'
+                 % (BR[b][2], BR[b][0], BR[b][1], len(rl), it, len(rl), len(rl) * 20))
+    th = lambda *c: '<tr style="background:#14181F;color:#fff">%s</tr>' % ''.join('<th>%s</th>' % x for x in c)
+    return ('<section class="pg l" id="capacity"><div style="position:absolute;left:14mm;right:14mm;top:9mm">'
+            '<div style="margin-bottom:3mm"><div dir="ltr" style="font-weight:900;font-size:5.6mm">RACK CAPACITY — WHAT EACH ZONE HOLDS</div>'
+            '<div dir="rtl" style="font-weight:900;font-size:6.4mm">سعة الراكات — ما تستوعبه كل منطقة</div></div>'
+            '<table class="tb" style="border-collapse:collapse;width:100%%;font-size:3.5mm;text-align:center">%s%s</table>'
+            '<div style="display:flex;justify-content:space-between;font-weight:900;font-size:4.4mm;margin:6mm 0 1.5mm"><span dir="ltr">A1 CARTONS — 15 racks × 4 levels × 5 deep = 20 pallets per rack</span><span dir="rtl">A1 الكراتين — 15 راك × 4 مستويات × 5 بالعمق = 20 بالت للراك</span></div>'
+            '<table class="tb" style="border-collapse:collapse;width:100%%;font-size:3.5mm;text-align:center">%s%s</table>'
+            '<div dir="ltr" style="font-size:3.1mm;font-weight:700;color:#555;margin-top:2mm">Total cartons: 15 racks × 20 = 300 pallets. Backup layout with every rack split in halves (30 item slots): see the separate PLAN B file.</div>'
+            '<div dir="rtl" style="font-size:3.3mm;font-weight:700;color:#555">إجمالي الكراتين: 15 راك × 20 = 300 بالت. الخطة الاحتياطية بتقسيم كل راك نصفين (30 خانة صنف): في ملف PLAN B المنفصل.</div>'
+            '<style>.tb td,.tb th{border:.25mm solid #888;padding:1.3mm 2mm}</style></div></section>'
+            % (th('ZONE', 'المنطقة', 'RACKS · الراكات', 'LEVELS · المستويات', 'PALLETS / RACK', 'TOTAL PALLETS · الإجمالي', 'ITEMS · الأصناف'), zrows,
+               th('BRAND · الماركة', 'RACKS · الراكات', 'ITEMS · الأصناف', 'PALLETS · البالتات'), crow))
+
 # ------------------------------------------------------------------ PAGE 2..5 : distribution tables
 def table_page(z, racks):
     T = TYPES[z]
@@ -346,8 +375,8 @@ def numbered_sheets():
         for r in racks[zt]:
             for h in r['halves']:
                 it = h['item']
-                if not it:
-                    continue                                   # spare rack: nothing assigned
+                if not it or it.get('reserved'):
+                    continue                                   # spare rack / reserved half: nothing assigned
                 n_all = len(h['levels']) * 5
                 for n in range(1, n_all + 1):
                     lvl = h['levels'][(n - 1) // 5]
@@ -400,11 +429,11 @@ def build(out_dir):
     npages, nmeta = numbered_sheets()
     first_pn = npages[0].split('id="')[1].split('"')[0]
     nav = ('<div class="nav"><b>AL-MUNAJEM · DRY SECTION PART 1 · القسم الجاف الجزء 1 · %s</b>'
-           '<a href="#guide">Colour scale · المقياس</a><a href="#method">Method · الطريقة</a><a href="#suppkey">Supplies colours · ألوان المستلزمات</a>%s'
+           '<a href="#guide">Colour scale · المقياس</a><a href="#method">Method · الطريقة</a><a href="#capacity">Capacity · السعة</a><a href="#suppkey">Supplies colours · ألوان المستلزمات</a>%s'
            '<a href="#stickers">Rack labels · ليبل الراك</a><a href="#%s">Pallet labels P1–P25 · أوراق البالت المرقمة</a><a href="#pal-DX">Blank pallet labels · ورقة البالت الفارغة</a></div>'
            % (VERSION, ''.join('<a href="#tbl-%s">%s</a>' % (zz, TYPES[zz]['tag']) for zz in TYPES), first_pn))
     stk[0] = stk[0].replace('<section class="pg p"', '<section id="stickers" class="pg p"', 1)
-    body = nav + guide_page(racks) + key_page() + ''.join(table_page(z, racks) for z in TYPES) + ''.join(stk) + ''.join(npages) + ''.join(pal)
+    body = nav + guide_page(racks) + capacity_page(racks) + key_page() + ''.join(table_page(z, racks) for z in TYPES) + ''.join(stk) + ''.join(npages) + ''.join(pal)
     doc = ('<!-- VERSION: %s | %s -->\n<!doctype html><html lang="ar" dir="ltr"><head><meta charset="utf-8"><title>Al-Munajem Dry Part 1 — %s</title>'
            '<style>%s</style></head><body>%s%s</body></html>' % (VERSION, DATE, VERSION, css(), body, FIT_JS))
     p1 = os.path.join(out_dir, 'almunajem_dry_part1_system_%s_%s.html' % (VERSION, DATE))
