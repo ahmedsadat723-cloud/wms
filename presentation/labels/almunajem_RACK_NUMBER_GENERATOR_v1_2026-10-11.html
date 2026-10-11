@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- VERSION: v3 | 2026-10-11 -->
+<!-- VERSION: v4 | 2026-10-11 -->
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
@@ -111,6 +111,14 @@ textarea{min-height:64px;resize:vertical;direction:ltr}
     <div><label>الخط · Font</label>
       <select id="ff"><option>Arial</option><option>Calibri</option><option>Tahoma</option><option>Impact</option><option>Courier New</option></select></div>
   </div>
+  <label>الزخرفة · Decoration</label>
+  <select id="sty">
+    <option value="classic">كلاسيك (الحالي) · Classic</option>
+    <option value="band">شرائط ملوّنة · Colour bands</option>
+    <option value="hex">سداسي · Hex badges</option>
+    <option value="stripe">خطوط تحذير · Hazard stripes</option>
+  </select>
+  <label>تدوير الزوايا · Corner radius (mm)</label><input id="rd" type="number" min="0" max="8" step="0.5" value="0">
   <div class="row">
     <div><label>لون الإطار · Frame colour</label><input id="fc" type="color" value="#E8590C"></div>
     <div><label>سمك الإطار · Frame (mm)</label><input id="fw" type="number" step="0.1" min="0" value="1.2"></div>
@@ -131,7 +139,7 @@ textarea{min-height:64px;resize:vertical;direction:ltr}
 <script>
 (function(){
 const $=id=>document.getElementById(id);
-const IDS=['mode','np','nums','lets','cus','copies','ord','h','w','gap','mar','ink','bg','fc','fw','fs','ff','cut','brd','fold'];
+const IDS=['mode','np','nums','lets','cus','copies','ord','h','w','gap','mar','ink','bg','sty','rd','fc','fw','fs','ff','cut','brd','fold'];
 const AR='أبتثجحخدذرزسشصضطظعغفقكلمنهوي';
 
 function expand(s,isLetter){
@@ -169,33 +177,59 @@ function items(){
   const out=[];L.forEach(x=>{for(let i=0;i<c;i++)out.push(x)});return out;
 }
 
+let UID=0;
 function tagSVG(top,bot,W,H,o){
-  // W,H in mm; viewBox in mm
-  const pad=1.2+o.fw,iw=W-2*pad;
+  const sty=o.sty,id='c'+(++UID);
   const two=bot!=='';
+  const deco=sty!=='classic';
+  const pad=(deco?2.2:1.2)+o.fw,iw=W-2*pad;
+  const rx=o.rd;
   let s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">';
+  s+='<defs><clipPath id="'+id+'"><rect width="'+W+'" height="'+H+'" rx="'+rx+'"/></clipPath>'
+    +'<pattern id="p'+id+'" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="'+o.fc+'"/><rect width="2" height="4" fill="#111"/></pattern></defs>';
+  s+='<g clip-path="url(#'+id+')">';
   s+='<rect width="'+W+'" height="'+H+'" fill="'+o.bg+'"/>';
-  if(o.fw>0)s+='<rect x="'+o.fw/2+'" y="'+o.fw/2+'" width="'+(W-o.fw)+'" height="'+(H-o.fw)+'" fill="none" stroke="'+o.fc+'" stroke-width="'+o.fw+'"/>';
-  if(o.brd)s+='<rect x=".15" y=".15" width="'+(W-.3)+'" height="'+(H-.3)+'" fill="none" stroke="#999" stroke-width=".25"/>';
-  function txt(t,cy,boxH){
-    // font-size so that text fits width and box height
+  let tin=o.ink;
+  const capH=H*0.36;
+  if(sty==='band'){
+    if(two){s+='<rect width="'+W+'" height="'+capH+'" fill="'+o.fc+'"/><rect y="'+(H-capH)+'" width="'+W+'" height="'+capH+'" fill="'+o.fc+'"/>';tin='#fff';}
+    else{s+='<rect width="'+W+'" height="'+H*0.16+'" fill="'+o.fc+'"/><rect y="'+H*0.84+'" width="'+W+'" height="'+H*0.16+'" fill="'+o.fc+'"/>';}
+  }else if(sty==='stripe'){
+    s+='<rect width="'+W+'" height="'+H*0.07+'" fill="url(#p'+id+')"/><rect y="'+H*0.93+'" width="'+W+'" height="'+H*0.07+'" fill="url(#p'+id+')"/>';
+    s+='<rect y="'+H*0.07+'" width="'+W+'" height="1" fill="#111"/><rect y="'+(H*0.93-1)+'" width="'+W+'" height="1" fill="#111"/>';
+  }else if(sty==='hex'){
+    const hex=(cy,h)=>{const w=iw,x0=W/2-w/2,k=Math.min(w*0.18,h*0.35),y1=cy-h/2,y2=cy+h/2;
+      const P=[[x0+k,y1],[x0+w-k,y1],[x0+w,cy],[x0+w-k,y2],[x0+k,y2],[x0,cy]].map(p=>p[0].toFixed(2)+','+p[1].toFixed(2)).join(' ');
+      return '<polygon points="'+P+'" fill="'+o.fc+'" stroke="#111" stroke-width=".4"/>';};
+    if(two)s+=hex(H*0.19,capH*0.92)+hex(H*0.81,capH*0.92);else s+=hex(H/2,H*0.42);
+    tin='#fff';
+  }
+  if(deco){ // dotted spice-dust pattern between the caps
+    s+='<g fill="'+o.fc+'" opacity=".25">';
+    for(let yy=H*0.40;yy<H*0.60;yy+=3)for(let xx=pad+1;xx<W-pad;xx+=3)s+='<circle cx="'+xx.toFixed(1)+'" cy="'+yy.toFixed(1)+'" r=".35"/>';
+    s+='</g>';
+  }
+  s+='</g>';
+  if(o.fw>0)s+='<rect x="'+o.fw/2+'" y="'+o.fw/2+'" width="'+(W-o.fw)+'" height="'+(H-o.fw)+'" rx="'+Math.max(0,rx-o.fw/2)+'" fill="none" stroke="'+o.fc+'" stroke-width="'+o.fw+'"/>';
+  if(o.brd)s+='<rect x=".15" y=".15" width="'+(W-.3)+'" height="'+(H-.3)+'" rx="'+rx+'" fill="none" stroke="#999" stroke-width=".25"/>';
+  function txt(t,cy,boxH,col){
     const n=Math.max(1,t.length);
     let fsz=Math.min(boxH*0.95,(iw/(n*0.74)))*o.fs;
-    return '<text x="'+W/2+'" y="'+cy+'" text-anchor="middle" dominant-baseline="central" font-family="'+o.ff+',Arial,sans-serif" font-weight="700" font-size="'+fsz.toFixed(2)+'" fill="'+o.ink+'">'+t.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text>';
+    return '<text x="'+W/2+'" y="'+cy+'" text-anchor="middle" dominant-baseline="central" font-family="'+o.ff+',Arial,sans-serif" font-weight="700" font-size="'+fsz.toFixed(2)+'" fill="'+col+'">'+t.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text>';
   }
   if(two){
     const bh=H*0.33;
-    s+=txt(top,H*0.19,bh*1.0)+txt(bot,H*0.81,bh*1.0);
-    if(o.fold){s+='<line x1="0" x2="'+W+'" y1="'+H*0.36+'" y2="'+H*0.36+'" stroke="#bbb" stroke-width=".2" stroke-dasharray="1 1"/>'
+    s+=txt(top,H*0.19,bh,tin)+txt(bot,H*0.81,bh,tin);
+    if(o.fold&&!deco){s+='<line x1="0" x2="'+W+'" y1="'+H*0.36+'" y2="'+H*0.36+'" stroke="#bbb" stroke-width=".2" stroke-dasharray="1 1"/>'
               +'<line x1="0" x2="'+W+'" y1="'+H*0.64+'" y2="'+H*0.64+'" stroke="#bbb" stroke-width=".2" stroke-dasharray="1 1"/>';}
   }else{
-    s+=txt(top,H/2,H*0.55);
+    s+=txt(top,H/2,H*0.5,sty==='hex'?'#fff':o.ink);
   }
   return s+'</svg>';
 }
 
 function build(){
-  const o={ink:$('ink').value,bg:$('bg').value,fs:(+$('fs').value||100)/100,ff:$('ff').value,brd:$('brd').checked,fc:$('fc').value,fw:+$('fw').value||0,fold:$('fold').checked};
+  const o={ink:$('ink').value,bg:$('bg').value,fs:(+$('fs').value||100)/100,ff:$('ff').value,brd:$('brd').checked,fc:$('fc').value,fw:+$('fw').value||0,fold:$('fold').checked,sty:$('sty').value,rd:+$('rd').value||0};
   const W=(+$('w').value||2.5)*10,H=(+$('h').value||8.5)*10,gap=+$('gap').value||0,mar=+$('mar').value||0;
   const cols=Math.max(1,Math.floor((210-2*mar+gap)/(W+gap))),rows=Math.max(1,Math.floor((297-2*mar-6+gap)/(H+gap)));
   const per=cols*rows,L=items(),pages=Math.max(1,Math.ceil(L.length/per));
