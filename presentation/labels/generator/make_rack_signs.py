@@ -10,7 +10,7 @@ import os, sys, html
 import make_stickers as m
 from make_stickers import TYPES, BRANDS, LETTERS, build_racks, barcode_svg
 
-DATE, VERSION = '2026-10-08', 'v1'
+DATE, VERSION = '2026-10-11', 'v2'
 KG, PER_TIER = 1100, 5          # kg per pallet (carton pallet), pallets per level
 SW, SH = 180, 262               # sign size mm
 PGW, PGH = 210, 297
@@ -132,7 +132,7 @@ def marks():
 def build(out_dir):
     racks = build_racks()
     pages, n = [], 0
-    for z in ('c', 'p', 'b'):
+    for z in tuple(TYPES):
         for r in racks[z]:
             n += 1
             note = ('<div style="position:absolute;left:0;right:0;bottom:3mm;text-align:center;font:700 3mm Cairo,sans-serif;color:#7A8896">'

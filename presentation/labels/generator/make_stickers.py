@@ -12,8 +12,8 @@ from barcode import Code128
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 V1_A4 = os.path.join(HERE, '..', 'almunajem_location_stickers_A4_2026-10-08.html')
-VERSION = 'v2'
-DATE = '2026-10-08'
+VERSION = 'v3'
+DATE = '2026-10-11'
 LETTERS = 'ABCDE'
 YEL, INK = '#FFD400', '#111111'
 
@@ -24,6 +24,8 @@ TYPES = {
               desc='PLASTIC · ZONE 1 · PKG · RIGHT', name_ar='البلاستيك'),
     'b': dict(tag='A3', code='1L', hdr='#6A3FA0', ar='علب تعبئة', en='BOX', tiers=5,
               desc='PACKAGING BOXES · ZONE 1 · PKG · LEFT', name_ar='علب التعبئة'),
+    'a': dict(tag='A4', code='1L', hdr='#6B7A1F', ar='مستلزمات', en='SUPPLY', tiers=5,
+              desc='PACKING SUPPLIES · ZONE 1 · PKG · LEFT (AFTER BOXES)', name_ar='مستلزمات التعبئة'),
 }
 BRANDS = {'DX': ('DOUX', '#1F4E9E', 'دو'), 'DR': ('DARI', '#A3261F', 'داري'),
           'HB': ('AL HABRA', '#8A4B0F', 'الهبرة'), 'SA': ('SAUDI', '#14633F', 'السعودي'),
@@ -36,6 +38,20 @@ for (zone, br, rl), its in _old:
     z = {'3L': 'c', '1R': 'p', '1L': 'b'}[zone]
     for i, (ar, size, en) in enumerate(its):
         ITEMS[f'{z}.{br}.{rl}.{i}'] = dict(ar=ar, size=size, en=en)
+
+# A4 packing supplies (catalog PKG-CLP / ZIP / RIB / RWX / LBL / TAP / COL / GLU / RSW) — general, no brand
+_ACC = [('رول ستريتش تغليف البالتات', '', 'STRETCH WRAP ROLL'),
+        ('كلبسات غلق محكم', '', 'SEALING CLIPS'),
+        ('كلبسات عنق أكياس البرجر', '', 'POLY CLIPS FOR BURGER BAGS'),
+        ('أكياس سحاب ذاتية اللصق', '', 'ZIP-PAK SELF-ADHESIVE ZIP BAGS'),
+        ('حبر حراري للكيس (ريبون)', '', 'THERMAL TRANSFER RIBBON'),
+        ('أشرطة الشمع الحراري للكرتون', '', 'THERMAL TRANSFER WAX RIBBONS'),
+        ('لفة ملصقات شبه لامعة أبيض', '', 'SEMI-GLOSS LABEL ROLL WHITE'),
+        ('شريط تثبيت لاصق أبيض / بني', '', 'TAN TAB / WHITE TAB'),
+        ('شريط الترميز اللوني', '', 'COLORED TAB'),
+        ('غراء مصهور ساخن', '', 'HOT MELT GLUE')]
+for _i, (_ar, _sz, _en) in enumerate(_ACC):
+    ITEMS['a.GN.%s.0' % 'ABCDEFGHIJ'[_i]] = dict(ar=_ar, size=_sz, en=_en)
 
 # ---------------------------------------------------------------- layout v2
 # equal division: every item gets its own rack first; only the leftover items share a rack
@@ -53,6 +69,7 @@ LAYOUT = {
           ('SA', ['A.0', 'A.1']), ('SA', ['B.0']),
           ('GN', ['A.0']), ('GN', ['A.1'])],
     'b': [('DX', ['A.0']), ('DX', ['B.0']), ('DX', ['C.0']), ('DX', ['D.0']), ('DX', ['E.0']), ('SP', [])],
+    'a': [('GN', ['%s.0' % c]) for c in 'ABCDEFGHIJ'],
 }
 
 def build_racks():
@@ -153,9 +170,9 @@ def sticker(z, br, rack_no, lvl, pal, item, half, levels, tiers, spare_copy=Fals
     shared = half in ('lower', 'upper')
     head = ('<div style="height:9mm;background:%s;color:#fff;display:flex;align-items:center;justify-content:space-between;'
             'padding:0 3mm;font-weight:900;font-size:4.2mm;line-height:1;white-space:nowrap">'
-            '<span dir="ltr" style="min-width:16mm">%s</span><span dir="rtl" style="color:#fff;letter-spacing:.2mm">%s · %s</span>'
+            '<span dir="ltr" style="min-width:16mm;font-size:%smm">%s</span><span dir="rtl" style="color:#fff;letter-spacing:.2mm">%s · %s</span>'
             '<span dir="ltr" style="min-width:16mm;text-align:right">%s</span></div>'
-            % (T['hdr'], bname, T['ar'], T['en'], T['code']))
+            % (T['hdr'], 4.2 if len(bname) <= 5 else 3.4, bname, T['ar'], T['en'], T['code']))
     panel_css = ('background:#F2C200;border-bottom:.5mm solid %s;display:flex;flex-direction:column;align-items:center;'
                  'justify-content:center;padding:0 1.5mm;overflow:hidden' % INK)
     if spare:
@@ -259,7 +276,7 @@ def rack_title_ar(r):
 # ---------------------------------------------------------------- A4 pages
 def a4_pages(racks):
     secs = []
-    for z in ('c', 'p', 'b'):
+    for z in tuple(TYPES):
         T = TYPES[z]
         for r in racks[z]:
             bname = BRANDS[r['brand']][0]
@@ -286,7 +303,7 @@ def chip(bg, txt, fs=9):
 
 def sra3_pages(racks):
     secs = []
-    for z in ('c', 'p', 'b'):
+    for z in tuple(TYPES):
         T = TYPES[z]
         for r in racks[z]:
             bname, bcol, _ = BRANDS[r['brand']]
@@ -311,7 +328,7 @@ def sra3_pages(racks):
 # ---------------------------------------------------------------- legend (SRA3-size page)
 def summary(racks):
     rows = []
-    for z in ('c', 'p', 'b'):
+    for z in tuple(TYPES):
         T = TYPES[z]
         per = {}
         for r in racks[z]:
@@ -433,7 +450,7 @@ def build(out_dir):
 def distribution_md(racks):
     L = ['# توزيع الراكات — %s' % VERSION, '',
          'كل صنف له راك لوحده؛ الأصناف الزائدة فقط تشارك راكاً مناصفة (سفلي/علوي). الراك رقم داخل مجموعته، والمستوى حرف (A = الأرض).', '']
-    for z in ('c', 'p', 'b'):
+    for z in tuple(TYPES):
         T = TYPES[z]
         L += ['## %s %s — %s (%d مستويات × 5 بالتات)' % (T['tag'], T['name_ar'], T['code'], T['tiers']), '',
               '| # | الماركة | الراك | الصنف (السفلي ↓) | الصنف (العلوي ↑) |', '|---|---|---|---|---|']

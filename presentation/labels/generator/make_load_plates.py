@@ -10,7 +10,7 @@ import os, sys, html
 import make_stickers as m
 from make_stickers import TYPES, BRANDS, LETTERS, YEL, INK, FIT_JS, build_racks, barcode_svg
 
-DATE, VERSION = '2026-10-08', 'v1'
+DATE, VERSION = '2026-10-11', 'v2'
 KG, POS, CLEAR, PITCH, DEPTH = 1100, 2, 1550, 1800, 1000
 PW, PH = 130, 84               # plate size, mm
 PGW, PGH = 297, 210            # A4 landscape
@@ -92,7 +92,7 @@ def plate(z, r, lvl, item):
         'letter-spacing:.2mm;color:%s">%s</div></div>'
         '<div style="width:15mm;height:6.4mm;border-radius:1mm;background:%s"></div></div>'
         '</div>'
-        % (PW, PH, t['hdr'], bc, bn, t['code'], t['en'], t['ar'],
+        % (PW, PH, t['hdr'], bc, ('<span style="font-size:%smm">%s</span>' % (6.2 if len(bn) <= 5 else 4.0, bn)), t['code'], t['en'], t['ar'],
            YEL, letter, YEL, pos, YEL, r['no'],
            YEL, KG, elevation(YEL, lvl),
            bc, esc(name_ar), esc(name_en),
@@ -120,7 +120,7 @@ def cut_marks():
 
 def cover(plates_n, racks):
     rows = ''
-    for z in ('c', 'p', 'b'):
+    for z in tuple(TYPES):
         t = TYPES[z]
         n = len(racks[z])
         rows += ('<div style="display:flex;align-items:center;gap:5mm;background:#1d232d;border-radius:3mm;padding:3mm 5mm;'
@@ -153,7 +153,7 @@ def cover(plates_n, racks):
 def build(out_dir):
     racks = build_racks()
     cells = []
-    for z in ('c', 'p', 'b'):
+    for z in tuple(TYPES):
         for r in racks[z]:
             for h in r['halves']:
                 for lvl in h['levels']:
