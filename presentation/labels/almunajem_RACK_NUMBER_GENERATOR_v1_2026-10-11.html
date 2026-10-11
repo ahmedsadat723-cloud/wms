@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- VERSION: v2 | 2026-10-11 -->
+<!-- VERSION: v3 | 2026-10-11 -->
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
@@ -62,6 +62,7 @@ textarea{min-height:64px;resize:vertical;direction:ltr}
     <option value="both">رقم فوق + حرف تحت (مثل الصورة) · Number + Letter</option>
     <option value="num">أرقام فقط · Numbers only</option>
     <option value="let">حروف فقط · Letters only</option>
+    <option value="pos">حرف + مواقع: A1 A2 … A5 · Letter + positions</option>
     <option value="custom">قائمة حرة · Custom list (top|bottom)</option>
   </select>
 
@@ -72,6 +73,10 @@ textarea{min-height:64px;resize:vertical;direction:ltr}
   <div id="gLet">
     <label>الحروف · Letters <span>مثال: A-E أو A,B,C أو أ-د</span></label>
     <input id="lets" value="A-E" dir="ltr">
+  </div>
+  <div id="gPos" style="display:none">
+    <label>عدد المواقع لكل حرف · Positions per letter</label>
+    <input id="np" type="number" min="1" max="20" value="5">
   </div>
   <div id="gCus" style="display:none">
     <label>قائمة حرة · Custom <span>سطر لكل لوحة: أعلى|أسفل — مثال 64|A</span></label>
@@ -126,7 +131,7 @@ textarea{min-height:64px;resize:vertical;direction:ltr}
 <script>
 (function(){
 const $=id=>document.getElementById(id);
-const IDS=['mode','nums','lets','cus','copies','ord','h','w','gap','mar','ink','bg','fc','fw','fs','ff','cut','brd','fold'];
+const IDS=['mode','np','nums','lets','cus','copies','ord','h','w','gap','mar','ink','bg','fc','fw','fs','ff','cut','brd','fold'];
 const AR='أبتثجحخدذرزسشصضطظعغفقكلمنهوي';
 
 function expand(s,isLetter){
@@ -152,6 +157,7 @@ function expand(s,isLetter){
 function items(){
   const mode=$('mode').value,c=Math.max(1,+$('copies').value||1);let L=[];
   if(mode==='num')expand($('nums').value,false).forEach(n=>L.push([n,'']));
+  else if(mode==='pos'){const n=Math.max(1,+$('np').value||5);expand($('lets').value,true).forEach(l=>{for(let i=1;i<=n;i++)L.push([l+i,''])});}
   else if(mode==='let')expand($('lets').value,true).forEach(l=>L.push([l,'']));
   else if(mode==='both'){
     const N=expand($('nums').value,false),Lt=expand($('lets').value,true);
@@ -174,7 +180,7 @@ function tagSVG(top,bot,W,H,o){
   function txt(t,cy,boxH){
     // font-size so that text fits width and box height
     const n=Math.max(1,t.length);
-    let fsz=Math.min(boxH*0.95,(iw/(n*0.62)))*o.fs;
+    let fsz=Math.min(boxH*0.95,(iw/(n*0.74)))*o.fs;
     return '<text x="'+W/2+'" y="'+cy+'" text-anchor="middle" dominant-baseline="central" font-family="'+o.ff+',Arial,sans-serif" font-weight="700" font-size="'+fsz.toFixed(2)+'" fill="'+o.ink+'">'+t.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text>';
   }
   if(two){
@@ -235,7 +241,7 @@ function load(){
   if(!d)try{d=JSON.parse(localStorage.getItem('rackgen')||'null')}catch(e){}
   if(d)IDS.forEach(i=>{if(i in d){const e=$(i);if(e.type==='checkbox')e.checked=d[i];else e.value=d[i]}});
 }
-function vis(){const m=$('mode').value;$('gNum').style.display=(m==='both'||m==='num')?'':'none';$('gLet').style.display=(m==='both'||m==='let')?'':'none';$('gCus').style.display=m==='custom'?'':'none';}
+function vis(){const m=$('mode').value;$('gNum').style.display=(m==='both'||m==='num')?'':'none';$('gLet').style.display=(m==='both'||m==='let'||m==='pos')?'':'none';$('gPos').style.display=m==='pos'?'':'none';$('gCus').style.display=m==='custom'?'':'none';}
 window.share=async function(){
   save();const url=location.href,txt='Rack tags · أرقام وحروف الأعمدة — '+$('stat').innerText.split('\n')[0];
   try{if(navigator.share){await navigator.share({title:'Rack Number Generator',text:txt,url});return}}catch(e){if(e&&e.name==='AbortError')return}
