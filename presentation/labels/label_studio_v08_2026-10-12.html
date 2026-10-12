@@ -521,7 +521,7 @@ main{display:flex;flex:1;min-height:0}
 <body>
 <div id="app">
  <header id="topbar">
-  <div class="brand">استوديو الليبل<small>LABEL STUDIO · v03</small></div>
+  <div class="brand">استوديو الليبل<small>LABEL STUDIO · v08</small></div>
   <nav class="views">
    <button data-view="editor" class="on">التصميم · Design</button>
    <button data-view="sheet">ورقة الطباعة · Print sheet</button>
@@ -549,7 +549,7 @@ main{display:flex;flex:1;min-height:0}
     <div class="sec" id="libHead">الأصناف · Items</div>
     <div class="itemlist" id="itemList"></div>
     <div class="row" style="margin-top:6px"><button class="btn" id="selAll">الكل · All</button><button class="btn" id="selNone">لا شيء · None</button></div>
-    <div class="sec">3 تصاميم جاهزة للصنف · 3 ready designs</div>
+    <div class="sec"><span id="varHead">التصاميم الجاهزة · Ready designs</span></div>
     <div class="varlist" id="variants"></div>
     <div class="sec">طباعة الفئة · Print category</div>
     <button class="btn pri" id="btnBatch" style="width:100%;margin-bottom:6px"></button>
@@ -1500,7 +1500,7 @@ function renderLibrary(){
  CATS.forEach(c=>{const b=document.createElement('button');b.className=S.libCat===c.id?'on':'';b.innerHTML=`${c.ar}<br><small>${c.en} · ${catItems(c.id).length}</small>`;b.onclick=()=>{S.libCat=c.id;const f=catItems(c.id)[0];S.libKey=f.key;ensureDesign(c.id);Object.assign(S,itemFields(f));syncForm();render();};cg.appendChild(b);});
  const cur=CATS.find(c=>c.id===S.libCat),its=catItems(S.libCat);
  if(!LIBMAP[S.libKey]||LIBMAP[S.libKey].cat!==S.libCat)S.libKey=its[0].key;
- $('#libHead').textContent=`الأصناف · ${cur.ar} (${its.length})`;
+ $('#libHead').textContent=`الأصناف · ${cur.ar} (${its.length})`;{const n=S.libCat==='sec'?29:3;$('#varHead').textContent=`${n} تصميماً جاهزاً · ${n} ready designs`+(S.libCat==='sec'?' — كل التصاميم لكل القطاعات · all zones':'');}
  const list=$('#itemList');list.innerHTML='';
  its.forEach(it=>{
   const row=document.createElement('div');row.className='ir'+(it.key===S.libKey?' on':'');
@@ -1515,11 +1515,15 @@ function renderLibrary(){
  (S.libCat==='sec'?[12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40].map(x=>[x,String(x-11)]):[[9,'A'],[10,'B'],[11,'C']]).forEach(([d,n])=>{
   const b=document.createElement('button');b.className=S.design===d?'on':'';
   const tw=320,z=tw/(S.w*MM);
-  const th=document.createElement('div');th.className='th';th.style.width=tw+'px';th.style.height=S.h*MM*z+'px';
-  const L=buildLabel({...base,design:d,els:[],holes:0},S.seqFrom,{noEls:true});L.style.transform=`scale(${z})`;th.appendChild(L);
-  b.appendChild(th);b.insertAdjacentHTML('beforeend',`تصميم ${n} · Design ${n}`);
+  const keys=S.libCat==='sec'?[0,1,2].map(k=>'sec'+(((LIBMAP[S.libKey].sec&&LIBMAP[S.libKey].sec.secSet)||0)*3+k+1)):[S.libKey];
+  const Ls=[];
+  keys.forEach(k=>{const bs=applyItem(S,k);
+   const th=document.createElement('div');th.className='th';th.style.width=tw+'px';th.style.height=S.h*MM*z+'px';th.style.marginBottom='3px';
+   const L=buildLabel({...bs,design:d,els:[],holes:0},S.seqFrom,{noEls:true});L.style.transform=`scale(${z})`;th.appendChild(L);Ls.push(L);
+   th.onclick=e=>{e.stopPropagation();loadItem(k);S.design=d;syncForm();render();};b.appendChild(th);});
+  b.insertAdjacentHTML('beforeend',`تصميم ${n} · Design ${n}`+(keys.length>1?' · '+keys.length+' قطاعات · zones':''));
   b.onclick=()=>{loadItem(S.libKey);S.design=d;syncForm();render();};
-  v.appendChild(b);fitAll(L);
+  v.appendChild(b);Ls.forEach(L=>fitAll(L));
  });
  const sel=its.filter(i=>S.libSel[i.key]!==0).length;
  $('#btnBatch').textContent=`طباعة ${cur.ar} (${sel} صنف) · Print ${cur.en} (${sel})`;
