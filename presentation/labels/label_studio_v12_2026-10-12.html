@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>استوديو الليبل · Label Studio</title>
-<!-- VERSION: v11 | 2026-10-12 -->
+<!-- VERSION: v12 | 2026-10-12 -->
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Tajawal:wght@400;700;900&family=Amiri:wght@400;700&family=Lalezar&family=Changa:wght@400;700;800&family=Oswald:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
@@ -738,7 +738,7 @@ main{display:flex;flex:1;min-height:0}
 <body>
 <div id="app">
  <header id="topbar">
-  <div class="brand">استوديو الليبل<small>LABEL STUDIO · v11</small></div>
+  <div class="brand">استوديو الليبل<small>LABEL STUDIO · v12</small></div>
   <nav class="views">
    <button data-view="editor" class="on">التصميم · Design</button>
    <button data-view="sheet">ورقة الطباعة · Print sheet</button>
@@ -1029,12 +1029,12 @@ function tagsOf(s){return String(s.secTags||'').split(';').map(x=>x.trim()).filt
 
 /* ===== v11: area content model (proposal built on height rules; editable here) ===== */
 const AREAS=[
- {id:'Z1R',title:['البلاستيك','PLASTIC ROLLS'],z:0,side:'R',racks:19,lv:5,h:175,groups:[{ar:'رولات البلاستيك',en:'PLASTIC ROLLS',racks:19,shared:6,items:25}],rule:['طبلية حتى 155 سم','Pallet up to 155 cm']},
- {id:'Z1L',title:['العلب والمستلزمات','BOXES & SUPPLIES'],z:0,side:'L',racks:19,lv:5,h:175,groups:[{ar:'علب التعبئة',en:'PACKING BOXES',racks:6,shared:0,items:5},{ar:'مستلزمات التعبئة',en:'PACKING SUPPLIES',racks:10,shared:0,items:10}],rule:['طبلية حتى 155 سم','Pallet up to 155 cm']},
- {id:'Z2R',title:['بقسماط وخلطات','CRUMBS & MIXES'],z:1,side:'R',racks:19,lv:5,h:175,groups:[{ar:'التشكيل · بقسماط وخلطات',en:'FORMING · CRUMBS & MIXES',racks:19,shared:0,items:7}],rule:['طبلية حتى 155 سم','Pallet up to 155 cm']},
- {id:'Z2L',title:['زيوت ونكهات ونشا','OILS · FLAVOURS · STARCH'],z:1,side:'L',racks:20,lv:5,h:195,groups:[{ar:'التشكيل · زيوت ونكهات',en:'FORMING · OILS & FLAVOURS',racks:20,shared:0,items:6}],rule:['النشا والدقيق: راك 195 فقط','Starch & flour: 195 cm only']},
- {id:'Z3R',title:['التحضير والبهارات','PREP & SPICES'],z:2,side:'R',racks:15,lv:5,h:175,groups:[{ar:'التحضير',en:'PREPARATION',racks:6,shared:0,items:6},{ar:'البهارات',en:'SPICES',racks:5,shared:5,items:13}],rule:['طبلية حتى 155 سم','Pallet up to 155 cm']},
- {id:'Z3L',title:['الكراتين','CARTONS'],z:2,side:'L',racks:15,lv:4,h:246,groups:[{ar:'الكراتين',en:'CARTONS',racks:15,shared:3,items:18}],rule:['طبلية الكرتون 230 سم: راك 246 فقط','Carton pallet 230 cm: 246 cm racks only']}
+ {id:'Z1R',title:['البلاستيك','PLASTIC ROLLS'],z:0,side:'R',racks:19,lv:5,h:175,groups:[{ar:'رولات البلاستيك',en:'PLASTIC ROLLS',racks:19,shared:6,items:25}],rule:['طبلية حتى 160 سم · الدور الأول A حتى 180','Pallet up to 160 cm · floor level A up to 180']},
+ {id:'Z1L',title:['العلب والمستلزمات','BOXES & SUPPLIES'],z:0,side:'L',racks:19,lv:5,h:175,groups:[{ar:'علب التعبئة',en:'PACKING BOXES',racks:6,shared:0,items:5},{ar:'مستلزمات التعبئة',en:'PACKING SUPPLIES',racks:10,shared:0,items:10}],rule:['طبلية حتى 160 سم · الدور الأول A حتى 180','Pallet up to 160 cm · floor level A up to 180']},
+ {id:'Z2R',title:['بقسماط وخلطات','CRUMBS & MIXES'],z:1,side:'R',racks:19,lv:5,h:175,groups:[{ar:'التشكيل · بقسماط وخلطات',en:'FORMING · CRUMBS & MIXES',racks:19,shared:0,items:7}],rule:['طبلية حتى 160 سم · الدور الأول A حتى 180','Pallet up to 160 cm · floor level A up to 180']},
+ {id:'Z2L',title:['زيوت ونكهات ونشا','OILS · FLAVOURS · STARCH'],z:1,side:'L',racks:20,lv:5,h:195,groups:[{ar:'التشكيل · زيوت ونكهات',en:'FORMING · OILS & FLAVOURS',racks:20,shared:0,items:6}],rule:['طبلية حتى 180 سم (نشا · أكياس سحاب · بلاستيك) في الأدوار العليا','Pallets up to 180 cm (starch · zip bags · plastic) on upper levels']},
+ {id:'Z3R',title:['التحضير والبهارات','PREP & SPICES'],z:2,side:'R',racks:15,lv:5,h:175,groups:[{ar:'التحضير',en:'PREPARATION',racks:6,shared:0,items:6},{ar:'البهارات',en:'SPICES',racks:5,shared:5,items:13}],rule:['طبلية حتى 160 سم · الدور الأول A حتى 180','Pallet up to 160 cm · floor level A up to 180']},
+ {id:'Z3L',title:['الكراتين','CARTONS'],z:2,side:'L',racks:15,lv:4,h:246,groups:[{ar:'الكراتين',en:'CARTONS',racks:15,shared:3,items:18}],rule:['طبلية حتى 231 سم (الكرتون 230 ✓): راك 246 فقط','Pallet up to 231 cm (carton 230 ✓): 246 cm racks only']}
 ];
 const DEEPN=5,RACK_FP=1.69*0.95*5;
 function areaStat(a){const used=a.groups.reduce((t,g)=>t+g.racks,0);return{used,free:a.racks-used,loc:a.racks*a.lv*DEEPN,uloc:used*a.lv*DEEPN,pct:Math.round(used/a.racks*100)};}
