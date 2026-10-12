@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>استوديو الليبل · Label Studio</title>
+<!-- VERSION: v03 | 2026-10-12 -->
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Tajawal:wght@400;700;900&family=Amiri:wght@400;700&family=Lalezar&family=Changa:wght@400;700;800&family=Oswald:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Cairo','Tahoma',sans-serif;background:#eef0f3;color:#1c2330;font-size:13px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+button,input,select{font-family:inherit;font-size:inherit}
+#app{display:flex;flex-direction:column;height:100vh}
+#topbar{display:flex;align-items:center;gap:14px;padding:8px 14px;background:#161b26;color:#fff;flex-wrap:wrap}
+.brand{font-weight:900;font-size:17px}.brand small{display:block;font-size:10px;font-weight:400;opacity:.7;letter-spacing:.08em}
+.views{display:flex;gap:4px}
+.views button{background:#252c3b;color:#cfd6e4;border:0;padding:8px 14px;border-radius:8px;cursor:pointer}
+.views button.on{background:#FF1F8E;color:#fff;font-weight:700}
+#dims{flex:1;font-size:12px;opacity:.9;min-width:200px}
+.sq{display:flex;gap:8px}
+.sqbtn{width:58px;height:58px;border:0;border-radius:10px;background:#FF1F8E;color:#fff;font-weight:700;font-size:11px;line-height:1.2;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.sqbtn.alt{background:#2c3550;color:#fff}
+.sqbtn b{font-size:20px;line-height:1}
+main{display:flex;flex:1;min-height:0}
+#panel{width:372px;flex:none;background:#fff;border-inline-end:1px solid #d8dce3;display:flex;flex-direction:column;min-height:0}
+.tabs{display:flex;flex-wrap:wrap;border-bottom:1px solid #e1e4ea}
+.tab{flex:1;background:none;border:0;padding:9px 4px;cursor:pointer;font-size:12px;border-bottom:3px solid transparent;color:#5a6477}
+.tab.on{color:#111;font-weight:700;border-bottom-color:#00BFA6}
+.pane{display:none;overflow:auto;padding:12px;flex:1}
+.pane.on{display:block}
+.f{display:block;margin-bottom:9px}
+.f>span{display:block;font-size:12px;font-weight:700;margin-bottom:3px}
+.f>span i{font-weight:400;font-style:normal;color:#7a8497;margin-inline-start:4px;font-size:11px}
+.f input:not([type=checkbox]):not([type=range]):not([type=color]),.f select{width:100%;padding:6px 8px;border:1px solid #cdd2db;border-radius:7px;background:#fff}
+.f input[type=range]{width:100%}
+.f input[type=color]{width:100%;height:34px;border:1px solid #cdd2db;border-radius:7px;padding:2px;background:#fff}
+.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.chk{display:flex;align-items:center;gap:7px;margin:6px 0;font-size:12.5px;cursor:pointer}
+.sec{font-weight:900;margin:14px 0 6px;font-size:13px;display:flex;align-items:center;gap:6px}
+.sec:first-child{margin-top:0}
+.sec::after{content:"";flex:1;height:1px;background:#e3e6ec}
+.rv{float:left;font-weight:400;color:#00806e}
+.gal{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gal button{border:2px solid #d9dde5;background:#f7f8fa;border-radius:9px;padding:6px;cursor:pointer;text-align:center;font-size:11px}
+.gal button.on{border-color:#00BFA6;background:#e7faf6}
+.gal .th{position:relative;overflow:hidden;margin-bottom:4px;border-radius:3px}
+.gal .th>.L{position:absolute;left:0;top:0;transform-origin:0 0}
+.pal{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.pal button{border:2px solid #fff;outline:1px solid #cfd4dc;height:46px;border-radius:9px;cursor:pointer;font-size:9.5px;line-height:1.1;padding:2px;font-weight:700}
+.pal button.on{outline:3px solid #111}
+.warn{background:#fff3cd;border:1px solid #f0d27a;color:#6b4e00;padding:6px 8px;border-radius:7px;font-size:12px;margin:6px 0;display:none}
+.warn.show{display:block}
+.btn{border:1px solid #cdd2db;background:#f5f6f8;border-radius:8px;padding:7px 10px;cursor:pointer}
+.btn:hover{background:#eaecf0}
+.btn.pri{background:#161b26;color:#fff;border-color:#161b26}
+.btn.del{color:#b3261e}
+.addgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.addgrid .btn{text-align:center;font-size:12px;padding:8px 4px}
+.layers{display:flex;flex-direction:column;gap:4px}
+.layers button{text-align:start;border:1px solid #dde1e8;background:#fff;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:12px}
+.layers button.on{border-color:#00BFA6;background:#e7faf6;font-weight:700}
+.hint{font-size:11.5px;color:#6a7488;line-height:1.5;margin:4px 0 8px}
+#legib{background:#eef7f5;border:1px solid #c9e8e1;border-radius:8px;padding:8px;font-size:12px;line-height:1.55}
+#editorView,#sheetView{flex:1;min-width:0;display:flex;flex-direction:column}
+.hide{display:none!important}
+.zoombar{display:flex;gap:6px;align-items:center;padding:6px 12px;background:#fff;border-bottom:1px solid #dde1e8}
+.zoombar .btn{padding:3px 10px}
+#stage{flex:1;overflow:auto;padding:28px;background:repeating-conic-gradient(#e4e7ec 0 25%,#f2f4f7 0 50%) 0 0/22px 22px}
+#zoombox{position:relative;margin:0 auto}
+#labelHost{position:absolute;left:0;top:0;transform-origin:0 0}
+#sheets{flex:1;overflow:auto;padding:16px;background:#d9dde4}
+.sheetwrap{margin:0 auto 22px;zoom:var(--sz,1);width:max-content}
+.pagebar{display:flex;align-items:center;gap:8px;background:#161b26;color:#fff;padding:6px 10px;border-radius:8px 8px 0 0;font-size:12px}
+.pagebar .sqbtn{width:42px;height:42px;font-size:9px;border-radius:8px}
+.pagebar .sqbtn b{font-size:15px}
+.pagebar .pw{flex:1}
+.pagebar .pwarn{color:#ffd24d}
+.sheet{position:relative;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.25);overflow:hidden}
+.cell{position:absolute}
+.cell svg{position:absolute;left:0;top:0;pointer-events:none}
+.lwk{position:absolute;transform-origin:0 0}
+.lw{position:relative}
+.lw.cut{outline:.25mm dashed #666}
+#stage.rack{padding:80px 150px}
+#rackbg{position:absolute;left:-150px;right:-150px;top:-18px;bottom:-18px;background:#E8590C;box-shadow:0 6px 0 #b8430a;z-index:0}
+#rackbg::before,#rackbg::after{content:"";position:absolute;top:-62px;bottom:-62px;width:84px;background:#0E518D;box-shadow:inset -10px 0 0 rgba(0,0,0,.18)}
+#rackbg::before{left:0}#rackbg::after{right:0}
+#zoombox>#labelHost{z-index:1}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#161b26;color:#fff;padding:9px 16px;border-radius:9px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:99}
+#toast.on{opacity:1}
+
+/* ---------------- LABEL ---------------- */
+.L{position:relative;overflow:hidden;container-type:size;background:#fff;color:#111;flex:none;font-family:var(--far);line-height:1.15;user-select:none}
+.L .in{position:absolute;inset:0}
+.L .deco{position:absolute;inset:0}
+.L .main{position:absolute;display:flex;flex-direction:column;align-items:stretch;justify-content:center;text-align:center;gap:1.2cqh;min-width:0}
+.L .ar{display:block;width:100%;font-family:var(--far);font-size:calc(var(--fsar)*1cqh);font-weight:var(--fw);color:var(--tc);white-space:nowrap;overflow:hidden;line-height:1.2;padding:.1em 0 .18em;-webkit-text-stroke:var(--stk) var(--tcs);paint-order:stroke fill}
+.L .ar,.L .en{flex:none}
+.L .en{display:block;width:100%;font-family:var(--fen);font-size:calc(var(--fsen)*1cqh);font-weight:700;color:var(--tc2);letter-spacing:var(--ls);direction:ltr;white-space:nowrap;overflow:hidden;padding:.05em 0}
+.L .cap{position:absolute;display:flex;align-items:center;justify-content:center;font-family:var(--far);font-weight:700;white-space:nowrap;overflow:hidden;font-size:calc(var(--fscap)*1cqh)}
+.L .size{position:absolute;display:flex;align-items:center;justify-content:center;gap:1.5cqw;white-space:nowrap;box-sizing:border-box;min-width:0;overflow:hidden}
+.L .sl{font-family:var(--far);font-size:calc(var(--fssz)*.45cqh);font-weight:700;flex:none}
+.L .sv{font-family:var(--fsz);font-weight:900;direction:ltr;font-size:calc(var(--fssz)*1cqh);max-width:100%;overflow:hidden;min-width:0;padding:.04em 0}
+.L .holes i{position:absolute;top:50%;width:7cqh;height:7cqh;margin-top:-3.5cqh;border-radius:50%;background:#fff;border:.9cqh solid #111}
+.L .holes i:first-child{inset-inline-start:2cqw}.L .holes i:last-child{inset-inline-end:2cqw}
+.L .els{position:absolute;inset:0}
+.L .el{position:absolute;box-sizing:border-box;transform-origin:center}
+.L .el.line i{position:absolute;left:0;right:0;top:50%}
+.L .el.txt{display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;white-space:pre-wrap;overflow:visible}
+.L .el svg{width:100%;height:100%;display:block;overflow:visible}
+.L .el.bc{display:flex;flex-direction:column}
+.L .el.bc svg{flex:1;min-height:0}
+.L .el.bc div{font:700 3.2mm 'Courier New',monospace;text-align:center;line-height:1.1;padding-top:.5mm}
+#stage .L .el{cursor:move}
+#stage .L .el.sel{outline:calc(1.6px/var(--z,1)) dashed #1a73e8}
+.hnd{position:absolute;width:calc(13px/var(--z,1));height:calc(13px/var(--z,1));background:#fff;border:calc(2px/var(--z,1)) solid #1a73e8;border-radius:3px}
+.hnd.rs{right:calc(-7px/var(--z,1));bottom:calc(-7px/var(--z,1));cursor:nwse-resize}
+.hnd.rt{left:50%;top:calc(-24px/var(--z,1));margin-left:calc(-6.5px/var(--z,1));border-radius:50%;cursor:grab}
+
+/* d1 block */
+.d1 .deco{background:var(--c);box-shadow:inset 0 0 0 3.2cqh #111}
+.d1 .cap{top:4.5cqh;left:6cqw;right:6cqw;height:10cqh;color:var(--ink);opacity:.9}
+.d1 .main{top:16cqh;bottom:30cqh;left:6cqw;right:6cqw}
+.d1 .size{left:0;right:0;bottom:0;height:26cqh;background:#111;color:var(--cl)}
+/* d2 side column */
+.d2 .deco{box-shadow:inset 0 0 0 2.4cqh #111}
+.d2 .size{top:2.4cqh;bottom:2.4cqh;inset-inline-start:2.4cqh;width:25cqw;background:var(--c);color:var(--ink);flex-direction:column;gap:2cqh}
+.d2 .cap{top:5cqh;inset-inline-start:31cqw;inset-inline-end:5cqw;height:9cqh;color:#444}
+.d2 .main{top:16cqh;bottom:10cqh;inset-inline-start:31cqw;inset-inline-end:5cqw}
+/* d3 sandwich */
+.d3 .deco{background:linear-gradient(var(--c),var(--c)) top/100% 23cqh no-repeat,#fff;box-shadow:inset 0 0 0 1.4cqh #111}
+.d3 .cap{top:0;left:0;right:0;height:23cqh;color:var(--ink)}
+.d3 .main{top:27cqh;bottom:28cqh;left:5cqw;right:5cqw}
+.d3 .size{left:0;right:0;bottom:0;height:23cqh;background:var(--c);color:var(--ink);border-top:1.4cqh solid #111}
+/* d4 hazard */
+.d4 .deco{background:repeating-linear-gradient(-45deg,var(--c) 0 5cqh,#111 5cqh 10cqh)}
+.d4 .deco::after{content:"";position:absolute;inset:9cqh 4cqw;background:#fff;border:1.6cqh solid #111}
+.d4 .cap{top:12cqh;left:8cqw;right:8cqw;height:9cqh;color:#444}
+.d4 .main{top:22cqh;bottom:31cqh;left:8cqw;right:8cqw}
+.d4 .size{bottom:11.5cqh;left:50%;transform:translateX(-50%);height:17cqh;padding:0 4cqw;background:#111;color:var(--cl);max-width:80cqw}
+/* d5 diagonal */
+.d5 .deco{background:#fff;box-shadow:inset 0 0 0 1.6cqh #111}
+.d5 .deco::before{content:"";position:absolute;top:-6cqh;bottom:-6cqh;inset-inline-end:-10cqw;width:47cqw;background:#111;transform:skewX(calc(var(--s)*-14deg))}
+.d5 .deco::after{content:"";position:absolute;top:-6cqh;bottom:-6cqh;inset-inline-end:36cqw;width:4cqw;background:var(--c);transform:skewX(calc(var(--s)*-14deg))}
+.d5 .size{top:0;bottom:0;inset-inline-end:0;width:33cqw;color:var(--cl);flex-direction:column;gap:2cqh}
+.d5 .cap{top:5cqh;inset-inline-start:4cqw;inset-inline-end:46cqw;height:9cqh;color:#444}
+.d5 .main{top:16cqh;bottom:10cqh;inset-inline-start:4cqw;inset-inline-end:46cqw}
+/* d6 circle badge */
+.d6 .deco{box-shadow:inset 0 0 0 1.4cqh #111,inset 0 0 0 5cqh var(--c)}
+.d6 .size{top:50%;inset-inline-start:8cqw;width:66cqh;height:66cqh;margin-top:-33cqh;border-radius:50%;background:var(--c);color:var(--ink);border:2cqh solid #111;flex-direction:column;gap:1cqh}
+.d6 .size .sv{max-width:82%}
+.d6 .cap{top:8cqh;inset-inline-start:calc(8cqw + 72cqh);inset-inline-end:7cqw;height:9cqh;color:#444}
+.d6 .main{top:18cqh;bottom:12cqh;inset-inline-start:calc(8cqw + 72cqh);inset-inline-end:7cqw}
+/* d7 dark */
+.d7{--tc2:#e9e9e9}
+.d7 .deco{background:#0c0c0c;box-shadow:inset 0 0 0 2.4cqh var(--cl),inset 0 0 0 4.2cqh #0c0c0c,inset 0 0 0 5cqh var(--cl)}
+.d7 .cap{top:8cqh;left:7cqw;right:7cqw;height:9cqh;color:#cfcfcf}
+.d7 .main{top:18cqh;bottom:34cqh;left:7cqw;right:7cqw}
+.d7 .size{inset-inline-end:7cqw;bottom:9cqh;height:22cqh;padding:0 4cqw;border:1.6cqh solid var(--cl);color:var(--cl);border-radius:3cqh;max-width:60cqw}
+/* d8 pill */
+.d8 .deco{background:var(--c)}
+.d8 .deco::after{content:"";position:absolute;inset:6cqh 3.5cqw;background:#fff;border-radius:14cqh;box-shadow:0 0 0 1.4cqh #111}
+.d8 .cap{top:10cqh;left:9cqw;right:9cqw;height:9cqh;color:#444}
+.d8 .main{top:20cqh;bottom:28cqh;left:9cqw;right:9cqw}
+.d8 .size{bottom:2cqh;left:50%;transform:translateX(-50%);height:19cqh;padding:0 5cqw;background:#111;color:var(--cl);border-radius:9.5cqh;border:1.4cqh solid #fff;max-width:70cqw}
+
+
+/* ---- ready designs (light, no dark fills) ---- */
+.L .chip,.L .ico,.L .mk{display:none}
+.L .mk svg{width:100%;height:100%;display:block}
+.chip b{display:block;max-width:100%;min-width:0;overflow:hidden;white-space:nowrap;padding:.06em 0;font-weight:inherit;line-height:1.1}
+.L .ico svg{width:100%;height:100%;display:block}
+.d9,.d10,.d11{--dk:#1d1d1d}
+.d9 .chip,.d10 .chip,.d11 .chip{gap:.8cqw;display:flex;position:absolute;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;font-family:var(--far);font-weight:800;box-sizing:border-box;text-align:center;padding:0 1.2cqw}
+.d9 .ico,.d10 .ico,.d11 .ico,.d9 .mk,.d10 .mk,.d11 .mk{display:block;position:absolute}
+.d9 .mk{top:4.5cqh;inset-inline-end:5cqw;width:23cqh;height:23cqh}
+.d9.hasmk .main{inset-inline-end:calc(5cqw + 25cqh)}
+.d9.hasmk .cap{inset-inline-end:calc(5cqw + 25cqh)}
+.d10 .mk{bottom:4cqh;inset-inline-start:50cqw;width:24cqh;height:24cqh}
+.d11 .mk{bottom:4.5cqh;inset-inline-start:37cqw;width:24cqh;height:24cqh}
+.d9 .deco{background:var(--c);box-shadow:inset 0 0 0 1.2cqh var(--dk)}
+.d9 .deco::after{content:"";position:absolute;top:4.5cqh;bottom:4.5cqh;inset-inline-start:24cqw;inset-inline-end:3cqw;background:#fff;border:1.2cqh solid var(--dk);border-radius:6cqh}
+.d9 .ico{top:11cqh;inset-inline-start:3.5cqw;width:17cqw;height:40cqh;color:var(--ink)}
+.d9 .chipT{flex-direction:column;gap:.6cqh;bottom:8cqh;inset-inline-start:2.5cqw;width:19.5cqw;height:23cqh;background:#fff;border:1cqh solid var(--dk);border-radius:3cqh;font-size:calc(var(--fscap)*1.1cqh);color:var(--dk);white-space:nowrap}
+.d9 .cap{top:6.5cqh;inset-inline-start:27cqw;inset-inline-end:40cqw;height:8cqh;color:#555}
+.d9 .main{top:15cqh;bottom:37cqh;inset-inline-start:27cqw;inset-inline-end:6cqw}
+.d9 .size{bottom:8cqh;inset-inline-end:6cqw;width:40cqw;height:25cqh;background:var(--c);color:var(--ink);border:1.2cqh solid var(--dk);border-radius:3cqh}
+.d9 .chipB{bottom:8cqh;inset-inline-start:27cqw;width:30cqw;height:25cqh;background:var(--ct);color:var(--dk);border:1.2cqh solid var(--dk);border-radius:3cqh;font-size:calc(var(--fscap)*1.5cqh)}
+.d9 .warn{top:5cqh;inset-inline-end:5cqw;width:30cqw;height:9cqh}
+.d10 .deco{background:var(--ct);box-shadow:inset 0 0 0 1.2cqh var(--dk)}
+.d10 .deco::before{content:"";position:absolute;top:0;left:0;right:0;height:27cqh;background:var(--c);border-bottom:1.2cqh solid var(--dk)}
+.d10 .chipB{top:4cqh;inset-inline-start:4cqw;height:19cqh;width:46cqw;color:var(--ink);font-size:calc(var(--fscap)*2cqh);justify-content:flex-start}
+.d10 .chipT{top:5.5cqh;inset-inline-end:4cqw;height:16cqh;width:36cqw;background:#fff;border:1cqh solid var(--dk);border-radius:99cqh;color:var(--dk);font-size:calc(var(--fscap)*1.05cqh)}
+.d10 .cap{top:29.5cqh;left:5cqw;right:5cqw;height:8cqh;color:#444}
+.d10 .main{top:39cqh;bottom:31cqh;left:5cqw;right:5cqw}
+.d10 .size{bottom:5cqh;inset-inline-start:4cqw;width:44cqw;height:23cqh;background:#fff;color:var(--dk);border:1.2cqh solid var(--dk);border-radius:3cqh}
+.d10 .ico{bottom:4cqh;inset-inline-end:4cqw;width:21cqh;height:25cqh;color:var(--dk)}
+.d10 .warn{bottom:8cqh;inset-inline-start:50cqw;width:34cqw;height:12cqh}
+.d11 .deco{background:var(--ct);box-shadow:inset 0 0 0 1.2cqh var(--dk)}
+.d11 .deco::after{content:"";position:absolute;top:0;bottom:0;inset-inline-end:0;width:34cqw;background:var(--c);border-inline-start:1.2cqh solid var(--dk)}
+.d11 .ico{top:7cqh;inset-inline-end:7cqw;width:20cqw;height:34cqh;color:var(--ink)}
+.d11 .size{top:46cqh;inset-inline-end:2.5cqw;width:29cqw;height:30cqh;flex-direction:column;background:#fff;color:var(--dk);border:1.2cqh solid var(--dk);border-radius:3cqh;gap:0}
+.d11 .chipT{bottom:5cqh;inset-inline-end:2.5cqw;width:29cqw;height:15cqh;background:#fff;border:1cqh solid var(--dk);border-radius:3cqh;color:var(--dk);font-size:calc(var(--fscap)*.95cqh)}
+.d11 .cap{top:5cqh;inset-inline-start:5cqw;inset-inline-end:40cqw;height:8cqh;color:#444}
+.d11 .main{top:15cqh;bottom:33cqh;inset-inline-start:5cqw;inset-inline-end:40cqw}
+.d11 .chipB{bottom:7cqh;inset-inline-start:5cqw;width:30cqw;height:19cqh;background:var(--c);color:var(--ink);border:1.2cqh solid var(--dk);border-radius:3cqh;font-size:calc(var(--fscap)*1.4cqh)}
+.d11 .warn{bottom:7cqh;inset-inline-start:37cqw;width:26cqw;height:12cqh}
+.L .chip.warn{background:#fff;color:#B3261E;border:.9cqh solid #B3261E;border-radius:2cqh;font-size:calc(var(--fscap)*.95cqh);white-space:nowrap}
+.catgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.catgrid button{border:2px solid #d9dde5;background:#f7f8fa;border-radius:9px;padding:7px 4px;cursor:pointer;font-size:12px;line-height:1.25}
+.catgrid button.on{border-color:#00BFA6;background:#e7faf6;font-weight:700}
+.itemlist{display:flex;flex-direction:column;gap:3px;max-height:260px;overflow:auto;border:1px solid #e1e4ea;border-radius:8px;padding:4px}
+.itemlist .ir{display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:6px;cursor:pointer;font-size:12px}
+.itemlist .ir.on{background:#e7faf6;font-weight:700}
+.itemlist .ir .dot{width:11px;height:11px;border-radius:50%;flex:none;border:1px solid #888}
+.itemlist .ir span.nm{flex:1;min-width:0}
+.itemlist .ir small{color:#6a7488;direction:ltr}
+.varlist{display:flex;flex-direction:column;gap:8px}
+.varlist button{border:2px solid #d9dde5;background:#f7f8fa;border-radius:9px;padding:6px;cursor:pointer;font-size:11px}
+.varlist button.on{border-color:#00BFA6;background:#e7faf6}
+.varlist .th{position:relative;overflow:hidden;margin-bottom:4px;border-radius:3px}
+.varlist .th>.L{position:absolute;left:0;top:0;transform-origin:0 0}
+
+@media print{
+ @page{margin:0}
+ html,body{height:auto;background:#fff}
+ #topbar,#panel,#editorView,.pagebar,#toast{display:none!important}
+ #app{display:block;height:auto}
+ main{display:block}
+ #sheetView{display:block!important}
+ #sheets{padding:0;overflow:visible;background:#fff}
+ .sheetwrap{zoom:1!important;margin:0}
+ .sheet{box-shadow:none;break-after:page;page-break-after:always}
+ .sheetwrap:last-child .sheet{break-after:auto;page-break-after:auto}
+}
+</style>
+</head>
+<body>
+<div id="app">
+ <header id="topbar">
+  <div class="brand">استوديو الليبل<small>LABEL STUDIO · v03</small></div>
+  <nav class="views">
+   <button data-view="editor" class="on">التصميم · Design</button>
+   <button data-view="sheet">ورقة الطباعة · Print sheet</button>
+  </nav>
+  <div id="dims"></div>
+  <div class="sq">
+   <button class="sqbtn" id="btnPrint" title="طباعة / Print"><b>⎙</b>طباعة<br>Print</button>
+   <button class="sqbtn alt" id="btnShare" title="مشاركة / Share"><b>⇪</b>مشاركة<br>Share</button>
+  </div>
+ </header>
+ <main>
+  <aside id="panel">
+   <div class="tabs">
+    <button class="tab on" data-tab="lib">جاهز<br>Ready</button>
+    <button class="tab" data-tab="design">التصميم<br>Design</button>
+    <button class="tab" data-tab="text">الخط<br>Fonts</button>
+    <button class="tab" data-tab="els">عناصر<br>Elements</button>
+    <button class="tab" data-tab="frame">اللوحة<br>Label</button>
+    <button class="tab" data-tab="print">الطباعة<br>Print</button>
+   </div>
+
+   <div class="pane on" id="pane-lib">
+    <div class="sec">الفئات · Categories</div>
+    <div class="catgrid" id="catGrid"></div>
+    <div class="sec" id="libHead">الأصناف · Items</div>
+    <div class="itemlist" id="itemList"></div>
+    <div class="row" style="margin-top:6px"><button class="btn" id="selAll">الكل · All</button><button class="btn" id="selNone">لا شيء · None</button></div>
+    <div class="sec">3 تصاميم جاهزة للصنف · 3 ready designs</div>
+    <div class="varlist" id="variants"></div>
+    <div class="sec">طباعة الفئة · Print category</div>
+    <button class="btn pri" id="btnBatch" style="width:100%;margin-bottom:6px"></button>
+    <button class="btn" id="btnBatchOff" style="width:100%">إلغاء الدفعة · Clear batch</button>
+    <p class="hint">الدفعة تستخدم لون الصنف (لون الماركة أو الفئة) والتصميم المختار، وتطبع كل الأصناف المعلّمة.<br>The batch uses each item's own color and the chosen design.</p>
+   </div>
+
+   <div class="pane" id="pane-design">
+    <div class="sec">التصميم · Template</div>
+    <div class="gal" id="gallery"></div>
+    <div class="sec">ألوان أساسية · Primary <span class="hint" style="margin:0">(تناسب عارضة برتقالية وقائم أزرق)</span></div>
+    <div class="pal" id="palette"></div>
+    <div class="sec">ألوان فرعية · Secondary</div>
+    <div class="pal" id="paletteSec"></div>
+    <label class="f" style="margin-top:8px"><span>لون مخصص <i>Custom</i></span><input type="color" data-k="color"></label>
+    <div class="warn" id="colorWarn">⚠ هذا اللون قريب من الأصفر/البرتقالي المستخدم في الراكات والعارضة — اختر لوناً آخر ليبرز الليبل.<br>This color is close to the rack yellow / orange beam — pick another so the label stands out.</div>
+    <div class="sec">ألوان الماركات · Brand colors</div>
+    <div class="pal" id="paletteBr"></div>
+    <div class="sec">النص · Text</div>
+    <label class="f"><span>العنوان العربي <i>Arabic title</i></span><input data-k="arT"></label>
+    <label class="f"><span>العنوان الإنجليزي <i>English title</i></span><input data-k="enT" dir="ltr"></label>
+    <label class="chk"><input type="checkbox" data-k="showEN"> إظهار الإنجليزي · Show English</label>
+    <label class="f"><span>المقاس <i>Size</i></span><input data-k="size" dir="ltr"></label>
+    <label class="f"><span>عنوان خانة المقاس <i>Size caption</i></span><input data-k="sizeLbl"></label>
+    <label class="chk"><input type="checkbox" data-k="showSize"> إظهار خانة المقاس · Show size box</label>
+    <label class="f"><span>السطر العلوي <i>Top line</i></span><input data-k="caption"></label>
+    <label class="chk"><input type="checkbox" data-k="showCap"> إظهار السطر العلوي · Show top line</label>
+    <div class="sec">حقول التصاميم الجاهزة · Ready-design fields</div>
+    <label class="f"><span>الأيقونة <i>Icon</i></span><select data-k="icon" id="iconSel"></select></label>
+    <label class="f"><span>شارة النوع <i>Type chip</i></span><input data-k="chipT"></label>
+    <label class="f"><span>شارة الماركة <i>Brand chip</i></span><input data-k="chipB"></label>
+    <label class="f"><span>وسم تنبيه نصي <i>Warning tag (optional)</i></span><input data-k="warn"></label>
+    <div class="row">
+     <label class="f"><span>شكل التمييز <i>Mark shape</i></span><select data-k="markShape"><option value="">— بدون · none</option><option value="circle">● دائرة · Circle</option><option value="square">■ مربع · Square</option><option value="triangle">▲ مثلث · Triangle</option><option value="diamond">◆ معيّن · Diamond</option><option value="hexagon">⬢ سداسي · Hexagon</option><option value="star">★ نجمة · Star</option></select></label>
+     <label class="f"><span>السهم <i>Arrow</i></span><select data-k="markDir" data-t="n"><option value="0">↑ أعلى · Up</option><option value="1">→ يمين · Right</option><option value="2">↓ أسفل · Down</option><option value="3">← يسار · Left</option></select></label>
+    </div>
+    <label class="chk"><input type="checkbox" data-k="flip"> عكس اتجاه التخطيط · Mirror layout</label>
+    <p class="hint">استخدم <b>{n}</b> في أي نص ليتحول إلى رقم تسلسلي (تبويب الطباعة).<br>Use <b>{n}</b> in any text for auto-numbering (Print tab).</p>
+   </div>
+
+   <div class="pane" id="pane-text">
+    <div class="sec">الخطوط · Fonts</div>
+    <label class="f"><span>خط العنوان العربي <i>Arabic title font</i></span><select data-k="fAR" class="fontsel"></select></label>
+    <label class="f"><span>خط الإنجليزي <i>English font</i></span><select data-k="fEN" class="fontsel"></select></label>
+    <label class="f"><span>خط المقاس <i>Size font</i></span><select data-k="fSZ" class="fontsel"></select></label>
+    <label class="f"><span>سماكة الخط <i>Weight</i></span><select data-k="fw" data-t="n"><option value="400">عادي · Regular</option><option value="700">عريض · Bold</option><option value="800">عريض جداً · Extra</option><option value="900">أسود · Black</option></select></label>
+    <div class="sec">الأحجام · Sizes</div>
+    <label class="f"><span>العنوان العربي <i>Arabic</i><em class="rv" data-for="fsAR"></em></span><input type="range" data-k="fsAR" min="10" max="60" step="1"></label>
+    <label class="f"><span>الإنجليزي <i>English</i><em class="rv" data-for="fsEN"></em></span><input type="range" data-k="fsEN" min="5" max="30" step="0.5"></label>
+    <label class="f"><span>المقاس <i>Size</i><em class="rv" data-for="fsSZ"></em></span><input type="range" data-k="fsSZ" min="6" max="30" step="0.5"></label>
+    <label class="f"><span>السطر العلوي <i>Top line</i><em class="rv" data-for="fscap"></em></span><input type="range" data-k="fscap" min="4" max="16" step="0.5"></label>
+    <div class="sec">اللون والحدود · Color & outline</div>
+    <label class="chk"><input type="checkbox" data-k="tcOn"> لون عنوان مخصص · Custom title color</label>
+    <label class="f"><input type="color" data-k="tc"></label>
+    <label class="f"><span>حد حول الحروف <i>Letter outline</i><em class="rv" data-for="stk"></em></span><input type="range" data-k="stk" min="0" max="1.6" step="0.1"></label>
+    <label class="f"><span>تباعد الإنجليزي <i>English spacing</i><em class="rv" data-for="ls"></em></span><input type="range" data-k="ls" min="0" max="0.3" step="0.01"></label>
+    <div class="sec">وضوح القراءة · Legibility</div>
+    <div id="legib"></div>
+   </div>
+
+   <div class="pane" id="pane-els">
+    <div class="sec">إضافة · Add</div>
+    <div class="addgrid">
+     <button class="btn" data-add="line">━ خط<br>Line</button>
+     <button class="btn" data-add="arrow">⬆ سهم<br>Arrow</button>
+     <button class="btn" data-add="stripes">▨ شريط تحذير<br>Hazard bar</button>
+     <button class="btn" data-add="box">▭ إطار<br>Frame</button>
+     <button class="btn" data-add="circle">◯ دائرة<br>Circle</button>
+     <button class="btn" data-add="warn">⚠ تنبيه<br>Warning</button>
+     <button class="btn" data-add="text">T نص<br>Text</button>
+     <button class="btn" data-add="badge">▣ شارة<br>Badge</button>
+     <button class="btn" data-add="bar">||| باركود<br>Barcode</button>
+    </div>
+    <p class="hint">اسحب العنصر على اللوحة · مقبض المربع = تغيير الحجم · الدائرة العلوية = دوران (Shift = خطوات 15°) · Delete = حذف · الأسهم = تحريك.<br>Drag on the label · square = resize · round handle = rotate · Delete removes.</p>
+    <div class="sec">الطبقات · Layers</div>
+    <div class="layers" id="layers"></div>
+    <div class="sec">الخصائص · Properties</div>
+    <div id="props"><p class="hint">اختر عنصراً. · Select an element.</p></div>
+   </div>
+
+   <div class="pane" id="pane-frame">
+    <div class="sec">المقاس · Size</div>
+    <label class="f"><span>مقاس جاهز <i>Preset</i></span><select id="preset"></select></label>
+    <div class="row">
+     <label class="f"><span>العرض مم <i>W</i></span><input type="number" data-k="w" min="40" max="1200" step="1"></label>
+     <label class="f"><span>الارتفاع مم <i>H</i></span><input type="number" data-k="h" min="30" max="1200" step="1"></label>
+    </div>
+    <label class="f"><span>استدارة الزوايا مم <i>Corner radius</i><em class="rv" data-for="r"></em></span><input type="range" data-k="r" min="0" max="25" step="0.5"></label>
+    <label class="chk"><input type="checkbox" data-k="holes"> علامات ثقوب تعليق · Hanging-hole marks</label>
+    <label class="f"><span>تدوير عند الطباعة <i>Print rotation</i></span><select data-k="prot" data-t="n"><option value="0">0°</option><option value="90">90°</option><option value="180">180°</option><option value="270">270°</option></select></label>
+    <div class="sec">القوالب · Saved</div>
+    <div class="row"><input id="tplName" placeholder="اسم القالب · name" style="padding:6px 8px;border:1px solid #cdd2db;border-radius:7px"><button class="btn pri" id="tplSave" style="flex:none">حفظ · Save</button></div>
+    <div class="layers" id="tplList" style="margin-top:8px"></div>
+    <div class="row" style="margin-top:10px">
+     <button class="btn" id="btnJson">تنزيل JSON · Download</button>
+     <button class="btn" id="btnLoad">فتح JSON · Open</button>
+    </div>
+    <input type="file" id="fileLoad" accept=".json,application/json" class="hide">
+    <div class="row" style="margin-top:8px"><button class="btn del" id="btnReset">تصفير · Reset</button></div>
+   </div>
+
+   <div class="pane" id="pane-print">
+    <div class="sec">الورقة · Paper</div>
+    <div class="row">
+     <label class="f"><span>المقاس <i>Paper</i></span><select data-k="paper"><option value="A4">A4</option><option value="A3">A3</option><option value="SRA3">SRA3</option><option value="custom">مخصص = حجم اللوحة · Fit label</option></select></label>
+     <label class="f"><span>الاتجاه <i>Orient.</i></span><select data-k="orient"><option value="landscape">أفقي · Landscape</option><option value="portrait">عمودي · Portrait</option></select></label>
+    </div>
+    <div class="row">
+     <label class="f"><span>هامش مم <i>Margin</i></span><input type="number" data-k="margin" min="0" max="40" step="1"></label>
+     <label class="f"><span>مسافة القص مم <i>Crop gap</i></span><input type="number" data-k="gap" min="4" max="30" step="1"></label>
+    </div>
+    <label class="chk"><input type="checkbox" data-k="cutline"> حد قص منقّط · Dotted cut line</label>
+    <div class="sec">النسخ · Copies</div>
+    <label class="f"><span>عدد النسخ <i>Copies each</i></span><input type="number" data-k="copies" min="1" max="200" step="1"></label>
+    <label class="chk"><input type="checkbox" data-k="seqOn"> ترقيم تسلسلي {n} · Serial numbering</label>
+    <div class="row">
+     <label class="f"><span>من <i>From</i></span><input type="number" data-k="seqFrom" step="1"></label>
+     <label class="f"><span>إلى <i>To</i></span><input type="number" data-k="seqTo" step="1"></label>
+     <label class="f"><span>خانات <i>Digits</i></span><input type="number" data-k="seqPad" min="1" max="6" step="1"></label>
+    </div>
+    <p class="hint">مثال: اكتب «رف {n}» في العنوان ثم فعّل الترقيم من 1 إلى 10 ← 10 لوحات.<br>Example: type “Rack {n}” then number 1–10 → 10 labels.</p>
+    <div class="sec">الدفعة · Batch</div><div id="batchInfo" class="hint"></div>
+    <div class="sec">الملخص · Summary</div>
+    <div id="printSummary" class="hint"></div>
+   </div>
+  </aside>
+
+  <section id="editorView">
+   <div class="zoombar noprint">
+    <button class="btn" id="zOut">−</button><button class="btn" id="zIn">+</button><button class="btn" id="zFit">ملاءمة · Fit</button>
+    <button class="btn" id="zRack">معاينة على الرف · On rack</button><span id="zVal" class="hint" style="margin:0"></span>
+   </div>
+   <div id="stage"><div id="zoombox"><div id="labelHost"></div></div></div>
+  </section>
+  <section id="sheetView" class="hide"><div id="sheets"></div></section>
+ </main>
+</div>
+<div id="toast"></div>
+<style id="pageStyle"></style>
+
+<script>
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const MM=96/25.4;
+const FONTS={
+ tnr:["Times New Roman · تايمز","'Times New Roman',Times,'Amiri',serif"],
+ cairo:["Cairo","'Cairo','Tahoma',sans-serif"],
+ tajawal:["Tajawal","'Tajawal','Tahoma',sans-serif"],
+ amiri:["Amiri (نسخ)","'Amiri','Times New Roman',serif"],
+ lalezar:["Lalezar (عريض)","'Lalezar','Cairo',Impact,sans-serif"],
+ changa:["Changa","'Changa','Cairo',sans-serif"],
+ tahoma:["Tahoma","Tahoma,'Segoe UI',sans-serif"],
+ arial:["Arial","Arial,Helvetica,sans-serif"],
+ impact:["Impact","Impact,'Arial Black','Cairo',sans-serif"],
+ georgia:["Georgia","Georgia,'Times New Roman',serif"],
+ oswald:["Oswald","'Oswald',Impact,sans-serif"],
+ bebas:["Bebas Neue","'Bebas Neue',Impact,sans-serif"],
+ mono:["Courier New","'Courier New',monospace"]
+};
+const PALETTE=[
+ ["أبيض ناصع<br>Pure White","#FFFFFF"],["أخضر زمردي<br>Emerald","#00A86B"],["أحمر قرمزي<br>Crimson","#D91E36"],["رمادي فولاذي<br>Steel Gray","#C9D1D9"]];
+const PALETTE_BR=[
+ ["دو<br>Doux","#3B9CFF"],["داري<br>Dari","#E5484D"],["الهبرة<br>Al Habra","#C98B4B"],["السعودي<br>Saudi","#2FB36E"],["عام<br>General","#C9D1D9"]];
+const PALETTE_SEC=[
+ ["ليموني<br>Lime","#B8FF00"],["فوشيا<br>Fuchsia","#FF1F8E"],["وردي مرجاني<br>Coral","#FF6B9A"],["بنفسجي<br>Violet","#8A2BE2"],
+ ["سماوي<br>Cyan","#00D8FF"],["نعناعي<br>Mint","#2BFFA6"],["أحمر ساطع<br>Red","#FF2A2A"],["أزرق<br>Blue","#2F6BFF"],["تركواز<br>Teal","#00BFA6"]];
+const PRESETS=[["297×105 (عرض A4)",297,105],["420×150 (عرض A3)",420,150],["400×140",400,140],["600×200 (كبير)",600,200],["200×200 مربع",200,200],["105×297 عمودي",105,297]];
+const PAPER={A4:[210,297],A3:[297,420],SRA3:[320,450]};
+const DESIGNS=[["1","كتلة · Block"],["2","عمود جانبي · Side"],["3","شريطان · Sandwich"],["4","تحذير · Hazard"],["5","قطري · Diagonal"],["6","دائرة · Badge"],["7","داكن · Dark"],["8","حبة · Pill"],["9","جاهز A · Ready A"],["10","جاهز B · Ready B"],["11","جاهز C · Ready C"]];
+
+const DEF={design:1,color:'#FFFFFF',w:297,h:105,r:2,flip:0,prot:0,
+ arT:'اسم الصنف',enT:'ITEM NAME',size:'00×000',sizeLbl:'المقاس · SIZE',caption:'المنجم للأغذية · AL-MUNAJEM FOODS',
+ showEN:1,showSize:1,showCap:1,
+ fAR:'tnr',fEN:'tnr',fSZ:'tnr',fw:800,fsAR:34,fsEN:12,fsSZ:15,fscap:7,tcOn:0,tc:'#111111',stk:0,ls:.04,
+ holes:0,cutline:1,els:[],icon:'',chipT:'',chipB:'',warn:'',markShape:'',markDir:0,batch:[],libCat:'ctn',libKey:'',libSel:{},
+ copies:1,seqOn:0,seqFrom:1,seqTo:10,seqPad:2,
+ paper:'A3',orient:'landscape',margin:6,gap:8};
+let S=JSON.parse(JSON.stringify(DEF));
+let sel=null, Z=1, view='editor', tabNow='lib', rackOn=false;
+
+/* ---------- helpers ---------- */
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function sub(t,n){return String(t==null?'':t).replace(/\{n\}/g,String(n).padStart(S.seqPad||1,'0'));}
+function hex2rgb(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');return[parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)];}
+function lum(h){const f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)};const[r,g,b]=hex2rgb(h);return .2126*f(r)+.7152*f(g)+.0722*f(b);}
+function tint(h){const[r,g,b]=hex2rgb(h);const m=v=>Math.round(v+(255-v)*.82).toString(16).padStart(2,'0');return '#'+m(r)+m(g)+m(b);}
+function lite(h){if(lum(h)>.18)return h;const[r,g,b]=hex2rgb(h);const m=v=>Math.round(v+(255-v)*.6).toString(16).padStart(2,'0');return '#'+m(r)+m(g)+m(b);}
+function inkFor(h){return lum(h)>.32?'#111111':'#ffffff';}
+function hueOf(h){let[r,g,b]=hex2rgb(h).map(v=>v/255);const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;if(!d)return{h:0,s:0,l:mx};let hh=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;hh=(hh*60+360)%360;return{h:hh,s:d/(1-Math.abs(mx+mn-1)||1),l:(mx+mn)/2};}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2200);}
+function uid(){return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+const fam=k=>(FONTS[k]||FONTS.cairo)[1];
+const r1=v=>Math.round(v*10)/10;
+
+/* ---------- Code 39 ---------- */
+const C39={'0':'nnnwwnwnn','1':'wnnwnnnnw','2':'nnwwnnnnw','3':'wnwwnnnnn','4':'nnnwwnnnw','5':'wnnwwnnnn','6':'nnwwwnnnn','7':'nnnwnnwnw','8':'wnnwnnwnn','9':'nnwwnnwnn','A':'wnnnnwnnw','B':'nnwnnwnnw','C':'wnwnnwnnn','D':'nnnnwwnnw','E':'wnnnwwnnn','F':'nnwnwwnnn','G':'nnnnnwwnw','H':'wnnnnwwnn','I':'nnwnnwwnn','J':'nnnnwwwnn','K':'wnnnnnnww','L':'nnwnnnnww','M':'wnwnnnnwn','N':'nnnnwnnww','O':'wnnnwnnwn','P':'nnwnwnnwn','Q':'nnnnnnwww','R':'wnnnnnwwn','S':'nnwnnnwwn','T':'nnnnwnwwn','U':'wwnnnnnnw','V':'nwwnnnnnw','W':'wwwnnnnnn','X':'nwnnwnnnw','Y':'wwnnwnnnn','Z':'nwwnwnnnn','-':'nwnnnnwnw','.':'wwnnnnwnn',' ':'nwwnnnwnn','*':'nwnnwnwnn'};
+function barcodeSVG(text,col){
+ const t='*'+String(text).toUpperCase().replace(/[^0-9A-Z\-\. ]/g,'')+'*';
+ let x=0,rects='';
+ for(const ch of t){const p=C39[ch];if(!p)continue;for(let i=0;i<9;i++){const w=p[i]==='w'?2.6:1;if(i%2===0)rects+=`<rect x="${r1(x)}" y="0" width="${w}" height="100"/>`;x+=w;}x+=1;}
+ return `<svg viewBox="0 0 ${r1(x)} 100" preserveAspectRatio="none" fill="${col}">${rects}</svg>`;
+}
+
+/* ---------- element rendering ---------- */
+function elHTML(e,n){
+ const rot=(e.rot||0)+(e.type==='arrow'?(e.dir||0)*90:0);
+ const st=`left:${e.x}mm;top:${e.y}mm;width:${e.w}mm;height:${e.h}mm;transform:rotate(${rot}deg);`;
+ const a=`data-id="${e.id}"`;
+ switch(e.type){
+  case 'line': return `<div class="el line" ${a} style="${st}"><i style="border-top:${e.th}mm ${e.dash} ${e.col}"></i></div>`;
+  case 'arrow': return `<div class="el" ${a} style="${st}"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="50,4 96,52 70,52 70,96 30,96 30,52 4,52" fill="${e.col}" stroke="${e.th>0?'#111':'none'}" stroke-width="${e.th*3}" stroke-linejoin="round"/></svg></div>`;
+  case 'box': return `<div class="el" ${a} style="${st}border:${e.th}mm solid ${e.col};border-radius:${e.rad||0}mm;background:${e.bgOn?e.bg:'transparent'}"></div>`;
+  case 'circle': return `<div class="el" ${a} style="${st}border:${e.th}mm solid ${e.col};border-radius:50%;background:${e.bgOn?e.bg:'transparent'}"></div>`;
+  case 'warn': return `<div class="el" ${a} style="${st}"><svg viewBox="0 0 100 90" preserveAspectRatio="xMidYMid meet"><polygon points="50,5 96,85 4,85" fill="${e.col}" stroke="#111" stroke-width="6" stroke-linejoin="round"/><rect x="45" y="30" width="10" height="29" fill="#111"/><rect x="45" y="65" width="10" height="10" fill="#111"/></svg></div>`;
+  case 'bar': return `<div class="el bc" ${a} style="${st}">${barcodeSVG(sub(e.text,n),e.col)}<div style="color:${e.col}">${esc(sub(e.text,n))}</div></div>`;
+  case 'stripes': return `<div class="el" ${a} style="${st}background:repeating-linear-gradient(-45deg,${e.col} 0 ${e.th}mm,#111 ${e.th}mm ${e.th*2}mm);border:.6mm solid #111"></div>`;
+  case 'text': return `<div class="el txt" ${a} style="${st}color:${e.col};font-family:${fam(e.fam)};font-size:${e.fs}mm;font-weight:${e.fw};background:${e.bgOn?e.bg:'transparent'};border-radius:${e.rad||0}mm">${esc(sub(e.text,n))}</div>`;
+ }
+ return '';
+}
+
+/* ---------- label builder ---------- */
+function titleDefault(s){const ink=inkFor(s.color);return s.design==1?ink:s.design==7?lite(s.color):'#111111';}
+function buildLabel(s,n,o={}){
+ const ink=inkFor(s.color);
+ const tc=s.tcOn?s.tc:titleDefault(s);
+ const tcs=lum(tc)>.4?'#111111':'#ffffff';
+ const tc2=s.design==7?'#e9e9e9':tc;
+ const sty=[`width:${s.w}mm`,`height:${s.h}mm`,`border-radius:${s.r}mm`,`--c:${s.color}`,`--cl:${lite(s.color)}`,`--ct:${tint(s.color)}`,`--ink:${ink}`,`--fsar:${s.fsAR}`,`--fsen:${s.fsEN}`,`--fssz:${s.fsSZ}`,`--fscap:${s.fscap}`,`--fw:${s.fw}`,`--far:${fam(s.fAR)}`,`--fen:${fam(s.fEN)}`,`--fsz:${fam(s.fSZ)}`,`--ls:${s.ls}em`,`--stk:${s.stk}cqh`,`--s:${s.flip?-1:1}`,`--tc:${tc}`,`--tcs:${tcs}`,`--tc2:${tc2}`,`direction:${s.flip?'ltr':'rtl'}`].join(';');
+ const els=o.noEls?'':s.els.map(e=>elHTML(e,n)).join('');
+ const html=`<div class="L d${s.design}${s.markShape?' hasmk':''}" style="${sty}"><div class="in"><div class="deco"></div>`
+  +(s.showCap&&s.caption?`<div class="cap" data-fit>${esc(sub(s.caption,n))}</div>`:'')
+  +`<div class="main"><div class="ar" data-fit dir="auto">${esc(sub(s.arT,n))}</div>`
+  +(s.showEN&&s.enT?`<div class="en" data-fit>${esc(sub(s.enT,n))}</div>`:'')+`</div>`
+  +(s.showSize?`<div class="size"><span class="sl">${esc(sub(s.sizeLbl,n))}</span><b class="sv" data-fit>${esc(sub(s.size,n))}</b></div>`:'')
+  +(s.icon&&ICONS[s.icon]?`<div class="ico">${ICONS[s.icon]}</div>`:'')
+  +(s.chipT?chipHTML('chipT',sub(s.chipT,n)):'')
+  +(s.chipB?chipHTML('chipB',sub(s.chipB,n)):'')
+  +(s.warn?chipHTML('warn',sub(s.warn,n)):'')+markHTML(s)
+  +(s.holes?`<div class="holes"><i></i><i></i></div>`:'')
+  +`<div class="els">${els}</div></div></div>`;
+ const t=document.createElement('div');t.innerHTML=html;return t.firstElementChild;
+}
+const SHAPES={circle:'<circle cx="32" cy="32" r="28"/>',square:'<rect x="6" y="6" width="52" height="52" rx="7"/>',triangle:'<polygon points="32,5 60,58 4,58" stroke-linejoin="round"/>',diamond:'<polygon points="32,3 61,32 32,61 3,32" stroke-linejoin="round"/>',hexagon:'<polygon points="32,3 58,17.5 58,46.5 32,61 6,46.5 6,17.5" stroke-linejoin="round"/>',star:'<polygon points="32,3 40,23 61,24 45,38 50,59 32,47 14,59 19,38 3,24 24,23" stroke-linejoin="round"/>'};
+function markHTML(s){
+ if(!s.markShape||!SHAPES[s.markShape])return '';
+ const ty=s.markShape==='triangle'?8:s.markShape==='star'?3:0;
+ return `<div class="mk"><svg viewBox="0 0 64 64"><g fill="${s.color}" stroke="#1d1d1d" stroke-width="3.6">${SHAPES[s.markShape]}</g><g transform="translate(0 ${ty}) rotate(${(s.markDir||0)*90} 32 34)"><polygon points="32,15 47,33 38,33 38,51 26,51 26,33 17,33" fill="${inkFor(s.color)}" stroke="#1d1d1d" stroke-width="2.4" stroke-linejoin="round"/></g></svg></div>`;
+}
+function chipHTML(cls,t){const p=String(t).split(' · ');return `<div class="chip ${cls}">${p.map(x=>`<b data-fit>${esc(x)}</b>`).join('')}</div>`;}
+function fitAll(root){
+ $$('[data-fit]',root).forEach(el=>{
+  el.style.fontSize='';
+  let fs=parseFloat(getComputedStyle(el).fontSize),i=0;
+  while(el.scrollWidth>el.clientWidth+1&&fs>3&&i++<60){fs*=.95;el.style.fontSize=fs+'px';}
+ });
+ const m=$('.main',root);
+ if(m){let i=0;const ar=$('.ar',m),en=$('.en',m);
+  while(m.scrollHeight>m.clientHeight+1&&i++<30){
+   [ar,en].forEach(x=>{if(x)x.style.fontSize=(parseFloat(getComputedStyle(x).fontSize)*.95)+'px';});
+  }}
+}
+
+/* ---------- stage ---------- */
+function autoZoom(){const st=$('#stage');const pad=rackOn?320:56;const aw=st.clientWidth-pad,ah=st.clientHeight-(rackOn?200:56);return Math.max(.05,Math.min(2,aw/(S.w*MM),ah/(S.h*MM)));}
+function renderStage(){
+ const host=$('#labelHost'),box=$('#zoombox');
+ host.innerHTML='';
+ $('#rackbg')&&$('#rackbg').remove();
+ $('#stage').classList.toggle('rack',rackOn);
+ if(rackOn){const rb=document.createElement('div');rb.id='rackbg';box.insertBefore(rb,host);}
+ const L=buildLabel(S,S.seqFrom);
+ host.appendChild(L);
+ host.style.transform=`scale(${Z})`;host.style.setProperty('--z',Z);
+ $('#stage').style.setProperty('--z',Z);
+ box.style.width=S.w*MM*Z+'px';box.style.height=S.h*MM*Z+'px';
+ if(sel){const n=$(`.el[data-id="${sel}"]`,L);if(n){n.classList.add('sel');n.insertAdjacentHTML('beforeend','<span class="hnd rs"></span><span class="hnd rt"></span>');}else sel=null;}
+ fitAll(L);
+ $('#zVal').textContent=Math.round(Z*100)+'%';
+}
+
+/* ---------- gallery / palette ---------- */
+function renderGallery(){
+ const g=$('#gallery');g.innerHTML='';
+ DESIGNS.forEach(([id,name])=>{
+  const b=document.createElement('button');b.className=S.design==id?'on':'';
+  const tw=150,z=tw/(S.w*MM);
+  const th=document.createElement('div');th.className='th';th.style.width=tw+'px';th.style.height=S.h*MM*z+'px';
+  const ex=+id>=9?{icon:S.icon||'carton',chipT:S.chipT||'النوع · TYPE',chipB:S.chipB||'الماركة · BRAND'}:{};
+  const L=buildLabel({...S,...ex,design:+id,els:[],holes:0},S.seqFrom,{noEls:true});L.style.transform=`scale(${z})`;th.appendChild(L);
+  b.appendChild(th);b.insertAdjacentHTML('beforeend',name);
+  b.onclick=()=>{S.design=+id;render();};
+  g.appendChild(b);fitAll(L);
+ });
+}
+function renderPalette(){
+ [['#palette',PALETTE],['#paletteBr',PALETTE_BR],['#paletteSec',PALETTE_SEC]].forEach(([sel2,arr])=>{
+  const p=$(sel2);p.innerHTML='';
+  arr.forEach(([n,c])=>{
+   const b=document.createElement('button');b.innerHTML=n;b.style.background=c;b.style.color=inkFor(c);
+   if(S.color.toLowerCase()===c.toLowerCase())b.className='on';
+   b.onclick=()=>{S.color=c;render();syncForm();};p.appendChild(b);
+  });
+ });
+ const hh=hueOf(S.color);
+ $('#colorWarn').classList.toggle('show',hh.s>.5&&hh.l>.35&&hh.h>=25&&hh.h<=70);
+}
+
+/* ---------- elements UI ---------- */
+const MAKE={
+ line:()=>({type:'line',w:r1(S.w*.6),h:6,col:'#111111',th:1.5,dash:'solid'}),
+ arrow:()=>({type:'arrow',w:r1(S.h*.3),h:r1(S.h*.3),col:'#111111',th:0,dir:0}),
+ stripes:()=>({type:'stripes',w:r1(S.w*.5),h:r1(S.h*.09),col:S.color,th:r1(S.h*.04)}),
+ box:()=>({type:'box',w:r1(S.w*.3),h:r1(S.h*.4),col:'#111111',th:1.5,bgOn:0,bg:'#ffffff',rad:2}),
+ circle:()=>({type:'circle',w:r1(S.h*.35),h:r1(S.h*.35),col:'#111111',th:1.5,bgOn:0,bg:'#ffffff'}),
+ warn:()=>({type:'warn',w:r1(S.h*.3),h:r1(S.h*.27),col:S.color}),
+ text:()=>({type:'text',w:r1(S.w*.25),h:r1(S.h*.18),col:'#111111',bgOn:0,bg:'#111111',text:'نص · Text',fs:r1(S.h*.12),fw:700,fam:'cairo',rad:0}),
+ badge:()=>({type:'text',w:r1(S.w*.2),h:r1(S.h*.17),col:S.color,bgOn:1,bg:'#111111',text:'تنبيه · NOTE',fs:r1(S.h*.1),fw:800,fam:'cairo',rad:r1(S.h*.085)}),
+ bar:()=>({type:'bar',w:r1(S.w*.3),h:r1(S.h*.26),col:'#111111',text:'ITEM-{n}'})
+};
+const TYPE_NAME={line:'خط · Line',arrow:'سهم · Arrow',stripes:'شريط تحذير · Hazard',box:'إطار · Frame',circle:'دائرة · Circle',warn:'تنبيه · Warning',text:'نص · Text',bar:'باركود · Barcode'};
+const DASH=[['solid','متصل · Solid'],['dashed','متقطع · Dashed'],['dotted','منقط · Dotted'],['double','مزدوج · Double']];
+const FIELDS={
+ line:[['col','color','اللون · Color'],['th','num','السمك مم · Thickness'],['dash','sel','النمط · Style',DASH]],
+ arrow:[['col','color','اللون · Color'],['dir','sel','الاتجاه · Direction',[[0,'↑ أعلى · Up'],[1,'→ يمين · Right'],[2,'↓ أسفل · Down'],[3,'← يسار · Left']]],['th','num','حد أسود مم · Outline']],
+ stripes:[['col','color','اللون · Color'],['th','num','عرض الخط مم · Stripe width']],
+ box:[['col','color','لون الحد · Border'],['th','num','السمك مم · Thickness'],['bgOn','chk','تعبئة · Fill'],['bg','color','لون التعبئة · Fill color'],['rad','num','استدارة مم · Radius']],
+ circle:[['col','color','لون الحد · Border'],['th','num','السمك مم · Thickness'],['bgOn','chk','تعبئة · Fill'],['bg','color','لون التعبئة · Fill color']],
+ warn:[['col','color','اللون · Color']],
+ text:[['text','text','النص · Text'],['col','color','اللون · Color'],['fs','num','حجم الخط مم · Font size'],['fw','sel','السماكة · Weight',[[400,'400'],[700,'700'],[800,'800'],[900,'900']]],['fam','font','الخط · Font'],['bgOn','chk','خلفية · Background'],['bg','color','لون الخلفية · Bg color'],['rad','num','استدارة مم · Radius']],
+ bar:[['text','text','القيمة · Value (A-Z 0-9 - .)'],['col','color','اللون · Color']]
+};
+const COMMON=[['x','num','X مم'],['y','num','Y مم'],['w','num','العرض · W'],['h','num','الارتفاع · H'],['rot','num','دوران · Rotate °']];
+function getEl(id){return S.els.find(e=>e.id===id);}
+function renderLayers(){
+ const l=$('#layers');l.innerHTML='';
+ if(!S.els.length){l.innerHTML='<p class="hint">لا توجد عناصر. · No elements yet.</p>';return;}
+ [...S.els].reverse().forEach(e=>{
+  const b=document.createElement('button');b.className=e.id===sel?'on':'';
+  const nm=e.type==='text'&&e.bgOn&&e.rad>5?'شارة · Badge':TYPE_NAME[e.type];
+  b.textContent=nm+(e.text?` — ${e.text}`:'');
+  b.onclick=()=>{sel=e.id;render();};l.appendChild(b);
+ });
+}
+function fieldHTML(e,f){
+ const[k,t,l,o]=f,v=e[k];
+ const lab=`<span>${l}</span>`;
+ if(t==='chk')return `<label class="chk"><input type="checkbox" data-p="${k}" ${v?'checked':''}> ${l}</label>`;
+ if(t==='color')return `<label class="f">${lab}<input type="color" data-p="${k}" value="${v}"></label>`;
+ if(t==='text')return `<label class="f">${lab}<input data-p="${k}" value="${esc(v)}"></label>`;
+ if(t==='num')return `<label class="f">${lab}<input type="number" step="0.5" data-p="${k}" value="${r1(v||0)}"></label>`;
+ if(t==='sel')return `<label class="f">${lab}<select data-p="${k}" data-t="n">${o.map(([a,b])=>`<option value="${a}" ${String(a)===String(v)?'selected':''}>${b}</option>`).join('')}</select></label>`;
+ if(t==='font')return `<label class="f">${lab}<select data-p="${k}">${Object.entries(FONTS).map(([a,b])=>`<option value="${a}" ${a===v?'selected':''}>${b[0]}</option>`).join('')}</select></label>`;
+ return '';
+}
+function renderProps(){
+ const p=$('#props'),e=sel&&getEl(sel);
+ if(!e){p.innerHTML='<p class="hint">اختر عنصراً. · Select an element.</p>';return;}
+ p.innerHTML=`<div class="row">${COMMON.slice(0,2).map(f=>fieldHTML(e,f)).join('')}</div><div class="row">${COMMON.slice(2,4).map(f=>fieldHTML(e,f)).join('')}</div>${fieldHTML(e,COMMON[4])}`
+  +(FIELDS[e.type==='text'?'text':e.type]||[]).map(f=>fieldHTML(e,f)).join('')
+  +`<div class="row" style="margin-top:6px"><button class="btn" data-act="dup">نسخ · Duplicate</button><button class="btn" data-act="up">⬆ للأمام</button><button class="btn" data-act="down">⬇ للخلف</button><button class="btn del" data-act="del">حذف · Delete</button></div>`;
+ $$('[data-p]',p).forEach(inp=>{
+  const k=inp.dataset.p;
+  inp.addEventListener(inp.type==='checkbox'||inp.tagName==='SELECT'?'change':'input',()=>{
+   const el=getEl(sel);if(!el)return;
+   let v=inp.type==='checkbox'?(inp.checked?1:0):(inp.type==='number'||inp.dataset.t==='n')?(parseFloat(inp.value)||0):inp.value;
+   el[k]=v;renderStage();renderGallery();renderSheetsIfVisible();persist();
+  });
+ });
+ $$('[data-act]',p).forEach(b=>b.onclick=()=>actEl(b.dataset.act));
+}
+function syncPropsNums(){
+ const e=sel&&getEl(sel);if(!e)return;
+ ['x','y','w','h','rot'].forEach(k=>{const i=$(`#props [data-p="${k}"]`);if(i)i.value=r1(e[k]||0);});
+}
+function actEl(a){
+ const i=S.els.findIndex(e=>e.id===sel);if(i<0)return;
+ if(a==='del'){S.els.splice(i,1);sel=null;}
+ if(a==='dup'){const c={...S.els[i],id:uid(),x:S.els[i].x+4,y:S.els[i].y+4};S.els.push(c);sel=c.id;}
+ if(a==='up'&&i<S.els.length-1){[S.els[i],S.els[i+1]]=[S.els[i+1],S.els[i]];}
+ if(a==='down'&&i>0){[S.els[i],S.els[i-1]]=[S.els[i-1],S.els[i]];}
+ render();
+}
+function addEl(type){
+ const e={id:uid(),x:0,y:0,rot:0,...MAKE[type]()};
+ e.x=r1((S.w-e.w)/2);e.y=r1((S.h-e.h)/2);
+ S.els.push(e);sel=e.id;setTab('els');render();
+}
+
+/* ---------- drag / resize / rotate ---------- */
+(function(){
+ const stage=$('#stage');let drag=null;
+ stage.addEventListener('pointerdown',ev=>{
+  const L=$('#labelHost .L');if(!L)return;
+  const hnd=ev.target.closest('.hnd'),elN=ev.target.closest('.el');
+  if(!elN){if(sel){sel=null;render();}return;}
+  const id=elN.dataset.id,e=getEl(id);if(!e)return;
+  const wasSel=sel===id;
+  if(!wasSel){sel=id;renderLayers();renderProps();$$('#labelHost .el.sel .hnd').forEach(x=>x.remove());$$('#labelHost .el.sel').forEach(x=>x.classList.remove('sel'));elN.classList.add('sel');elN.insertAdjacentHTML('beforeend','<span class="hnd rs"></span><span class="hnd rt"></span>');}
+  const pxmm=L.getBoundingClientRect().width/S.w;
+  const rc=elN.getBoundingClientRect();
+  drag={mode:hnd?(hnd.classList.contains('rs')?'rs':'rt'):'mv',id,sx:ev.clientX,sy:ev.clientY,ox:e.x,oy:e.y,ow:e.w,oh:e.h,orot:e.rot||0,pxmm,cx:rc.left+rc.width/2,cy:rc.top+rc.height/2,node:elN};
+  stage.setPointerCapture(ev.pointerId);ev.preventDefault();
+ });
+ stage.addEventListener('pointermove',ev=>{
+  if(!drag)return;const e=getEl(drag.id);if(!e)return;
+  const dx=(ev.clientX-drag.sx)/drag.pxmm,dy=(ev.clientY-drag.sy)/drag.pxmm;
+  if(drag.mode==='mv'){e.x=r1(drag.ox+dx);e.y=r1(drag.oy+dy);}
+  else if(drag.mode==='rs'){const a=(drag.orot*Math.PI)/180,c=Math.cos(a),s=Math.sin(a);
+   e.w=Math.max(2,r1(drag.ow+dx*c+dy*s));e.h=Math.max(1,r1(drag.oh-dx*s+dy*c));}
+  else{let a=Math.atan2(ev.clientY-drag.cy,ev.clientX-drag.cx)*180/Math.PI+90;a=((a%360)+360)%360;
+   if(ev.shiftKey||Math.abs(a%15)<3||Math.abs(a%15)>12)a=Math.round(a/15)*15;e.rot=Math.round(a%360);}
+  const n=drag.node,rot=(e.rot||0)+(e.type==='arrow'?(e.dir||0)*90:0);
+  n.style.left=e.x+'mm';n.style.top=e.y+'mm';n.style.width=e.w+'mm';n.style.height=e.h+'mm';n.style.transform=`rotate(${rot}deg)`;
+  syncPropsNums();
+ });
+ const end=()=>{if(!drag)return;drag=null;render();};
+ stage.addEventListener('pointerup',end);stage.addEventListener('pointercancel',end);
+ document.addEventListener('keydown',ev=>{
+  if(!sel||/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))return;
+  const e=getEl(sel);if(!e)return;const st=ev.shiftKey?5:.5;
+  if(ev.key==='Delete'||ev.key==='Backspace'){actEl('del');ev.preventDefault();return;}
+  const m={ArrowLeft:[-st,0],ArrowRight:[st,0],ArrowUp:[0,-st],ArrowDown:[0,st]}[ev.key];
+  if(m){e.x=r1(e.x+m[0]);e.y=r1(e.y+m[1]);render();ev.preventDefault();}
+ });
+})();
+
+/* ---------- items & sheets ---------- */
+function items(){
+ const out=[];
+ if(S.batch&&S.batch.length){S.batch.forEach(k=>{if(LIBMAP[k])for(let c=0;c<Math.max(1,S.copies)&&out.length<400;c++)out.push({n:S.seqFrom,key:k});});return out;}
+ if(S.seqOn){const a=Math.min(S.seqFrom,S.seqTo),b=Math.max(S.seqFrom,S.seqTo);for(let i=a;i<=b&&out.length<400;i++)for(let c=0;c<S.copies&&out.length<400;c++)out.push({n:i});}
+ else for(let c=0;c<Math.min(S.copies,400);c++)out.push({n:S.seqFrom});
+ return out;
+}
+function sheetGeom(){
+ const rot=S.prot%180!==0,lw0=rot?S.h:S.w,lh0=rot?S.w:S.h;
+ let pw,ph;
+ if(S.paper==='custom'){pw=lw0+2*(S.gap+S.margin);ph=lh0+2*(S.gap+S.margin);}
+ else{[pw,ph]=PAPER[S.paper].slice();const land=S.orient==='landscape';if(land!==(pw>ph))[pw,ph]=[ph,pw];}
+ const k=Math.min(1,(pw-2*S.margin-2*S.gap)/lw0,(ph-2*S.margin-2*S.gap)/lh0);
+ const lw=lw0*k,lh=lh0*k,cw=lw+2*S.gap,ch=lh+2*S.gap;
+ const cols=Math.max(1,Math.floor((pw-2*S.margin+1e-6)/cw)),rows=Math.max(1,Math.floor((ph-2*S.margin+1e-6)/ch));
+ return{pw,ph,k,lw0,lh0,lw,lh,cw,ch,cols,rows,rot};
+}
+function marksSVG(g){
+ const G=S.gap,x1=G,x2=G+g.lw,y1=G,y2=G+g.lh,m=.8,L=[];
+ [[x1,y1,-1,-1],[x2,y1,1,-1],[x1,y2,-1,1],[x2,y2,1,1]].forEach(([x,y,sx,sy])=>{
+  L.push(`<line x1="${x+sx*m}" y1="${y}" x2="${x+sx*(G-m)}" y2="${y}"/>`);
+  L.push(`<line x1="${x}" y1="${y+sy*m}" x2="${x}" y2="${y+sy*(G-m)}"/>`);
+ });
+ return `<svg width="${g.cw}mm" height="${g.ch}mm" viewBox="0 0 ${g.cw} ${g.ch}" stroke="#000" stroke-width=".25" fill="none">${L.join('')}</svg>`;
+}
+function renderSheets(){
+ const host=$('#sheets');host.innerHTML='';
+ const g=sheetGeom(),list=items(),per=g.cols*g.rows,pages=Math.max(1,Math.ceil(list.length/per));
+ $('#pageStyle').textContent=`@page{size:${r1(g.pw)}mm ${r1(g.ph)}mm;margin:0}`;
+ const avail=($('#sheetView').clientWidth||900)-56;
+ const sz=Math.min(1,avail/(g.pw*MM));
+ const ox=(g.pw-g.cols*g.cw)/2,oy=(g.ph-g.rows*g.ch)/2;
+ const orient=g.pw>=g.ph?'أفقي · Landscape':'عمودي · Portrait';
+ const paperName=S.paper==='custom'?'مخصص · Custom':S.paper;
+ for(let p=0;p<pages;p++){
+  const wrap=document.createElement('div');wrap.className='sheetwrap';wrap.style.setProperty('--sz',sz);
+  const chunk=list.slice(p*per,(p+1)*per);
+  wrap.innerHTML=`<div class="pagebar"><button class="sqbtn" data-pr title="Print"><b>⎙</b>طباعة<br>Print</button><button class="sqbtn alt" data-sh title="Share"><b>⇪</b>مشاركة<br>Share</button><div class="pw">ورقة ${p+1}/${pages} · ${paperName} · ${orient} · ${r1(g.pw)}×${r1(g.ph)} مم · ${chunk.length} ليبل (${g.cols}×${g.rows})${g.k<1?` <span class="pwarn">· تصغير ${Math.round(g.k*100)}٪ ليناسب الورقة · scaled to fit</span>`:''}</div></div>`;
+  const sheet=document.createElement('div');sheet.className='sheet';sheet.style.width=g.pw+'mm';sheet.style.height=g.ph+'mm';
+  chunk.forEach((it,i)=>{
+   const c=i%g.cols,r=Math.floor(i/g.cols);
+   const cell=document.createElement('div');cell.className='cell';
+   cell.style.cssText=`left:${r1(ox+c*g.cw)}mm;top:${r1(oy+r*g.ch)}mm;width:${g.cw}mm;height:${g.ch}mm`;
+   cell.innerHTML=marksSVG(g);
+   const k=document.createElement('div');k.className='lwk';k.style.cssText=`left:${S.gap}mm;top:${S.gap}mm;transform:scale(${g.k})`;
+   const lw=document.createElement('div');lw.className='lw'+(S.cutline?' cut':'');lw.style.cssText=`width:${g.lw0}mm;height:${g.lh0}mm;border-radius:${S.prot%180?0:S.r}mm`;
+   const L=buildLabel(it.key?applyItem(S,it.key):S,it.n);L.style.position='absolute';L.style.left='0';L.style.top='0';L.style.transformOrigin='0 0';
+   L.style.transform=S.prot==90?`translate(0,${S.w}mm) rotate(-90deg)`:S.prot==270?`translate(${S.h}mm,0) rotate(90deg)`:S.prot==180?`translate(${S.w}mm,${S.h}mm) rotate(180deg)`:'none';
+   lw.appendChild(L);k.appendChild(lw);cell.appendChild(k);sheet.appendChild(cell);
+  });
+  wrap.appendChild(sheet);host.appendChild(wrap);
+ }
+ $$('[data-pr]',host).forEach(b=>b.onclick=doPrint);$$('[data-sh]',host).forEach(b=>b.onclick=doShare);
+ $$('.L',host).forEach(fitAll);
+ $('#printSummary').innerHTML=`${paperName} · ${orient} · ${r1(g.pw)}×${r1(g.ph)} مم<br>${g.cols}×${g.rows} = ${per} ليبل بالورقة · ${list.length} ليبل · ${pages} ورقة${g.k<1?`<br><b style="color:#b3261e">تصغير ${Math.round(g.k*100)}٪ — اختر ورقة أكبر أو «مخصص» للحجم الفعلي.<br>Scaled ${Math.round(g.k*100)}% — pick a larger paper or “Fit label” for true size.</b>`:''}`;
+}
+function renderSheetsIfVisible(){if(view==='sheet')renderSheets();else{const g=sheetGeom(),l=items();$('#printSummary').innerHTML=`${r1(g.pw)}×${r1(g.ph)} مم · ${g.cols}×${g.rows} = ${g.cols*g.rows} ليبل بالورقة · ${l.length} ليبل · ${Math.ceil(l.length/(g.cols*g.rows))} ورقة${g.k<1?`<br><b style="color:#b3261e">تصغير ${Math.round(g.k*100)}٪ ليناسب الورقة · scaled to fit</b>`:''}`;}}
+
+/* ---------- print / share ---------- */
+let prevView=null;
+function doPrint(){showView('sheet');setTimeout(()=>window.print(),80);}
+window.addEventListener('beforeprint',()=>{prevView=view;if(view!=='sheet')showView('sheet');else renderSheets();});
+window.addEventListener('afterprint',()=>{if(prevView&&prevView!=='sheet')showView(prevView);prevView=null;});
+function encodeState(){return btoa(unescape(encodeURIComponent(JSON.stringify(S))));}
+async function doShare(){
+ const url=location.href.split('#')[0]+'#d='+encodeState();
+ try{
+  if(navigator.share){await navigator.share({title:'Label Studio',text:S.arT+' '+S.size,url});return;}
+ }catch(e){if(e&&e.name==='AbortError')return;}
+ try{await navigator.clipboard.writeText(url);toast('تم نسخ رابط التصميم · Design link copied');}
+ catch(e){const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();try{document.execCommand('copy');toast('تم نسخ رابط التصميم · Design link copied');}catch(_){toast('تعذر النسخ — استخدم تنزيل JSON · Use JSON download');}t.remove();}
+}
+
+/* ---------- state / persistence ---------- */
+function persist(){try{localStorage.setItem('labelStudio.state.v5',JSON.stringify(S));}catch(e){}}
+function loadInitial(){
+ try{
+  const m=location.hash.match(/#d=(.+)$/);
+  if(m){S={...DEF,...JSON.parse(decodeURIComponent(escape(atob(m[1]))))};return;}
+ }catch(e){}
+ try{const j=localStorage.getItem('labelStudio.state.v3');if(j)S={...DEF,...JSON.parse(j)};}catch(e){}
+}
+function getTpls(){try{return JSON.parse(localStorage.getItem('labelStudio.tpl.v1')||'{}');}catch(e){return{};}}
+function renderTpls(){
+ const l=$('#tplList'),t=getTpls();l.innerHTML='';
+ const ks=Object.keys(t);
+ if(!ks.length){l.innerHTML='<p class="hint">لا توجد قوالب محفوظة. · None saved.</p>';return;}
+ ks.forEach(k=>{
+  const row=document.createElement('div');row.className='row';
+  row.innerHTML=`<button style="text-align:start" class="btn">${esc(k)}</button><button class="btn del" style="flex:none;width:44px">✕</button>`;
+  row.children[0].onclick=()=>{S={...DEF,...JSON.parse(JSON.stringify(t[k]))};sel=null;Z=autoZoom();render();syncForm();toast('تم التحميل · Loaded');};
+  row.children[1].onclick=()=>{const tt=getTpls();delete tt[k];try{localStorage.setItem('labelStudio.tpl.v1',JSON.stringify(tt));}catch(e){}renderTpls();};
+  l.appendChild(row);
+ });
+}
+
+/* ---------- form binding ---------- */
+function readVal(el){
+ if(el.type==='checkbox')return el.checked?1:0;
+ if(el.dataset.t==='n'||el.type==='number'||el.type==='range'){const v=parseFloat(el.value);return isNaN(v)?0:v;}
+ return el.value;
+}
+function syncForm(){
+ $$('[data-k]').forEach(el=>{const v=S[el.dataset.k];if(el.type==='checkbox')el.checked=!!v;else el.value=v;});
+ $$('.rv').forEach(r=>{r.textContent=S[r.dataset.for];});
+ const pr=$('#preset');pr.value=(PRESETS.findIndex(p=>p[1]===S.w&&p[2]===S.h)+'');if(pr.value==='-1')pr.value='c';
+}
+function bindForm(){
+ $$('[data-k]').forEach(el=>{
+  const k=el.dataset.k,ev=(el.type==='checkbox'||el.tagName==='SELECT')?'change':'input';
+  el.addEventListener(ev,()=>{
+   S[k]=readVal(el);
+   const rv=$(`.rv[data-for="${k}"]`);if(rv)rv.textContent=S[k];
+   if(k==='w'||k==='h'){const pr=$('#preset');const i=PRESETS.findIndex(p=>p[1]===S.w&&p[2]===S.h);pr.value=i<0?'c':String(i);Z=autoZoom();}
+   render(k==='arT'||k==='enT'||k==='size'?{light:false}:undefined);
+  });
+ });
+ $$('.fontsel').forEach(s=>s.innerHTML=Object.entries(FONTS).map(([k,v])=>`<option value="${k}">${v[0]}</option>`).join(''));
+ const pr=$('#preset');pr.innerHTML=PRESETS.map((p,i)=>`<option value="${i}">${p[0]}</option>`).join('')+'<option value="c">مخصص · Custom</option>';
+ pr.onchange=()=>{if(pr.value==='c')return;const p=PRESETS[+pr.value];S.w=p[1];S.h=p[2];Z=autoZoom();syncForm();render();};
+}
+
+/* ---------- tabs / views ---------- */
+function setTab(t){tabNow=t;setTimeout(()=>{if(t==='design')renderGallery();if(t==='lib')renderLibrary();},0);$$('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));$$('.pane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+t));}
+function showView(v){
+ view=v;$$('.views button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+ $('#editorView').classList.toggle('hide',v!=='editor');$('#sheetView').classList.toggle('hide',v!=='sheet');
+ if(v==='sheet')renderSheets();else{Z=Z||autoZoom();renderStage();}
+}
+
+/* ---------- main render ---------- */
+function updateReadouts(){
+ const bi=$('#batchInfo');if(bi)bi.innerHTML=S.batch&&S.batch.length?`دفعة نشطة: <b>${S.batch.length}</b> صنف × ${S.copies} نسخة — <a href="#" id="bOff">إلغاء · clear</a>`:'لا توجد دفعة. · No batch.';
+ const bo=$('#bOff');if(bo)bo.onclick=e=>{e.preventDefault();batchClear();};
+ const fontMm=S.fsAR/100*S.h,cap=fontMm*.65,comfy=cap/8.3;
+ $('#legib').innerHTML=`ارتفاع الحرف التقريبي ≈ <b>${Math.round(cap)} مم</b><br>مسافة قراءة مريحة ≈ <b>${comfy.toFixed(1)} م</b> · قصوى ≈ <b>${(comfy*3).toFixed(0)} م</b><br><span style="color:#6a7488">Letter height ≈ ${Math.round(cap)} mm · comfortable ≈ ${comfy.toFixed(1)} m · max ≈ ${(comfy*3).toFixed(0)} m (estimate)</span>`;
+ const rot=S.prot?` · طباعة ${S.prot}° / print ${S.prot}°`:'';
+ $('#dims').innerHTML=`<b>${S.w}×${S.h} مم</b> · ${S.w>=S.h?'أفقي · Landscape':'عمودي · Portrait'} · ${S.paper==='custom'?'ورقة مخصصة · custom paper':S.paper+' '+(S.orient==='landscape'?'أفقي':'عمودي')}${rot}`;
+}
+function render(){
+ renderPalette();renderGallery();if(tabNow==='lib')renderLibrary();renderLayers();renderProps();
+ if(view==='editor')renderStage();else renderSheets();
+ renderSheetsIfVisible();updateReadouts();persist();
+}
+
+/* ---------- ready library ---------- */
+const sv=i=>`<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round">${i}</svg>`;
+const ICONS={
+ carton:sv('<path d="M8 22 32 10 56 22v24L32 58 8 46Z"/><path d="M8 22l24 12 24-12M32 34v24"/>'),
+ roll:sv('<ellipse cx="32" cy="16" rx="20" ry="8"/><path d="M12 16v32c0 4.4 9 8 20 8s20-3.6 20-8V16"/><ellipse cx="32" cy="16" rx="7" ry="3"/>'),
+ box:sv('<rect x="9" y="26" width="46" height="28" rx="3"/><rect x="7" y="13" width="50" height="13" rx="3"/><path d="M26 36h12"/>'),
+ bag:sv('<path d="M14 10h36v42a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4Z"/><path d="M14 20h36M24 28h16"/>'),
+ tape:sv('<circle cx="30" cy="32" r="20"/><circle cx="30" cy="32" r="8"/><path d="M48 42h12"/>'),
+ ribbon:sv('<circle cx="20" cy="22" r="10"/><circle cx="44" cy="42" r="10"/><path d="M28 28l8 8M20 32v14h14"/>'),
+ clip:sv('<path d="M18 10h28v20H18Z"/><path d="M32 30v26M24 56h16"/>'),
+ glue:sv('<path d="M16 54h32l-4-30H20Z"/><path d="M26 24v-12h12v12"/>'),
+ wrap:sv('<rect x="14" y="10" width="36" height="44" rx="4"/><ellipse cx="32" cy="10" rx="18" ry="5"/><path d="M14 26c8 4 28 4 36 0M14 38c8 4 28 4 36 0"/>'),
+ label:sv('<rect x="8" y="14" width="48" height="36" rx="4"/><path d="M8 38c10 0 18 2 22 12"/><path d="M18 24h28M18 31h18"/>'),
+ jar:sv('<rect x="16" y="20" width="32" height="36" rx="5"/><rect x="20" y="10" width="24" height="10" rx="2"/><path d="M24 34h16M24 42h16"/>'),
+ sack:sv('<path d="M18 8h28l6 14v32H12V22Z"/><path d="M18 8l4 12h20l4-12"/>'),
+ bottle:sv('<path d="M26 8h12v10l7 9v29H19V27l7-9Z"/><path d="M19 38h26"/>'),
+ cap:sv('<path d="M12 42C12 20 52 20 52 42Z"/><path d="M8 46h48"/>')
+};
+const ICON_NAMES={'':'— بدون · none',carton:'كرتون · Carton',roll:'رول · Roll',box:'علبة · Box',bag:'كيس · Bag',tape:'شريط · Tape',ribbon:'ريبون · Ribbon',clip:'كلبس · Clip',glue:'غراء · Glue',wrap:'ستريتش · Wrap',label:'ملصق · Label',jar:'برطمان · Jar',sack:'شوال · Sack',bottle:'زجاجة · Bottle',cap:'غطاء · Cap'};
+const BRN={DX:['دو','DOUX','#3B9CFF'],DR:['داري','DARI','#E5484D'],HB:['الهبرة','AL HABRA','#C98B4B'],SA:['السعودي','SAUDI','#2FB36E'],GN:['عام','GENERAL','#C9D1D9']};
+const CATS=[
+ {id:'ctn',ar:'كراتين',en:'CARTONS',icon:'carton',chipT:'كرتون · CARTON',color:'#D9A864'},
+ {id:'pls',ar:'بلاستيك',en:'PLASTIC ROLLS',icon:'roll',chipT:'رول بلاستيك · PLASTIC ROLL',color:'#2EC4B6'},
+ {id:'box',ar:'علب التعبئة',en:'PACKAGING BOXES',icon:'box',chipT:'علبة تعبئة · PACK BOX',color:'#B197FC'},
+ {id:'sup',ar:'مستلزمات التعبئة',en:'PACKING SUPPLIES',icon:'tape',chipT:'مستلزمات تعبئة · SUPPLIES',color:'#C9D1D9'},
+ {id:'frm',ar:'التشكيل',en:'FORMING',icon:'sack',chipT:'التشكيل · FORMING',color:'#D9B382'},
+ {id:'prp',ar:'التحضير',en:'PREPARATION',icon:'sack',chipT:'التحضير · PREP',color:'#5CC8D7'},
+ {id:'spc',ar:'البهارات',en:'SPICES',icon:'jar',chipT:'البهارات · SPICES',color:'#E57373'},
+ {id:'san',ar:'التطهير',en:'SANITATION',icon:'cap',chipT:'التطهير · SANITATION',color:'#B8A9E8'}
+];
+/* row = [no, brand, ar, en, size, variantAr, variantEn, icon] */
+const RAW={
+ ctn:[
+  [1,'SA','كرتون لحم بقري مفروم أنعام سعودي','CARTON BEEF MINCE ANAM SAUDI','20 × 400'],
+  [2,'HB','كرتون هبرة ضأن مفروم أنعام سعودي','CARTON MUTTON MINCE ANAM SAUDI AL HABRA','20 × 400'],
+  [3,'SA','كرتون ضأن مفروم أنعام سعودي','CARTON MUTTON MINCE ANAM SAUDI','20 × 400'],
+  [4,'DR','كرتون ضأن مفروم داري','CARTON MUTTON MINCE DARI','20 × 400'],
+  [5,'SA','كرتون دجاج مفروم داري','CARTON CHICKEN MINCE DARI','20 × 400'],
+  [6,'DR','كرتون صدور دجاج داري','CARTON CHICKEN BREAST DARI','10 × 1'],
+  [7,'DR','كرتون صدور دجاج داري','CARTON CHICKEN BREAST DARI','5 × 2'],
+  [8,'DX','كرتون صدور دجاج دو','CARTON CHICKEN BREAST DOUX','10 × 1'],
+  [9,'DX','كرتون صدور دجاج دو','CARTON CHICKEN BREAST DOUX','5 × 2'],
+  [10,'DX','كرتون ستربس دجاج دو عادي','CARTON DOUX REGULAR CHICKEN STRIPS','12 × 700'],
+  [11,'DX','كرتون ستربس دجاج دو سبايسي','CARTON DOUX SPICY CHICKEN STRIPS','12 × 700'],
+  [12,'HB','كرتون برجر دجاج بقسماط الهبرة','CARTON BREADED BURGER AL HABRA','8 × 885'],
+  [13,'DX','كرتون برجر دجاج دو','CARTON CHICKEN BURGER DOUX','12 × 660'],
+  [14,'DX','كرتون برجر دجاج بقسماط دو','CARTON CHICKEN BREADED BURGER DOUX','12 × 660'],
+  [15,'DX','كرتون ناجتس دجاج بقسماط دو','CARTON CHICKEN BREADED NUGGETS DOUX','12 × 500'],
+  [16,'DX','كرتون ناجتس دجاج بقسماط دو','CARTON CHICKEN BREADED NUGGETS DOUX','10 × 1'],
+  [17,'DX','كرتون فنجر دجاج بقسماط دو','CARTON CHICKEN BREADED FINGERS DOUX','12 × 500'],
+  [18,'DX','كرتون ستيك دجاج بقسماط دو','CARTON CHICKEN BREADED STEAK DOUX','12 × 500']],
+ pls:[
+  [1,'DR','صدور دجاج داري','CHICKEN BREAST DARI','10 × 1','ملون','COLORED'],
+  [2,'DX','صدور دجاج دو','CHICKEN BREAST DOUX','10 × 1','ملون','COLORED'],
+  [3,'DR','صدور دجاج داري','CHICKEN BREAST DARI','5 × 2','ملون','COLORED'],
+  [4,'DX','صدور دجاج دو','CHICKEN BREAST DOUX','5 × 2','ملون','COLORED'],
+  [5,'DX','ستربس دو عادي','DOUX REGULAR STRIPS','12 × 700','ملون','COLORED'],
+  [6,'DX','ستربس دو سبايسي','DOUX SPICY STRIPS','12 × 700','ملون','COLORED'],
+  [7,'DX','ناجتس بقسماط دو','BREADED NUGGETS DOUX','10 × 1','ملون','COLORED'],
+  [8,'HB','برجر بقسماط الهبرة','BREADED BURGER AL HABRA','8 × 885','ملون','COLORED'],
+  [9,'HB','برجر بقسماط الهبرة','BREADED BURGER AL HABRA','8 × 885','أبيض','WHITE'],
+  [10,'DX','برجر بقسماط دو','BREADED BURGER DOUX','12 × 660','أبيض','WHITE'],
+  [11,'DX','ناجتس بقسماط دو','BREADED NUGGETS DOUX','12 × 500','أبيض','WHITE'],
+  [12,'DX','ناجتس بقسماط دو','BREADED NUGGETS DOUX','10 × 1','أبيض','WHITE'],
+  [13,'DX','فنجر بقسماط دو','BREADED FINGERS DOUX','12 × 500','أبيض','WHITE'],
+  [14,'DX','ستيك بقسماط دو','BREADED STEAK DOUX','12 × 500','أبيض','WHITE'],
+  [15,'DX','ستربس دو عادي','REGULAR STRIPS DOUX','700 GM','أبيض','WHITE'],
+  [16,'DX','ستربس دو سبايسي','SPICY STRIPS DOUX','700 GM','أبيض','WHITE'],
+  [17,'DX','صدور دجاج دو','CHICKEN BREAST DOUX','1 KG','أبيض','WHITE'],
+  [18,'DX','صدور دجاج دو','CHICKEN BREAST DOUX','2 KG','أبيض','WHITE'],
+  [19,'DR','صدور دجاج داري','CHICKEN BREAST DARI','1 KG','أبيض','WHITE'],
+  [20,'DR','صدور دجاج داري','CHICKEN BREAST DARI','2 KG','أبيض','WHITE'],
+  [21,'SA','لحم بقري مفروم أنعام سعودي','BEEF MINCE ANAM SAUDI','20 × 400','فرم','MINCE'],
+  [22,'HB','هبرة ضأن مفروم أنعام سعودي','MUTTON MINCE ANAM SAUDI AL HABRA','20 × 400','فرم','MINCE'],
+  [23,'SA','ضأن مفروم أنعام سعودي','MUTTON MINCE ANAM SAUDI','20 × 400','فرم','MINCE'],
+  [24,'DR','ضأن مفروم داري','MUTTON MINCE DARI','20 × 400','فرم','MINCE'],
+  [25,'SA','دجاج مفروم داري','CHICKEN MINCE DARI','20 × 400','فرم','MINCE'],
+  [26,'GN','فيلم بلاستيك غير مطبوع','UNPRINTED PLASTIC FILM ROLL','510 MM'],
+  [27,'GN','رول فيلم شرينك','SHRINK FILM ROLL','']],
+ box:[
+  [1,'DX','علبة تعبئة فنجر دجاج دو','PACKAGING BOX DOUX CHICKEN FINGERS','500 G'],
+  [2,'DX','علبة تعبئة ناجتس دجاج دو','PACKAGING BOX DOUX CHICKEN NUGGETS','500 G'],
+  [3,'DX','علبة تعبئة ستيك دجاج دو','PACKAGING BOX DOUX CHICKEN STEAK','600 G'],
+  [4,'DX','علبة تعبئة برجر دجاج بقسماط دو','PACKAGING BOX DOUX CHICKEN BREADED BURGER','660 G'],
+  [5,'DX','علبة تعبئة برجر دو','PACKAGING BOX DOUX BURGER','660 G']],
+ sup:[
+  [1,'GN','رول ستريتش تغليف البالتات','STRETCH WRAP ROLL','','','','wrap'],
+  [2,'GN','كلبسات غلق محكم','SEALING CLIPS','','','','clip'],
+  [3,'GN','كلبسات عنق أكياس البرجر','POLY CLIPS FOR BURGER BAGS','','','','clip'],
+  [4,'GN','أكياس سحاب ذاتية اللصق','ZIP-PAK SELF-ADHESIVE ZIP BAGS','','','','bag'],
+  [5,'GN','حبر حراري للكيس (ريبون)','THERMAL TRANSFER RIBBON','','','','ribbon'],
+  [6,'GN','أشرطة الشمع الحراري للكرتون','THERMAL TRANSFER WAX RIBBONS','','','','ribbon'],
+  [7,'GN','لفة ملصقات شبه لامعة أبيض','SEMI-GLOSS LABEL ROLL WHITE','','','','label'],
+  [8,'GN','شريط تثبيت لاصق أبيض / بني','TAN TAB / WHITE TAB','','','','tape'],
+  [9,'GN','شريط الترميز اللوني','COLORED TAB','','','','tape'],
+  [10,'GN','غراء مصهور ساخن','HOT MELT GLUE','','','','glue']],
+ frm:[
+  [1,'','بقسماط مطحون للخبز','GROUND BREADCRUMBS FOR BAKING','','','','sack'],
+  [2,'','بقسماط برتقالي SO.30.N','ORANGE BREADCRUMBS SO.30.N','','','','sack'],
+  [3,'','بقسماط برتقالي للتغطية','ORANGE COATING BREADCRUMBS','','','','sack'],
+  [4,'','بقسماط ناعم T.03-B','FINE BREADCRUMBS T.03-B','','','','sack'],
+  [5,'','بقسماط أبيض خليط 158','WHITE BREADCRUMB MIX 158','','','','sack'],
+  [6,'','باتر تغطية HA-SJ2-LK','COATING BATTER HA-SJ2-LK','','','','sack'],
+  [7,'','نكهة جبنة إيمنتال AROMAX','EMMENTAL CHEESE FLAVOUR AROMAX','','','','jar'],
+  [8,'','أرومكس نكهة مركزة','AROMAX CONCENTRATED FLAVOUR','','','','jar'],
+  [9,'','زيت نباتي مخلوط FRYLITE','BLENDED VEGETABLE OIL FRYLITE','','','','bottle'],
+  [10,'','زيت ذرة ألفا','ALFA CORN OIL','','','','bottle'],
+  [11,'','زيت ماريتا','MARITA OIL','','','','bottle']],
+ prp:[
+  [1,'','صوديوم فوسفات ثلاثي (STPP)','SODIUM TRIPOLYPHOSPHATE (STPP)','25 KG','','','sack'],
+  [2,'','ألياف رابط BINDMF400','BINDER FIBER BINDMF400','','','','sack'],
+  [3,'','دقيق فاخر','PREMIUM FLOUR','','','','sack'],
+  [4,'','نشا ذرة','CORN STARCH','','','','sack'],
+  [5,'','ماسا ملح باليود','MASA IODIZED SALT','','','','sack'],
+  [6,'','أكياس طولية','LONG BAGS','54 × 22.65','','','bag']],
+ spc:[
+  [1,'','فلفل أسود مسحوق','BLACK PEPPER POWDER','1 × 10'],
+  [2,'','مسحوق ثوم','GARLIC POWDER',''],
+  [3,'','مسحوق زنجبيل','GINGER POWDER',''],
+  [4,'','بودرة بصل','ONION POWDER','1 × 10'],
+  [5,'','فلفل أبيض مسحوق','WHITE PEPPER POWDER',''],
+  [6,'','بودرة بصل','ONION POWDER','25 KG','','','sack'],
+  [7,'','بابريكا حلوة','SWEET PAPRIKA',''],
+  [8,'','فلفل حار عالي اللذاعة','EXTRA HOT CHILI PEPPER',''],
+  [9,'','بهارات ناجتس أوروبية','EUROPEAN NUGGET SPICE MIX',''],
+  [10,'','مزيج بهارات ناجتس LAY','NUGGET SPICE BLEND LAY',''],
+  [11,'','ألياف بطاطس SANACEL','POTATO FIBER SANACEL','','','','sack']],
+ san:[
+  [1,'','غطاء شعر بلاستيكي للاستخدام مرة واحدة','DISPOSABLE PLASTIC HAIR CAP','','','','cap'],
+  [2,'','أكمام حماية بلاستيكية','PLASTIC PROTECTIVE SLEEVES','40 × 20','','','bag'],
+  [3,'','قفازات قطنية','COTTON GLOVES','','','','bag']]
+};
+const LIB=[],LIBMAP={};
+CATS.forEach(c=>{
+ const grp={};
+ RAW[c.id].forEach(r=>{
+  const [no,br,ar,en,size,vAr,vEn,ic]=r;const B=BRN[br];
+  const chipT=c.id==='pls'&&vAr?`رول بلاستيك ${vAr} · ${vEn} ROLL`:c.chipT;
+  const it={key:c.id+no,cat:c.id,no,br,ar,en,size:size||'',vAr:vAr||'',icon:ic||c.icon,color:B?B[2]:c.color,chipT,chipB:B?`${B[0]} · ${B[1]}`:'',warn:'',markShape:'',markDir:0};
+  LIB.push(it);LIBMAP[it.key]=it;
+  (grp[c.id+'|'+br+'|'+ar]=grp[c.id+'|'+br+'|'+ar]||[]).push(it);
+ });
+ const SH=['circle','square','triangle','diamond','hexagon','star'];
+ Object.values(grp).forEach(g=>{if(g.length>1)g.forEach((it,i)=>{it.markShape=SH[i%6];it.markDir=[0,2,1,3][i%4];});});
+});
+function itemFields(it){return{arT:it.ar,enT:it.en,size:it.size,showSize:it.size?1:0,color:it.color,icon:it.icon,chipT:it.chipT,chipB:it.chipB,warn:'',markShape:it.markShape||'',markDir:it.markDir||0};}
+function applyItem(s,key){return LIBMAP[key]?{...s,...itemFields(LIBMAP[key])}:s;}
+function catItems(id){return LIB.filter(i=>i.cat===id);}
+function loadItem(key){Object.assign(S,itemFields(LIBMAP[key]));S.libKey=key;if(S.design<9)S.design=9;syncForm();render();}
+function renderLibrary(){
+ const cg=$('#catGrid');cg.innerHTML='';
+ CATS.forEach(c=>{const b=document.createElement('button');b.className=S.libCat===c.id?'on':'';b.innerHTML=`${c.ar}<br><small>${c.en} · ${catItems(c.id).length}</small>`;b.onclick=()=>{S.libCat=c.id;const f=catItems(c.id)[0];S.libKey=f.key;Object.assign(S,itemFields(f));if(S.design<9)S.design=9;syncForm();render();};cg.appendChild(b);});
+ const cur=CATS.find(c=>c.id===S.libCat),its=catItems(S.libCat);
+ if(!LIBMAP[S.libKey]||LIBMAP[S.libKey].cat!==S.libCat)S.libKey=its[0].key;
+ $('#libHead').textContent=`الأصناف · ${cur.ar} (${its.length})`;
+ const list=$('#itemList');list.innerHTML='';
+ its.forEach(it=>{
+  const row=document.createElement('div');row.className='ir'+(it.key===S.libKey?' on':'');
+  const on=S.libSel[it.key]!==0;
+  row.innerHTML=`<input type="checkbox" ${on?'checked':''}><i class="dot" style="background:${it.color}"></i><span class="nm">${it.no}. ${esc(it.ar)}${it.vAr?' · '+esc(it.vAr):''}</span><b style="font-size:15px;line-height:1">${it.markShape?({circle:'●',square:'■',triangle:'▲',diamond:'◆',hexagon:'⬢',star:'★'}[it.markShape])+['↑','→','↓','←'][it.markDir]:''}</b><small>${esc(it.size)}</small>`;
+  row.querySelector('input').onclick=e=>{e.stopPropagation();S.libSel[it.key]=e.target.checked?1:0;renderLibrary();persist();};
+  row.onclick=()=>{loadItem(it.key);};
+  list.appendChild(row);
+ });
+ const v=$('#variants');v.innerHTML='';
+ const base=applyItem(S,S.libKey);
+ [[9,'A'],[10,'B'],[11,'C']].forEach(([d,n])=>{
+  const b=document.createElement('button');b.className=S.design===d?'on':'';
+  const tw=320,z=tw/(S.w*MM);
+  const th=document.createElement('div');th.className='th';th.style.width=tw+'px';th.style.height=S.h*MM*z+'px';
+  const L=buildLabel({...base,design:d,els:[],holes:0},S.seqFrom,{noEls:true});L.style.transform=`scale(${z})`;th.appendChild(L);
+  b.appendChild(th);b.insertAdjacentHTML('beforeend',`تصميم ${n} · Design ${n}`);
+  b.onclick=()=>{loadItem(S.libKey);S.design=d;syncForm();render();};
+  v.appendChild(b);fitAll(L);
+ });
+ const sel=its.filter(i=>S.libSel[i.key]!==0).length;
+ $('#btnBatch').textContent=`طباعة ${cur.ar} (${sel} صنف) · Print ${cur.en} (${sel})`;
+}
+function batchStart(){
+ const keys=catItems(S.libCat).filter(i=>S.libSel[i.key]!==0).map(i=>i.key);
+ if(!keys.length){toast('لا أصناف معلّمة · No items ticked');return;}
+ if(S.design<9)S.design=9;
+ S.batch=keys;setTab('print');showView('sheet');render();toast(`دفعة: ${keys.length} صنف · Batch: ${keys.length} items`);
+}
+function batchClear(){S.batch=[];render();toast('أُلغيت الدفعة · Batch cleared');}
+
+/* ---------- init ---------- */
+function init(){
+ loadInitial();bindForm();syncForm();renderTpls();
+ $$('.tab').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+ $$('.views button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
+ $$('[data-add]').forEach(b=>b.onclick=()=>addEl(b.dataset.add));
+ $('#iconSel').innerHTML=Object.entries(ICON_NAMES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+ if(!S.libKey){S.libKey='ctn8';S.libCat='ctn';Object.assign(S,itemFields(LIBMAP.ctn8));S.design=9;}
+ syncForm();
+ $('#selAll').onclick=()=>{catItems(S.libCat).forEach(i=>S.libSel[i.key]=1);renderLibrary();persist();};
+ $('#selNone').onclick=()=>{catItems(S.libCat).forEach(i=>S.libSel[i.key]=0);renderLibrary();persist();};
+ $('#btnBatch').onclick=batchStart;$('#btnBatchOff').onclick=batchClear;
+ $('#btnPrint').onclick=doPrint;$('#btnShare').onclick=doShare;
+ $('#zIn').onclick=()=>{Z=Math.min(3,Z*1.2);renderStage();};
+ $('#zOut').onclick=()=>{Z=Math.max(.05,Z/1.2);renderStage();};
+ $('#zRack').onclick=()=>{rackOn=!rackOn;Z=autoZoom();renderStage();};
+ $('#zFit').onclick=()=>{Z=autoZoom();renderStage();};
+ $('#tplSave').onclick=()=>{const n=$('#tplName').value.trim()||('قالب '+new Date().toLocaleTimeString());const t=getTpls();t[n]=JSON.parse(JSON.stringify(S));try{localStorage.setItem('labelStudio.tpl.v1',JSON.stringify(t));toast('تم الحفظ · Saved');}catch(e){toast('تعذر الحفظ · Cannot save');}$('#tplName').value='';renderTpls();};
+ $('#btnJson').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download='label_design_2026-10-12.json';a.click();};
+ $('#btnLoad').onclick=()=>$('#fileLoad').click();
+ $('#fileLoad').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{S={...DEF,...JSON.parse(r.result)};sel=null;Z=autoZoom();syncForm();render();toast('تم التحميل · Loaded');}catch(_){toast('ملف غير صالح · Invalid file');}};r.readAsText(f);};
+ $('#btnReset').onclick=()=>{if(!confirm('تصفير التصميم؟ · Reset design?'))return;S=JSON.parse(JSON.stringify(DEF));sel=null;Z=autoZoom();syncForm();render();};
+ window.addEventListener('resize',()=>{if(view==='editor'){Z=autoZoom();renderStage();}else renderSheets();});
+ Z=autoZoom();render();
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{renderStage();renderGallery();if(view==='sheet')renderSheets();});
+}
+init();
+</script>
+</body>
+</html>
