@@ -734,7 +734,9 @@ function parse(){
     let col=(p[6]||'').toLowerCase();col=BR[col]||(/^#[0-9a-f]{3,8}$/i.test(col)?col:$('bCol').value);
     const tk=(p[3]||'').toLowerCase();
     const d={ar:p[0]||'',en:p[1]||'',code:p[2]||'',type:TYPES[tk]?tk:'x',tAr:TYPES[tk]?TYPES[tk][0]:(p[3]||''),tEn:TYPES[tk]?TYPES[tk][1]:(p[3]||'').toUpperCase(),loc:p[4]||'',lvl:(p[5]||'').toUpperCase(),col};
-    const m=d.loc.match(/^([A-Fa-f])\s*[-·]?\s*0*(\d+)$/);
+    let m=d.loc.match(/^([A-Fa-f])\s*[-·]?\s*0*(\d+)$/);
+    if(!m){const g=d.loc.match(/^0*(\d+)\s*([RLrl])\s*[-·]?\s*0*(\d+)$/);const MP={'1R':'A','1L':'B','2R':'C','2L':'D','3R':'E','3L':'F'};
+      if(g&&MP[g[1]+g[2].toUpperCase()])m=[0,MP[g[1]+g[2].toUpperCase()],g[3]];}
     if(m){const a=m[1].toUpperCase(),rk=+m[2],I=AREAS[a];d.area=a;d.rack=rk;d.info=I;d.addr=a+(d.lvl||'')+rk;
       const li=LVL.indexOf(d.lvl);d.bad=(!d.lvl||li<0||li>=I.lv)?'المستوى '+(d.lvl||'؟')+' غير موجود في '+a+' (A–'+LVL[I.lv-1]+')':(rk<1||rk>I.racks)?'الراك '+rk+' خارج '+a+' (1–'+I.racks+')':'';}
     for(let i=0;i<cop;i++)out.push(d)});
