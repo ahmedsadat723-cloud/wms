@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- VERSION: v35 | 2026-10-14 -->
+<!-- VERSION: v36 | 2026-10-14 -->
 <html lang="ar" dir="rtl">
 <head>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&family=Tajawal:wght@700;900&family=Almarai:wght@700;800&family=Amiri:wght@700&family=Montserrat:wght@700;900&family=Oswald:wght@600;700&family=Bebas+Neue&family=Roboto+Condensed:wght@700&family=Playfair+Display:wght@700;900&family=Teko:wght@600;700&display=swap" rel="stylesheet">
@@ -299,6 +299,7 @@ F:19:5</textarea>
     <div><label>تدوير الزوايا · Corner radius</label><input id="bRd" type="number" min="0" max="25" step="0.5" value="5"></div>
     <div class="chk" style="align-self:end"><input type="checkbox" id="bMono"><label style="margin:0">بدون ألوان (أبيض وأسود) · No colours (B/W)</label></div>
   </div>
+  <div class="row"><div><label>الرمز على الشريط والباركود · Code on strip &amp; barcode</label><select id="bSrc"><option value="addr" selected>رمز الموقع (AA2) · Location code</option><option value="code">كود الصنف · Item code</option><option value="none">بدون نص · No text</option></select></div></div>
   <div class="row"><div><label>خلفية الأبيض والأسود · B/W background</label><select id="bMB"><option value="white" selected>بيضاء (توفير حبر) · White (saves ink)</option><option value="black">سوداء للكتل الجانبية · Black side blocks</option></select></div></div>
   <div class="row" style="display:none">
   </div>
@@ -785,7 +786,8 @@ function beamSVG(d,L,Wt,o,x0,vw){const Wd=Math.min(Wt,100);
   if(d.en)s+='<text x="'+cm+'" y="'+60.5*u+'" text-anchor="middle" dominant-baseline="central" font-family=\''+FAM+'\' font-weight="800" font-size="'+tf(d.en,800,cw,13*u)+'" fill="'+col+'" direction="ltr" style="unicode-bidi:bidi-override"'+tfx+'>'+esc(d.en)+'</text>';
   // text inside brand bar
   const barY=79.5*u;
-  if(d.code)s+='<text x="'+(px0+10*u)+'" y="'+barY+'" dominant-baseline="central" font-family="Arial" font-weight="800" font-size="'+6.6*u+'" fill="#fff" direction="ltr" style="unicode-bidi:bidi-override" letter-spacing="'+.4*u+'">'+esc(d.code)+'</text>';
+  const SC=o.src==='code'?d.code:o.src==='none'?'':(d.addr||d.loc||'');
+  if(SC)s+='<text x="'+(px0+10*u)+'" y="'+barY+'" dominant-baseline="central" font-family="Arial" font-weight="800" font-size="'+6.6*u+'" fill="#fff" direction="ltr" style="unicode-bidi:bidi-override" letter-spacing="'+.4*u+'">'+esc(SC)+'</text>';
   if(d.tAr||d.tEn)s+='<text x="'+(px0+pw-10*u)+'" y="'+barY+'" text-anchor="end" dominant-baseline="central" font-family=\''+FAM+'\' font-weight="800" font-size="'+6.6*u+'" fill="#fff">'+esc(d.tAr)+' · '+esc(d.tEn)+'</text>';
   // left dark block
   s+='<polygon points="0,0 '+(Lx+10*u)+',0 '+(Lx-4*u)+','+Wd+' 0,'+Wd+'" fill="'+DK+'"'+BS+'/>';
@@ -817,7 +819,7 @@ function beamSVG(d,L,Wt,o,x0,vw){const Wd=Math.min(Wt,100);
     }
   }
   // bottom strip (barcode + area data) when label is taller than 10 cm
-  if(Wt>Wd+1){const S=Wt-Wd,sy=Wd,bc=d.addr||d.code;
+  if(Wt>Wd+1){const S=Wt-Wd,sy=Wd,bc=o.src==='code'?d.code:(d.addr||d.loc||d.code);
     s+='<rect y="'+sy+'" width="'+L+'" height="'+S+'" fill="#fff"/><rect y="'+sy+'" width="'+L+'" height="'+1.6*u+'" fill="'+NV+'"/>';
     if(o.bar&&bc)s+=bars(bc,5*u,sy+S*0.08,L-10*u,S*0.84,'#000');
     if(d.bad)s+='<rect x="0" y="'+sy+'" width="'+L+'" height="'+S+'" fill="#D90000" opacity=".12"/>';
@@ -851,7 +853,7 @@ function beamSVG(d,L,Wt,o,x0,vw){const Wd=Math.min(Wt,100);
 function build(){
   const L=(+$('bL').value||50)*10,Wd=(+$('bW').value||10)*10,gap=+$('bGap').value||0,mar=+$('bMar').value||0;
   FAM=FONTS[$('bFf').value]||FONTS.seg;
-  const o={mb:$('bMB').value,art:$('bArt').value,bs:$('bSty').value,edge:$('bEdge').value,orn:$('bOrn').value,tfx:$('bTx').value,bd:$('bBd').value,bw:+$('bBw').value,bc:$('bBc').value,rd:+$('bRd').value,mono:$('bMono').checked,or:$('bOr').value,nv:$('bNv').value,bar:$('bBar').checked,logo:$('bLogo').checked};
+  const o={src:$('bSrc').value,mb:$('bMB').value,art:$('bArt').value,bs:$('bSty').value,edge:$('bEdge').value,orn:$('bOrn').value,tfx:$('bTx').value,bd:$('bBd').value,bw:+$('bBw').value,bc:$('bBc').value,rd:+$('bRd').value,mono:$('bMono').checked,or:$('bOr').value,nv:$('bNv').value,bar:$('bBar').checked,logo:$('bLogo').checked};
   const items=parse(),mode=$('bMode').value,P=$('bpreview');P.innerHTML='';
   const BF=$('bfull');BF.innerHTML='<div style="font-weight:800;font-size:13px">المعاينة الكاملة · Full view</div>';
   const seen=new Set();items.forEach(it=>{const key=JSON.stringify(it);if(seen.has(key)||seen.size>=12)return;seen.add(key);const dv=document.createElement('div');dv.style.cssText='background:#fff;border-radius:10px;padding:10px;box-shadow:0 1px 4px #0002';dv.innerHTML='<div style="aspect-ratio:'+L+'/'+Wd+'">'+beamSVG(it,L,Wd,o,0,L).replace('<svg ','<svg style="width:100%;height:100%;display:block" ')+'</div>';BF.appendChild(dv)});
@@ -922,7 +924,7 @@ const DRY=window.DRY={"A": [["رول بلاستيك صدور دجاج دو 10 ×
     b6:{bSty:'rays',bEdge:'solid',bOrn:'rivets',bBd:'double',bTx:'none',bFf:'cal',bRd:10,m:1}};
   $('bPack').addEventListener('change',()=>{const p=PK[$('bPack').value];if(!p)return;Object.keys(p).forEach(k=>{if(k==='col'){const a=p.col.split('|');$('bOr').value=a[0];$('bNv').value=a[1]}else if(k==='m')$('bMono').checked=!!p.m;else $(k).value=p[k]});$('bBw').value=p.bBd==='thick'?1.4:1.2;$('bSty').dispatchEvent(new Event('input',{bubbles:true}));});
 })();
-const IDB=['bMB','bArt','bSty','bEdge','bOrn','bTx','bFf','bBd','bBw','bBc','bRd','bMono','bN','bL','bW','bList','bCop','bCol','bOr','bNv','bMode','bGap','bMar','bBar','bLogo','bCut'];
+const IDB=['bSrc','bMB','bArt','bSty','bEdge','bOrn','bTx','bFf','bBd','bBw','bBc','bRd','bMono','bN','bL','bW','bList','bCop','bCol','bOr','bNv','bMode','bGap','bMar','bBar','bLogo','bCut'];
 function save(){
   const d={};IDB.forEach(i=>{const e=$(i);d[i]=e.type==='checkbox'?e.checked:e.value});
   try{localStorage.setItem('beamgen2',JSON.stringify(d))}catch(e){}
