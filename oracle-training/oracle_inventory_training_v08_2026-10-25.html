@@ -1,0 +1,1482 @@
+<!doctype html>
+<!-- VERSION: v08 | 2026-10-25 -->
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تدريب مخزون أوراكل | Oracle Inventory Training</title>
+<style>
+:root{--bg:#f3f1ee;--card:#fff;--ink:#1d1d1d;--mute:#5f5f5f;--pri:#c74634;--pri2:#312d2a;--ok:#1b7f3b;--bad:#c0262d;--line:#d9d5d0;--head:#312d2a;--headink:#fff;--field:#fbfaf9}
+body[data-theme=modern]{--bg:#eef3fa;--pri:#1f5fbf;--pri2:#16325c;--head:#16325c;--line:#cfdaec;--field:#f7faff}
+body[data-theme=dark]{--bg:#14161a;--card:#1d2026;--ink:#e8e8e8;--mute:#9aa0a8;--pri:#ff7a59;--pri2:#e8e8e8;--line:#333943;--head:#0d0f12;--field:#262a31;--ok:#4cd07a;--bad:#ff6b72}
+body[data-theme=green]{--bg:#eef5ef;--pri:#2b8a4b;--pri2:#173d27;--head:#173d27;--line:#cfe2d3;--field:#f6fbf7}
+body.bw{--bg:#fff;--card:#fff;--ink:#000;--mute:#333;--pri:#000;--pri2:#000;--ok:#000;--bad:#000;--line:#000;--head:#000;--headink:#fff;--field:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Tahoma,Arial,sans-serif;line-height:1.55}
+.en{direction:ltr;text-align:left;color:var(--mute);font-size:.93em}
+.ar{direction:rtl;text-align:right}
+header{background:var(--head);color:var(--headink);padding:12px 18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+header h1{font-size:18px;margin:0}
+header h1 .en{color:var(--headink);opacity:.8;font-size:13px;font-weight:400}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tools select,.tools button{padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.45);background:transparent;color:var(--headink);cursor:pointer;font:inherit;font-size:13px}
+.tools select option{color:#000}
+nav{display:flex;gap:2px;flex-wrap:wrap;padding:6px 12px;background:var(--card);border-bottom:2px solid var(--pri)}
+nav button{border:0;background:transparent;color:var(--ink);padding:6px 12px;cursor:pointer;font:inherit;font-weight:600;border-bottom:3px solid transparent;line-height:1.3}
+nav button .en{font-size:11px;font-weight:400;text-align:center}
+nav button .ar{text-align:center}
+nav button.on{color:var(--pri);border-bottom-color:var(--pri)}
+main{max-width:1100px;margin:16px auto;padding:0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.sc{cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--card);transition:.15s}
+.sc:hover{border-color:var(--pri);transform:translateY(-2px)}
+.sc b{color:var(--pri)}
+.badge{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;border:1px solid var(--line);color:var(--mute);margin-top:6px}
+.badge.done{border-color:var(--ok);color:var(--ok)}
+.tag{display:inline-block;font-size:11px;border:1px solid var(--pri);color:var(--pri);border-radius:4px;padding:0 6px;margin-inline-start:6px}
+.nav-path{font-family:Consolas,monospace;font-size:13px;background:var(--field);border:1px dashed var(--line);padding:6px 10px;border-radius:6px;direction:ltr;text-align:left;margin:8px 0}
+.story{background:var(--field);border-inline-start:4px solid var(--pri);padding:10px 14px;border-radius:6px;margin:10px 0}
+.win{border:2px solid var(--pri2);border-radius:6px;overflow:hidden;margin-top:12px}
+.win .tb{background:var(--pri2);color:var(--bg);padding:6px 12px;font-size:13px;display:flex;justify-content:space-between;direction:ltr}
+body.bw .win .tb{color:#fff}
+.win .bd{padding:14px;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.f label{display:block;font-size:13px;font-weight:600;margin-bottom:3px}
+.f label .en{font-weight:400;font-size:12px}
+.f input,.f select{width:100%;padding:8px;border:1px solid var(--line);background:var(--field);color:var(--ink);border-radius:4px;font:inherit;direction:ltr;text-align:left}
+.f.ok input,.f.ok select{border:2px solid var(--ok)}
+.f.bad input,.f.bad select{border:2px dashed var(--bad);background:rgba(192,38,45,.06)}
+.f .msg{font-size:12px;min-height:16px;direction:ltr;text-align:left}
+.f.ok .msg{color:var(--ok)}.f.bad .msg{color:var(--bad)}
+.hint{font-size:12px;color:var(--mute);display:none;margin-top:2px}
+.btn{background:var(--pri);color:#fff;border:2px solid var(--pri);padding:8px 16px;border-radius:6px;cursor:pointer;font:inherit;font-weight:700;line-height:1.3}
+.btn .en{color:inherit;opacity:.9;font-size:11px;font-weight:400;text-align:center}
+.btn .ar{text-align:center}
+body.bw .btn{background:#fff;color:#000}
+.btn.ghost{background:transparent;color:var(--pri)}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.why{margin-top:12px;padding:10px 14px;border:1px solid var(--ok);border-radius:6px;display:none}
+.prog{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--pri)}
+table{border-collapse:collapse;width:100%}
+td,th{border:1px solid var(--line);padding:7px 10px;text-align:start;vertical-align:top}
+th{background:var(--field)}
+td input{width:100%;padding:6px;border:1px solid var(--line);background:var(--field);color:var(--ink);border-radius:4px;font:inherit}
+.cert{border:6px double var(--pri2);padding:34px;text-align:center}
+.cert h2{font-size:28px;color:var(--pri);margin:0}
+.cert .ar,.cert .en{text-align:center}
+.cert .nm{font-size:26px;border-bottom:2px solid var(--ink);display:inline-block;min-width:260px;margin:14px 0}
+.sheet{page-break-inside:avoid;border:1px solid #000;padding:10px;margin-bottom:12px}
+.blank{display:inline-block;min-width:140px;border-bottom:1px solid #000;height:18px;vertical-align:bottom}
+h2,h3{margin:0 0 6px}
+.sub{font-size:13px;color:var(--mute)}
+.lab{display:grid;gap:14px;grid-template-columns:minmax(260px,350px) 1fr;align-items:start}
+.fb{margin-top:8px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px}
+.fb.ok{border-color:var(--ok);color:var(--ok)}.fb.bad{border-color:var(--bad);color:var(--bad)}.fb.info{color:var(--mute)}
+.fb .en{color:inherit;opacity:.85}
+.guide{margin-top:8px;padding:8px 10px;border:1px dashed var(--pri);border-radius:6px;font-size:13px}
+.frozen{pointer-events:none;opacity:.6}
+.dt{width:100%;font-size:12px}.dt td,.dt th{padding:3px 6px}
+.ow{border:2px solid #4b4a73;border-radius:6px;overflow:hidden;background:#b7b5d9;direction:ltr;text-align:left;font:13px Tahoma,Arial,sans-serif;color:#111}
+.ow *{direction:ltr;text-align:left}
+.owt{background:#2b2a4a;color:#fff;padding:5px 10px;font-size:12px}
+.owm{background:#1d1d1d;color:#fff;padding:3px 10px;font-size:12px}
+.owtb{background:#dcdcdc;padding:4px 8px;display:flex;gap:6px;border-bottom:1px solid #999}
+.owc{padding:10px;min-height:320px}
+.osub{background:#9f9cc9;border:2px solid #3b3a63;border-radius:4px;margin-top:6px}
+.osubt{background:#1f1e3a;color:#fff;padding:4px 8px;font-size:12px}
+.osubb{padding:10px;overflow:auto}
+.of{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.of label{width:170px;font-size:12px;flex:none}
+.of label .ar{display:block;font-size:10px;color:#222;direction:rtl}
+.of input:not([type=checkbox]),.of select{padding:3px 5px;border:1px solid #777;background:#f2f2f2;color:#111;font-size:13px;min-width:180px;flex:1;max-width:360px}
+.of input.req,.otable input.req{background:#fff7a8}
+.of input.ro,.otable input.ro{background:#d9d9d9}
+.otable{border-collapse:collapse;background:#e6e6e6;color:#111;font-size:12px}
+.otable th,.otable td{border:1px solid #888;padding:3px 6px;background:transparent}
+.otable th{background:#cfd0e6}
+.otable input,.otable select{padding:2px 4px;font-size:12px;border:1px solid #777;max-width:150px;color:#111;background:#f2f2f2}
+.otable tr.on td{background:#2b4bd6;color:#fff}
+.obtns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.obtn{border:1px solid #555;border-radius:12px;background:#ececf5;color:#111;padding:3px 16px;font:12px Tahoma,Arial,sans-serif;cursor:pointer}
+.obtn:disabled{opacity:.45;cursor:default}
+.oinfo{margin-top:8px;font-size:12px;border-collapse:collapse;color:#111}.oinfo td{padding:2px 8px}.oinfo td:nth-child(odd){font-weight:700}.red{color:#c00}
+.ctl{margin-top:10px;padding:8px;border:1px dashed #333;background:#c8c6e6}
+.nav2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.nl{margin:4px 0 0;padding:6px 6px 6px 22px;background:#e6e6e6;min-height:120px;font-size:13px;color:#111}
+.nl.tn li{cursor:pointer;padding:2px 4px}.nl.tn li.on{background:#2b4bd6;color:#fff}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.rep{background:#fff;color:#000;padding:12px;border:1px solid #888;overflow:auto}
+.rep h4{margin:2px 0;text-align:center}
+.rep table{border-collapse:collapse;width:100%;font-size:11px}.rep td,.rep th{border:1px solid #333;padding:3px 5px}.rep th{background:#bcd3ea}
+body.bw .ow{background:#fff;border-color:#000}
+body.bw .owt,body.bw .owm,body.bw .osubt{background:#000;color:#fff}
+body.bw .osub{background:#fff;border-color:#000}
+body.bw .owtb{background:#fff}
+body.bw .otable th,body.bw .rep th{background:#ddd}
+body.bw .ctl{background:#fff;border-color:#000}
+body.bw .of input.req,body.bw .otable input.req{background:#fff;border:2px solid #000}
+body.bw .otable tr.on td,body.bw .nl.tn li.on{background:#000;color:#fff}
+@media(max-width:900px){.lab{grid-template-columns:1fr}}
+@media(max-width:600px){.two,.nav2{grid-template-columns:1fr}.of{flex-wrap:wrap}}
+.owt{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.owt .tt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wc{display:flex;gap:3px}.wc button{background:#dcdcdc;border:1px solid #777;color:#000;width:22px;height:18px;line-height:14px;font-size:12px;padding:0;cursor:pointer;border-radius:2px}
+.wc button:hover{background:#fff}.wc .x:hover{background:#c33;color:#fff}
+.owm{display:flex;flex-wrap:wrap;gap:2px;position:relative}
+.mb{position:relative}.mb>button{background:none;border:0;color:#fff;font:12px Tahoma,Arial,sans-serif;padding:2px 8px;cursor:pointer}
+.mb>button:hover,.mb.open>button{background:#4b4a73}
+.mdd{display:none;position:absolute;top:100%;left:0;min-width:230px;background:#f2f2f2;color:#000;border:1px solid #555;z-index:30;box-shadow:2px 3px 6px rgba(0,0,0,.35)}
+.mb.open .mdd{display:block}.mdd div{padding:4px 10px;cursor:pointer;font-size:12px;white-space:nowrap}.mdd div:hover{background:#2b2a4a;color:#fff}
+.mdd div .ar{display:inline;margin-inline-start:10px;color:inherit;opacity:.8}.mdd hr{margin:2px 0;border:0;border-top:1px solid #bbb}.mdd .on:before{content:"\2714 "}
+.desk{position:relative}.dt{direction:ltr;text-align:left}
+.stk .ow{margin-bottom:-2px;cursor:pointer}.stk .ow .owt{background:#4b4a73}
+.ow.max{position:fixed;inset:8px;z-index:60;overflow:auto;border-width:3px}
+.ow.zoomed .owc{zoom:1.25}
+.ow.snap .owc{pointer-events:none;opacity:.85}
+.snapnote{background:#fff3b0;color:#222;padding:4px 10px;font-size:12px;direction:ltr;text-align:left}
+.tskb{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;direction:ltr}
+.tskb button{background:#2b2a4a;color:#fff;border:1px solid #000;border-radius:3px;padding:3px 10px;font-size:12px;cursor:pointer}
+.dmsg{position:absolute;left:8px;right:8px;top:4px;z-index:40;background:#fff3b0;color:#222;border:1px solid #a80;padding:6px 10px;font-size:12px;border-radius:4px;display:none}
+.hlp{background:#fff;color:#111;border:2px solid #2b2a4a;padding:10px;margin:6px;border-radius:4px;font-size:13px}
+.owc.frozen,.frozen2{pointer-events:none;opacity:.6}
+.hcol{display:none}
+.wclosed{border:2px dashed #888;padding:16px;text-align:center;border-radius:6px;background:#fafafa;color:#111}
+body.bw .wc button,body.bw .mdd,body.bw .dmsg,body.bw .hlp,body.bw .snapnote,body.bw .wclosed{background:#fff;color:#000;border:1px solid #000}
+body.bw .mb>button{color:#fff}body.bw .mb>button:hover,body.bw .mb.open>button{background:#444}
+body.bw .tskb button,body.bw .stk .ow .owt{background:#000;color:#fff}
+.fnote{font-size:12px;color:#222;background:#fff8d6;border:1px solid #c9a800;padding:3px 8px;margin:4px 0;direction:ltr;text-align:left;border-radius:3px}
+.fnote .ar{display:block;direction:rtl;text-align:right;font-size:12px}
+.trn{background:#fff3b0;border:2px dashed #a80;color:#222;padding:6px 10px;margin-bottom:8px;border-radius:4px;direction:ltr;text-align:left;font-size:12px}
+.trn .ar{display:block;direction:rtl;text-align:right}
+.expl{background:#eef6ff;border:1px solid #6a9bd1;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:13px}
+.expl li{margin:4px 0}
+.cpb{font-size:11px;padding:1px 6px;margin-inline-start:4px;cursor:pointer;border:1px solid #888;border-radius:3px;background:#f4f4f4}
+.cpb:hover{background:#fff}
+.lt td,.lt th{padding:4px 6px;font-size:12px}.lt input{width:100%;min-width:70px;direction:ltr}
+.lt tr.it{cursor:pointer}.lt tr.it:hover td{background:#f0f4ff}
+.lt .sub2{background:#fafafa}
+.lt .bad{color:#b00;font-weight:700}
+.tbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}.tbar input,.tbar select{padding:6px;min-width:150px}
+body.bw .fnote,body.bw .trn,body.bw .expl{background:#fff;border:1px solid #000;color:#000}
+body.bw .cpb{background:#fff;border-color:#000}
+.tdwrap{margin-top:14px}
+.tdoc{background:#fff;color:#000;font-family:"Times New Roman",Times,serif;direction:ltr;text-align:left;border:1px solid #999;padding:22px 26px;max-width:900px;margin:0 auto;box-shadow:0 1px 6px rgba(0,0,0,.25)}
+.tdoc .tdlogo{display:flex;justify-content:flex-end}
+.tdoc .lg{border:2px solid #000;border-radius:14px;padding:3px 12px;text-align:center;font:700 13px Arial,sans-serif;letter-spacing:1px;line-height:1.2}
+.tdoc .lg b{display:block;font:700 18px "Times New Roman",serif;letter-spacing:0}
+.tdoc h2{margin:-6px 0 12px;text-align:center;font:700 22px "Times New Roman",serif;color:#000}
+.tdoc .hd{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px}
+.tdoc .hr{display:grid;grid-template-columns:150px 1fr;min-height:22px;align-items:start;font-size:15px}
+.tdoc .hr .l{font-weight:700}
+.tdoc .tdar{display:block;font:11px Tahoma,Arial,sans-serif;direction:rtl;text-align:right;font-weight:400;color:#333}
+.tdoc table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14px}
+.tdoc th,.tdoc td{border:1.5px solid #000;padding:3px 6px;vertical-align:top}
+.tdoc th{background:#d9d9d9;text-align:left}
+.tdoc td.n{text-align:right}.tdoc tr.tot td{font-weight:700;background:#fff}
+.tdbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+body.bw .tdoc{box-shadow:none}
+.pmflow{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;margin:10px 0}
+.pmg{flex:1 1 150px;border:2px solid #3b5ea8;border-radius:10px;padding:8px 10px;background:#f2f6ff;text-align:center;min-width:140px}
+.pmg b{display:block;font-size:22px;color:#3b5ea8}
+.pmar{align-self:center;font-size:22px;color:#777}
+.pmg.g2{border-color:#2f8f5b;background:#f0faf4}.pmg.g2 b{color:#2f8f5b}
+.pmg.g3{border-color:#c47a00;background:#fff7e8}.pmg.g3 b{color:#c47a00}
+.pmg.g4{border-color:#8b3fa8;background:#f8f0fc}.pmg.g4 b{color:#8b3fa8}
+.pmg.g5{border-color:#b83232;background:#fff0f0}.pmg.g5 b{color:#b83232}
+.pmsum{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}.pmsum div{flex:1 1 120px;border:1px solid #bbb;border-radius:8px;padding:8px;text-align:center;background:#fff}.pmsum b{font-size:26px;display:block}
+.pmt td,.pmt th{vertical-align:top;font-size:13px}
+body.bw .pmg,body.bw .pmg.g2,body.bw .pmg.g3,body.bw .pmg.g4,body.bw .pmg.g5{background:#fff;border-color:#000}
+body.bw .pmg b{color:#000}
+@media print{body.print-tdoc *{visibility:hidden!important}body.print-tdoc .tdwrap,body.print-tdoc .tdwrap *{visibility:visible!important}body.print-tdoc .tdwrap{position:absolute;left:0;top:0;width:100%;margin:0}body.print-tdoc .tdbar{display:none!important}body.print-tdoc .tdoc{box-shadow:none;border:0;max-width:none}}
+@media print{
+ header,nav,.noprint,.row,.btn{display:none!important}
+ body{background:#fff;color:#000}
+ .en{color:#222}
+ .card{border:1px solid #000;break-inside:avoid}
+ body.printcert main>*:not(#certbox){display:none!important}
+}
+</style>
+</head>
+<body data-theme="classic">
+<header>
+ <h1 id="ttl"></h1>
+ <div class="tools noprint">
+  <select id="selTheme"></select>
+  <button id="btnBW"></button>
+  <button id="btnPrint"></button>
+ </div>
+</header>
+<nav id="nav"></nav>
+<main id="main"></main>
+
+<script>
+(function(){
+var LS='or_inv_training_v02';
+var DEFBR=[
+{c:'B01',city:'JED',ar:'جدة - الرئيسي',en:'Jeddah - Main'},
+{c:'B02',city:'JED',ar:'جدة - الشمال',en:'Jeddah - North'},
+{c:'B03',city:'JED',ar:'جدة - الجنوب',en:'Jeddah - South'},
+{c:'B04',city:'RUH',ar:'الرياض - 1',en:'Riyadh - 1'},
+{c:'B05',city:'RUH',ar:'الرياض - 2',en:'Riyadh - 2'},
+{c:'B06',city:'DMM',ar:'الدمام',en:'Dammam'},
+{c:'B07',city:'MKK',ar:'مكة المكرمة',en:'Makkah'},
+{c:'B08',city:'MED',ar:'المدينة المنورة',en:'Madinah'},
+{c:'B09',city:'TIF',ar:'الطائف',en:'Taif'},
+{c:'B10',city:'ABH',ar:'أبها',en:'Abha'},
+{c:'B11',city:'TBK',ar:'تبوك',en:'Tabuk'},
+{c:'B12',city:'GIZ',ar:'جازان',en:'Jazan'},
+{c:'B13',city:'HAL',ar:'حائل',en:'Hail'}];
+function cloneBR(){return DEFBR.map(function(b){return {c:b.c,city:b.city,ar:b.ar,en:b.en};});}
+var state={view:'home',cur:null,exam:null,data:{name:'',practice:{},exam:null,branches:cloneBR()}};
+try{var raw=localStorage.getItem(LS);if(raw){var p=JSON.parse(raw);if(p&&p.data){state.data=p.data;}}}catch(e){}
+if(!state.data.practice)state.data.practice={};
+if(!state.data.lab)state.data.lab={best:{}};
+if(!state.data.lots)state.data.lots={kg:{},rows:{},seeded:0};
+if(!Array.isArray(state.data.branches)||state.data.branches.length!==13)state.data.branches=cloneBR();
+function save(){try{localStorage.setItem(LS,JSON.stringify({data:state.data}));}catch(e){}}
+
+function BR(){return state.data.branches;}
+function br(c){for(var i=0;i<BR().length;i++){if(BR()[i].c===c)return BR()[i];}return null;}
+function norm(s){return String(s).trim().toUpperCase();}
+function sameCity(a,b){var x=br(a),y=br(b);return !!(x&&y&&norm(x.city)===norm(y.city));}
+function bnm(c){var b=br(c);return b?{ar:c+' ('+b.ar+')',en:c+' ('+b.en+')'}:{ar:c,en:c};}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function el(h){var d=document.createElement('div');d.innerHTML=h;return d.firstElementChild;}
+function B(o){return '<div class="ar">'+o.ar+'</div><div class="en">'+o.en+'</div>';}
+function I(o){return o.ar+' / '+o.en;}
+
+var S={
+ title:{ar:'نظام تدريب مدخلي بيانات المخزون — أوراكل',en:'Oracle Inventory Data-Entry Training'},
+ sub:{ar:'بيئة محاكاة آمنة: لا تؤثر على أي مخزون حقيقي',en:'Safe simulation: never touches real inventory'},
+ home:{ar:'الرئيسية',en:'Home'},concepts:{ar:'المفاهيم',en:'Concepts'},branches:{ar:'الفروع والتحويلات',en:'Branches & Transfers'},practice:{ar:'التدريب',en:'Practice'},lab:{ar:'التطبيق العملي',en:'Hands-on Lab'},lots:{ar:'أداة الدفعات',en:'Lot Tool'},map:{ar:'خريطة الخطوات',en:'Process Map'},exam:{ar:'الامتحان',en:'Exam'},sheet:{ar:'ورقة التمارين',en:'Worksheet'},progress:{ar:'التقدم',en:'Progress'},
+ bw:{ar:'أبيض وأسود',en:'Black & White'},bwOn:{ar:'ألوان',en:'Colour'},print:{ar:'طباعة',en:'Print'},
+ submit:{ar:'حفظ',en:'Save (Submit)'},hintBtn:{ar:'تلميح',en:'Hint'},ans:{ar:'أظهر الإجابة',en:'Show answer'},retry:{ar:'إعادة',en:'Retry'},next:{ar:'التالي',en:'Next'},back:{ar:'رجوع للقائمة',en:'Back to list'},
+ right:{ar:'صحيح',en:'Correct'},wrong:{ar:'خطأ',en:'Incorrect'},choose:{ar:'— اختر —',en:'— Select —'},
+ score:{ar:'النتيجة',en:'Score'},why:{ar:'لماذا؟',en:'Why?'},expected:{ar:'المتوقع',en:'Expected'},
+ pass:{ar:'ناجح — مؤهل لإدخال البيانات الحقيقية',en:'PASSED — cleared for live data entry'},fail:{ar:'لم تجتز — أعد التدريب ثم الامتحان',en:'Not passed — practise and retake'},
+ startExam:{ar:'ابدأ الامتحان',en:'Start exam'},name:{ar:'اسم المتدرب',en:'Trainee name'},
+ certT:{ar:'شهادة اجتياز تدريب مخزون أوراكل',en:'Oracle Inventory Training Certificate'},certP:{ar:'يشهد المستودع بأن المتدرب',en:'This certifies that'},certD:{ar:'اجتاز الامتحان العملي بنتيجة',en:'passed the practical exam with'},
+ printCert:{ar:'طباعة الشهادة',en:'Print certificate'},key:{ar:'مفتاح الإجابات',en:'Answer key'},
+ reset:{ar:'مسح التقدم',en:'Reset progress'},done:{ar:'منجز',en:'Done'},todo:{ar:'لم يُنجز',en:'Not done'},
+ welcome:{ar:'مرحباً بك. اتبع المسار: المفاهيم ← الفروع ← التدريب (مع التلميحات) ← الامتحان ← الشهادة.',en:'Welcome. Follow the path: Concepts → Branches → Practice (with hints) → Exam → Certificate.'},
+ rules:{ar:'قواعد الذهب لمدخل البيانات',en:'Golden rules for data-entry staff'},
+ themes:[{ar:'كلاسيكي',en:'Classic'},{ar:'عصري أزرق',en:'Modern blue'},{ar:'داكن',en:'Dark'},{ar:'أخضر',en:'Green'}],
+ term:{ar:'المصطلح',en:'Term'},meaning:{ar:'الشرح',en:'Meaning'},
+ trans:{ar:'عمليات التحويل',en:'Transfers'},
+ wsInfo:{ar:'ورقة تمارين للطباعة (تعمل بالأبيض والأسود). مفتاح الإجابات في الصفحة الأخيرة.',en:'Printable worksheet (B&W friendly). Answer key on the last page.'},
+ brTitle:{ar:'الفروع الـ 13 (قابلة للتعديل)',en:'The 13 branches (editable)'},
+ brNote:{ar:'الأسماء والمدن أمثلة تدريبية: عدّلها لتطابق فروعك. الفروع التي لها نفس رمز المدينة تُعامل كمدينة واحدة.',en:'Names and cities are training samples: edit them to match your branches. Branches sharing a city code are treated as one city.'},
+ code:{ar:'الرمز',en:'Code'},city:{ar:'رمز المدينة',en:'City code'},nAr:{ar:'الاسم عربي',en:'Arabic name'},nEn:{ar:'الاسم إنجليزي',en:'English name'},
+ resetBr:{ar:'استعادة الفروع الافتراضية',en:'Restore default branches'},
+ groups:{ar:'مجموعات نفس المدينة',en:'Same-city groups'},
+ pairs:{ar:'أزواج الفروع',en:'Branch pairs'},samePairs:{ar:'نفس المدينة (تحويل مباشر)',en:'Same city (Direct)'},crossPairs:{ar:'مدن مختلفة (في الطريق)',en:'Different cities (Intransit)'},
+ policy:{ar:'سياسة التحويل المعتمدة للتدريب',en:'Transfer policy used in training'},
+ caseC:{ar:'الحالة',en:'Case'},how:{ar:'العملية في أوراكل',en:'Oracle transaction'},
+ total:{ar:'عدد السيناريوهات',en:'Scenarios'}
+};
+function T(k){return I(S[k]);}
+
+var RULES=[
+ {ar:'لا تدخل معاملة قبل التأكد من المستودع الفرعي (Subinventory) والموقع (Locator).',en:'Never post a transaction before confirming Subinventory and Locator.'},
+ {ar:'الصنف المُدار بالدفعات (Lot) لا يُدخل أو يُصرف بدون رقم الدفعة وتاريخ الانتهاء.',en:'Lot-controlled items need a lot number and expiry date on every transaction.'},
+ {ar:'الصرف يتم بنظام الأقدم انتهاءً أولاً (FEFO) للأغذية.',en:'Issue by FEFO (First Expired, First Out) for food.'},
+ {ar:'لا تخمّن الكمية: طابق الوحدة (UOM) مع المستند.',en:'Never guess quantity: match the UOM to the source document.'},
+ {ar:'أي فرق جرد فوق نسبة السماح يُرفع للاعتماد ولا يُعدَّل مباشرة.',en:'Count variances above tolerance go for approval, never direct adjustment.'},
+ {ar:'دفعة فشلت في الفحص تُوضع Hold فوراً.',en:'A lot that fails QC is put on Hold immediately.'},
+ {ar:'التحويل بين فرعين في نفس المدينة = Direct، وبين مدينتين = Intransit مع بوليصة شحن.',en:'Same-city branch transfer = Direct; different cities = Intransit with a waybill.'},
+ {ar:'المجمد يُنقل بناقل مبرد فقط، ويُسجَّل رقم الحرارة (-18) في المستند.',en:'Frozen goods move by refrigerated carrier only, with the temperature (-18) recorded.'},
+ {ar:'لا تستلم شحنة بين الفروع قبل عدّها فعلياً؛ سجّل أي نقص كفرق ولا تستلم الكمية المشحونة تلقائياً.',en:'Never receive an inter-branch shipment before counting; record any shortage as a discrepancy.'}
+];
+
+var CONCEPTS=[
+ {k:'Organization (Org)',ar:'المنشأة: المصنع أو الفرع الذي يملك مخزونه الخاص. في هذا النظام كل فرع من الفروع الـ 13 هو Org مستقل.',en:'The plant or branch that owns its own inventory. Here each of the 13 branches is a separate Org.'},
+ {k:'Subinventory',ar:'قسم تخزين داخل الفرع: جاف DRY-01، مجمد خام FRZ-RAW، مجمد نهائي FRZ-FG، مرحلة إنتاج PROD-STG.',en:'A storage section inside a branch: DRY-01, FRZ-RAW, FRZ-FG, PROD-STG.'},
+ {k:'Locator',ar:'الموقع الدقيق داخل القسم (ممر-رف-مستوى) مثل A-02-03.',en:'Exact position inside a subinventory (aisle-rack-level) e.g. A-02-03.'},
+ {k:'UOM',ar:'وحدة القياس: EA حبة، KG كيلو، CTN كرتون. الخطأ فيها يضاعف الكمية.',en:'Unit of measure: EA, KG, CTN. A wrong UOM multiplies quantity.'},
+ {k:'Lot',ar:'دفعة إنتاج أو توريد لها رقم وتاريخ انتهاء، أساس تتبع الأغذية.',en:'A production/supply batch with number and expiry — the basis of food traceability.'},
+ {k:'FEFO',ar:'الأقدم انتهاءً يُصرف أولاً، وليس الأقدم استلاماً.',en:'First Expired, First Out — not first received.'},
+ {k:'Transaction Type',ar:'نوع الحركة: استلام شراء، استلام/صرف متنوع، تحويل داخلي، تحويل بين الفروع، صرف للإنتاج.',en:'Receipt, Misc receipt/issue, Subinventory transfer, Inter-org transfer, WIP issue.'},
+ {k:'Reason Code',ar:'سبب الحركة (تالف، فائض إنتاج، عيب جودة...) وهو إلزامي للتدقيق.',en:'Why the transaction happened (damaged, surplus, defect…). Mandatory for audit.'},
+ {k:'Move Order',ar:'طلب نقل أو صرف يصدره الإنتاج ويُنفذ من المستودع.',en:'A request to move/issue material, raised by production and executed by the warehouse.'},
+ {k:'Cycle Count',ar:'جرد دوري لجزء من الأصناف مقابل رصيد النظام، مع نسبة سماح للفروقات.',en:'Periodic count of part of the items against system balance, with variance tolerance.'},
+ {k:'On-hand vs ATT',ar:'On-hand كل ما في الرف، أما Available to Transact فهو المتاح فعلاً بعد الحجوزات.',en:'On-hand is everything on the shelf; Available to Transact excludes reservations.'},
+ {k:'Direct transfer',ar:'تحويل بين فرعين يدخل رصيد الفرع المستلم فوراً. نستخدمه بين فروع المدينة الواحدة (وصول في نفس اليوم).',en:'Inter-org transfer that lands in the receiving branch immediately. Used inside one city (same-day arrival).'},
+ {k:'Intransit transfer',ar:'تحويل بين مدينتين: البضاعة على الطريق ولا تدخل رصيد الفرع المستلم إلا بعد الاستلام الفعلي.',en:'Between cities: goods are on the road and enter the receiving branch only after physical receipt.'},
+ {k:'In-transit',ar:'بضاعة خرجت من فرع ولم تُستلم في الآخر بعد، وتبقى مملوكة للمرسل.',en:'Goods shipped from one branch but not yet received by the other; still owned by the sender.'},
+ {k:'Shipping Network',ar:'إعداد يحدد أي الفروع يمكنها التحويل لبعضها ونوع التحويل (مباشر أو في الطريق).',en:'Setup defining which branches may transfer to each other and the type (Direct or Intransit).'},
+ {k:'Internal Requisition',ar:'طلب داخلي يصدره فرع محتاج إلى فرع لديه المخزون، وينتج عنه أمر تحويل.',en:'A request raised by a short branch to a branch holding stock; it generates a transfer order.'},
+ {k:'Waybill / Shipment No.',ar:'رقم بوليصة الشحن الذي يربط الشحنة بالناقل ويُستخدم عند الاستلام.',en:'The carrier document number linking the shipment to the carrier; used at receipt.'},
+ {k:'Discrepancy',ar:'الفرق بين المشحون والمستلم (نقص أو تلف) ويُسجَّل رسمياً ولا يُخفى.',en:'The gap between shipped and received (shortage/damage); recorded formally, never hidden.'},
+ {k:'Receipt',ar:'مستند استلام يُنشأ عند حفظ الاستلام ويحمل رقماً (مثل 8685) تُربط به كل الحركات اللاحقة.',en:'A document created when the receipt is saved; it carries a number (e.g. 8685) that links all later transactions.'},
+ {k:'Routing: Inspection Required',ar:'مسار الاستلام يفرض الفحص قبل التسليم للمخزون، فلا يدخل الرصيد قبل القبول.',en:'The receiving route forces inspection before delivery to stock, so nothing enters stock before acceptance.'},
+ {k:'Receive → Inspect → Deliver',ar:'مراحل الاستلام الثلاث: استلام الشحنة، فحصها وقبولها، ثم تسليمها إلى المستودع الفرعي والموقع مع الدفعات.',en:'The three receiving stages: receive the shipment, inspect/accept it, then deliver it to subinventory and locator with lots.'},
+ {k:'Secondary UOM / Secondary Quantity',ar:'الكمية الثانوية = نفس الكمية بوحدة الكرتون (CRT) بجانب الكيلو (KG). Quantity = الوزن بالكيلوجرام، Secondary Quantity = عدد الكراتين (مثال: 1125 كجم = 75 كرتون). فائدتها: العدّ والجرد بالكرتون، تتبع الرصيد بوحدتين، كشف أخطاء الإدخال (الكيلو ÷ 15 يجب أن يساوي الكراتين)، وفي التقرير sqty = الكراتين و pqty = الكيلو.',en:'Secondary quantity = the same quantity in cartons (CRT) next to kilograms (KG). Quantity = weight in KG, Secondary Quantity = number of cartons (e.g. 1125 KG = 75 cartons). Why: counting by carton, tracking in two units, catching entry mistakes (KG / 15 must equal cartons); in the report sqty = cartons and pqty = KG.'},
+ {k:'Line Qty vs Quantity (Inspect)',ar:'Line Qty = الكمية المستلمة على السطر (مرجع للقراءة فقط). Quantity = الكمية التي تفحصها وتقبلها الآن، تُكتب يدوياً. عند قبول الشحنة كاملة تتساوي القيمتان، وعند عيب جزئي تقبل جزءاً وترفض الباقي ولا تتجاوز Line Qty.',en:'Line Qty = the quantity received on the line (read-only reference). Quantity = the amount you inspect and accept now, typed manually. For a full acceptance both are equal; for a partial defect you accept part and reject the rest, never exceeding Line Qty.'},
+ {k:'Lot Number (auto-generated)',ar:'رقم الدفعة يتولد تلقائياً من أوراكل عند الاستلام، ولا يكتبه مدخل البيانات؛ يراجعه فقط ويطابقه مع التقرير. شكل الدفعة في التدريب مثال (L-كود الصنف-حرف ورقمان) وقاعدة التوليد الفعلية تُؤكَّد من إعدادات النظام.',en:'The lot number is generated automatically by Oracle at receiving; the data-entry user does not type it, only checks it against the report. The lot shape used in training is an example (L-item code-letter+2 digits); the real generation rule must be confirmed from system setup.'},
+ {k:'Lot Entry',ar:'نافذة إدخال رقم الدفعة وتاريخ الانتهاء والكمية؛ مجموع الدفعات يجب أن يساوي كمية السطر.',en:'The window for lot number, expiry and quantity; the lot total must equal the line quantity.'}
+];
+
+var OPT={
+ 'CTN-5PLY-40X30':'كرتون 5 طبقات 40×30','MOZ-BLOCK-20KG':'بلوك موزاريلا 20 كجم','CHS-CURD-25KG':'خثارة جبن 25 كجم','FILM-PE-500M':'رول بولي إيثيلين 500 م',
+ 'DRY-01':'جاف 1','DRY-02':'جاف 2','FRZ-RAW':'مجمد خام','FRZ-FG':'مجمد منتج نهائي','PROD-STG':'تجهيز الإنتاج','CHILL-01':'مبرد 1',
+ 'EA':'حبة','KG':'كيلو','CTN':'كرتون',
+ 'Miscellaneous receipt':'استلام متنوع','Miscellaneous issue':'صرف متنوع','Subinventory transfer':'تحويل بين المستودعات الفرعية','PO Receipt':'استلام أمر شراء',
+ 'Production Surplus':'فائض إنتاج','Damaged':'تالف','Quality Defect':'عيب جودة','Count Adjustment':'تسوية جرد',
+ 'Move Order Requisition':'طلب نقل مواد','Pick Wave Move Order':'طلب نقل بموجة تجميع','Replenishment':'تعويض مخزون',
+ 'Auto-adjust':'تعديل تلقائي','Submit for approval':'رفع للاعتماد','Ignore variance':'تجاهل الفرق',
+ 'Active':'نشطة','Hold':'محجوزة','Expired':'منتهية','Released':'مُفرج عنها',
+ 'Temperature deviation':'انحراف حرارة','Packaging damage':'تلف تغليف','Supplier recall':'استدعاء مورد','Count error':'خطأ عد',
+ 'Supplier':'المورد','Receiving':'الاستلام','Inventory':'المخزون',
+ 'Over shipment':'شحن زائد','Wrong item':'صنف خاطئ','Late delivery':'تأخر توريد',
+ 'Direct':'مباشر','Intransit':'في الطريق',
+ 'On-hand Quantity':'الكمية بالمخزن','Cycle Count Entries':'إدخالات الجرد الدوري','Receiving Returns':'مرتجعات الاستلام',
+ 'On-hand':'الرصيد الفعلي','Available to Transact':'متاح للحركة','Available to Reserve':'متاح للحجز','Pending':'معلّق',
+ 'Item only':'بالصنف فقط','Subinventory + Lot':'بالمستودع الفرعي + الدفعة','Org only':'بالفرع فقط',
+ 'Company truck':'شاحنة الشركة','Refrigerated carrier':'ناقل مبرد (طرف ثالث)','Dry carrier':'ناقل جاف (طرف ثالث)','Courier':'شحن سريع',
+ 'Inventory (In-transit)':'مخزون (في الطريق)','Vendor':'مورد','Customer':'عميل',
+ 'Receive actual qty and raise discrepancy':'استلم الفعلي وسجّل فرقاً','Receive full shipped qty':'استلم الكمية المشحونة كاملة','Reject shipment':'ارفض الشحنة',
+ 'Transit damage':'تلف أثناء النقل','Counting error at origin':'خطأ عد في الفرع المرسل','Theft / loss':'سرقة أو فقد',
+ 'Return to origin':'إرجاع للفرع المرسل','Receive anyway':'استلام رغم المخالفة','Write off':'شطب',
+ 'Internal Requisition':'طلب داخلي بين الفروع','Purchase Requisition':'طلب شراء',
+ 'Inter-org Direct':'تحويل بين فروع مباشر','Inter-org Intransit':'تحويل بين فروع في الطريق','Misc issue + Misc receipt':'صرف متنوع + استلام متنوع'
+};
+function optLabel(v){var b=br(v);if(b)return v+' — '+b.en+' / '+b.ar;return OPT[v]?v+' — '+OPT[v]:v;}
+
+var ITEMS=['CTN-5PLY-40X30','MOZ-BLOCK-20KG','CHS-CURD-25KG','FILM-PE-500M'];
+var SUBS=['DRY-01','DRY-02','FRZ-RAW','FRZ-FG','PROD-STG','CHILL-01'];
+var UOMS=['EA','KG','CTN'];
+var TT=['Miscellaneous receipt','Miscellaneous issue','Subinventory transfer','PO Receipt'];
+var RSN=['Production Surplus','Damaged','Quality Defect','Count Adjustment'];
+var STRSN=['Temperature deviation','Packaging damage','Supplier recall','Count error'];
+var SHIP=['Company truck','Refrigerated carrier','Dry carrier','Courier'];
+var XFER=['Direct','Intransit'];
+var MATRIX=['Subinventory transfer','Inter-org Direct','Inter-org Intransit','Misc issue + Misc receipt'];
+function xferAns(a,b){return function(){return sameCity(a,b)?'Direct':'Intransit';};}
+function matAns(a,b){return function(){return sameCity(a,b)?'Inter-org Direct':'Inter-org Intransit';};}
+function P(a,b){return {ar:a,en:b};}
+
+function buildSC(){
+ var b1=bnm('B01'),b2=bnm('B02'),b4=bnm('B04'),b5=bnm('B05'),b7=bnm('B07'),b8=bnm('B08');
+ return [
+{id:1,tr:0,
+ t:P('استلام أمر شراء','Purchase Order Receipt'),
+ path:'Inventory > Transactions > Receiving > Receipts',
+ story:P('وصلت شاحنة كراتين من المورد على أمر الشراء PO-45012: 5000 حبة من الصنف CTN-5PLY-40X30. المكان المخصص: المستودع الجاف DRY-01، الموقع A-02-03.','A truck arrived on PO-45012 with 5000 EA of CTN-5PLY-40X30. Assigned location: dry store DRY-01, locator A-02-03.'),
+ fields:[
+ {k:'po',l:P('رقم أمر الشراء','PO Number'),t:'txt',a:'PO-45012',h:P('انسخه كما في المستند.','Copy it as on the document.')},
+ {k:'item',l:P('الصنف','Item'),t:'sel',o:ITEMS,a:'CTN-5PLY-40X30',h:P('الصنف المذكور في القصة.','The item named in the story.')},
+ {k:'q',l:P('الكمية المستلمة','Quantity Received'),t:'num',a:5000,h:P('بدون فواصل.','No separators.')},
+ {k:'u',l:P('الوحدة','UOM'),t:'sel',o:UOMS,a:'EA',h:P('الكراتين تُعد بالحبة.','Cartons are counted per piece.')},
+ {k:'s',l:P('المستودع الفرعي','Subinventory'),t:'sel',o:SUBS,a:'DRY-01',h:P('مواد تغليف جافة.','Dry packaging material.')},
+ {k:'loc',l:P('الموقع','Locator'),t:'sel',o:['A-01-01','A-02-03','B-02-03','C-01-05'],a:'A-02-03',h:P('ممر A، رف 02، مستوى 03.','Aisle A, rack 02, level 03.')}],
+ why:P('الاستلام على أمر الشراء يربط الكمية بالمورد والفاتورة. خطأ الموقع يعني بضاعة موجودة في النظام ومفقودة على الرف.','Receiving against the PO links quantity to supplier and invoice. A wrong locator means stock exists in the system but is lost on the shelf.')},
+{id:2,tr:0,
+ t:P('استلام متنوع (فائض إنتاج)','Miscellaneous Receipt (Production Surplus)'),
+ path:'Inventory > Transactions > Miscellaneous Transaction',
+ story:P('خرج من خط الإنتاج فائض 1200 كجم من MOZ-BLOCK-20KG بدون أمر شغل، دفعة L261025-A، يُخزَّن في المجمد النهائي FRZ-FG.','The line produced 1200 KG surplus of MOZ-BLOCK-20KG with no work order, lot L261025-A, stored in finished frozen FRZ-FG.'),
+ fields:[
+ {k:'tt',l:P('نوع الحركة','Transaction Type'),t:'sel',o:TT,a:'Miscellaneous receipt',h:P('دخول بدون أمر شراء.','Stock in, no PO.')},
+ {k:'item',l:P('الصنف','Item'),t:'sel',o:ITEMS,a:'MOZ-BLOCK-20KG'},
+ {k:'s',l:P('المستودع الفرعي','Subinventory'),t:'sel',o:SUBS,a:'FRZ-FG',h:P('منتج نهائي مجمد.','Finished frozen product.')},
+ {k:'q',l:P('الكمية','Quantity'),t:'num',a:1200},
+ {k:'lot',l:P('رقم الدفعة','Lot Number'),t:'txt',a:'L261025-A',h:P('إلزامي للصنف المُدار بالدفعات.','Mandatory for lot-controlled items.')},
+ {k:'r',l:P('السبب','Reason'),t:'sel',o:RSN,a:'Production Surplus'}],
+ why:P('الاستلام المتنوع يحتاج سبباً ودفعة، وإلا يصبح رصيداً بلا أصل يمكن تتبعه.','A misc receipt needs a reason and lot, otherwise it is untraceable stock.')},
+{id:3,tr:0,
+ t:P('صرف متنوع (تالف)','Miscellaneous Issue (Damaged)'),
+ path:'Inventory > Transactions > Miscellaneous Transaction',
+ story:P('تلف 300 حبة من CTN-5PLY-40X30 بسبب تسرب مياه في DRY-01. أخرجها من الرصيد.','300 EA of CTN-5PLY-40X30 were damaged by a water leak in DRY-01. Remove them from stock.'),
+ fields:[
+ {k:'tt',l:P('نوع الحركة','Transaction Type'),t:'sel',o:TT,a:'Miscellaneous issue'},
+ {k:'item',l:P('الصنف','Item'),t:'sel',o:ITEMS,a:'CTN-5PLY-40X30'},
+ {k:'s',l:P('المستودع الفرعي','Subinventory'),t:'sel',o:SUBS,a:'DRY-01'},
+ {k:'q',l:P('الكمية (موجبة)','Quantity (positive)'),t:'num',a:300,h:P('نوع الحركة هو الذي يحدد الاتجاه، لا تكتب سالباً.','The type sets direction; do not type a negative.')},
+ {k:'r',l:P('السبب','Reason'),t:'sel',o:RSN,a:'Damaged'}],
+ why:P('الصرف المتنوع يحتاج سبباً دقيقاً لأنه يظهر في تقارير الفقد والتدقيق المالي.','A misc issue needs an exact reason: it feeds loss reports and financial audit.')},
+{id:4,tr:0,
+ t:P('تحويل بين المستودعات الفرعية (داخل الفرع)','Subinventory Transfer (inside one branch)'),
+ path:'Inventory > Transactions > Subinventory Transfer',
+ story:P('يطلب الإنتاج 800 كجم من CHS-CURD-25KG لتُنقل من المجمد الخام إلى منطقة تجهيز الإنتاج، داخل نفس الفرع.','Production needs 800 KG of CHS-CURD-25KG moved from frozen raw store to the production staging area, inside the same branch.'),
+ fields:[
+ {k:'item',l:P('الصنف','Item'),t:'sel',o:ITEMS,a:'CHS-CURD-25KG'},
+ {k:'from',l:P('من مستودع فرعي','From Subinventory'),t:'sel',o:SUBS,a:'FRZ-RAW'},
+ {k:'to',l:P('إلى مستودع فرعي','To Subinventory'),t:'sel',o:SUBS,a:'PROD-STG',h:P('منطقة تجهيز الإنتاج.','The production staging area.')},
+ {k:'q',l:P('الكمية','Quantity'),t:'num',a:800},
+ {k:'u',l:P('الوحدة','UOM'),t:'sel',o:UOMS,a:'KG'}],
+ why:P('التحويل الداخلي لا يغيّر إجمالي الفرع، فقط موقع الرصيد. عكس (من/إلى) يقلب الرصيد في الاتجاه الخطأ.','An internal transfer keeps the branch total unchanged, only moves the balance. Swapping from/to moves stock the wrong way.')},
+{id:5,tr:0,
+ t:P('صرف للإنتاج بنظام FEFO','Issue to Production (FEFO)'),
+ path:'Inventory > Move Orders > Transact Move Orders',
+ story:P('أمر الشغل WO-7788 يطلب 600 كجم من CHS-CURD-25KG من FRZ-RAW. الدفعات المتاحة: L261001-B تنتهي 2027-01-10، L261020-C تنتهي 2026-12-05، L261015-A تنتهي 2027-02-20.','Work order WO-7788 requests 600 KG of CHS-CURD-25KG from FRZ-RAW. Available lots: L261001-B expires 2027-01-10, L261020-C expires 2026-12-05, L261015-A expires 2027-02-20.'),
+ fields:[
+ {k:'mo',l:P('نوع الطلب','Move Order Type'),t:'sel',o:['Move Order Requisition','Pick Wave Move Order','Replenishment'],a:'Move Order Requisition'},
+ {k:'job',l:P('أمر الشغل','Work Order'),t:'txt',a:'WO-7788'},
+ {k:'s',l:P('المصدر','Source Subinventory'),t:'sel',o:SUBS,a:'FRZ-RAW'},
+ {k:'lot',l:P('الدفعة المختارة','Lot Selected'),t:'sel',o:['L261001-B','L261020-C','L261015-A'],a:'L261020-C',h:P('أقرب تاريخ انتهاء.','Nearest expiry date.')},
+ {k:'q',l:P('الكمية','Quantity'),t:'num',a:600}],
+ why:P('FEFO يمنع انتهاء الصلاحية في المخزن. الدفعة L261020-C هي الأقرب انتهاءً رغم أنها ليست الأقدم استلاماً.','FEFO prevents expiry in store. L261020-C expires first even if it was not received first.')},
+{id:6,tr:0,
+ t:P('إدخال جرد دوري','Cycle Count Entry'),
+ path:'Inventory > Counting > Cycle Counts > Cycle Count Entries',
+ story:P('رصيد النظام للصنف FILM-PE-500M في DRY-02 هو 4200 حبة. العدّ الفعلي 4060 حبة. نسبة السماح المعتمدة 2%.','System balance of FILM-PE-500M in DRY-02 is 4200 EA. Physical count is 4060 EA. Approved tolerance is 2%.'),
+ fields:[
+ {k:'c',l:P('الكمية المعدودة','Counted Quantity'),t:'num',a:4060},
+ {k:'v',l:P('الفرق (معدود − نظام)','Variance (counted − system)'),t:'num',a:-140,h:P('4060 − 4200.','4060 − 4200.')},
+ {k:'p',l:P('نسبة الفرق % (بدون إشارة)','Variance % (no sign)'),t:'num',a:3.3,tol:0.1,h:P('140 ÷ 4200 × 100.','140 ÷ 4200 × 100.')},
+ {k:'act',l:P('الإجراء','Action'),t:'sel',o:['Auto-adjust','Submit for approval','Ignore variance'],a:'Submit for approval',h:P('3.3% أكبر من 2%.','3.3% is above 2%.')}],
+ why:P('الفرق خارج السماح لذلك لا يُعدَّل الرصيد مباشرة بل يرفع للمشرف للاعتماد.','The variance exceeds tolerance, so balance is not adjusted directly; it goes to the supervisor.')},
+{id:7,tr:0,
+ t:P('تغيير حالة دفعة (Hold)','Lot Status Change (Hold)'),
+ path:'Inventory > On-hand > Material Workbench > Update Lot Status',
+ story:P('فحص الجودة وجد أن الدفعة L261020-C تعرضت لارتفاع حرارة أثناء التخزين. امنع صرفها فوراً.','QC found lot L261020-C suffered a temperature excursion in storage. Block it from issue immediately.'),
+ fields:[
+ {k:'lot',l:P('الدفعة','Lot'),t:'txt',a:'L261020-C'},
+ {k:'st',l:P('الحالة الجديدة','New Status'),t:'sel',o:['Active','Hold','Expired','Released'],a:'Hold',h:P('حجز مؤقت لحين قرار الجودة.','Temporary block pending QC decision.')},
+ {k:'r',l:P('سبب الحالة','Status Reason'),t:'sel',o:STRSN,a:'Temperature deviation'}],
+ why:P('حالة Hold تمنع النظام من إدراج الدفعة في أي صرف أو شحن حتى يقرر قسم الجودة.','Hold stops the system from including the lot in any issue or shipment until QC decides.')},
+{id:8,tr:0,
+ t:P('إرجاع للمورد','Return to Vendor'),
+ path:'Inventory > Transactions > Receiving > Returns',
+ story:P('من الاستلام RCV-9921، تبين أن 120 حبة من CTN-5PLY-40X30 معيبة (طباعة مشوهة). أعدها للمورد.','From receipt RCV-9921, 120 EA of CTN-5PLY-40X30 have defective printing. Return them to the supplier.'),
+ fields:[
+ {k:'rc',l:P('رقم الاستلام','Receipt Number'),t:'txt',a:'RCV-9921'},
+ {k:'q',l:P('كمية الإرجاع','Return Quantity'),t:'num',a:120},
+ {k:'to',l:P('الإرجاع إلى','Return To'),t:'sel',o:['Supplier','Receiving','Inventory'],a:'Supplier'},
+ {k:'r',l:P('سبب الإرجاع','Return Reason'),t:'sel',o:['Quality Defect','Over shipment','Wrong item','Late delivery'],a:'Quality Defect'}],
+ why:P('الإرجاع يجب أن يرتبط برقم الاستلام الأصلي كي يصدر إشعار الخصم للمورد تلقائياً.','A return must reference the original receipt so the supplier debit memo is generated.')},
+{id:9,tr:1,
+ t:P('تحويل بين فرعين في الطريق (مثال أساسي)','Inter-Branch Transfer, In-transit (basic example)'),
+ path:'Inventory > Transactions > Inter-organization Transfer',
+ story:P('شحن 2000 حبة من FILM-PE-500M من الفرع '+b1.ar+' إلى الفرع '+b4.ar+'. البضاعة ستكون في الطريق عدة أيام.','Ship 2000 EA of FILM-PE-500M from branch '+b1.en+' to branch '+b4.en+'. Goods will be on the road for days.'),
+ fields:[
+ {k:'f',l:P('من فرع','From Branch'),t:'sel',o:'ORGS',a:'B01'},
+ {k:'to',l:P('إلى فرع','To Branch'),t:'sel',o:'ORGS',a:'B04'},
+ {k:'tt',l:P('نوع التحويل','Transfer Type'),t:'sel',o:XFER,a:xferAns('B01','B04'),h:P('مدينتان مختلفتان: الاستلام لاحقاً في الفرع الآخر.','Different cities: received later at the other branch.')},
+ {k:'item',l:P('الصنف','Item'),t:'sel',o:ITEMS,a:'FILM-PE-500M'},
+ {k:'q',l:P('الكمية','Quantity'),t:'num',a:2000}],
+ why:P('نوع In-transit يُبقي الكمية معلّقة على الطريق ولا تدخل رصيد الفرع المستلم حتى يتم الاستلام الفعلي.','Intransit keeps stock suspended on the road; the receiving branch balance rises only after physical receipt.')},
+{id:10,tr:0,
+ t:P('استعلام الرصيد المتاح','On-hand / ATT Query'),
+ path:'Inventory > On-hand > On-hand Quantity',
+ story:P('مدير المبيعات يسأل: كم كمية MOZ-BLOCK-20KG القابلة للشحن الآن بعد استبعاد الكميات المحجوزة، وبحسب كل دفعة؟','The sales manager asks: how much MOZ-BLOCK-20KG can ship right now after excluding reserved stock, by lot?'),
+ fields:[
+ {k:'w',l:P('الشاشة','Window'),t:'sel',o:['On-hand Quantity','Cycle Count Entries','Receiving Returns'],a:'On-hand Quantity'},
+ {k:'qt',l:P('نوع الكمية','Quantity Type'),t:'sel',o:['On-hand','Available to Transact','Available to Reserve','Pending'],a:'Available to Transact',h:P('الأقرب لما يمكن شحنه فعلاً.','Closest to what can ship.')},
+ {k:'g',l:P('التجميع حسب','Group By'),t:'sel',o:['Item only','Subinventory + Lot','Org only'],a:'Subinventory + Lot'}],
+ why:P('On-hand يشمل المحجوز، أما Available to Transact فهو الرقم الصحيح للوعد بالتسليم.','On-hand includes reserved stock; Available to Transact is the right number to promise delivery.')},
+{id:11,tr:1,
+ t:P('تحويل بين فرعين في نفس المدينة','Transfer Between Branches in the Same City'),
+ path:'Inventory > Transactions > Inter-organization Transfer',
+ story:P('الفرع '+b1.ar+' يرسل 400 حبة من CTN-5PLY-40X30 إلى الفرع '+b2.ar+' داخل نفس المدينة بشاحنة الشركة. مستند التسليم DN-2210 ويصل في نفس اليوم.','Branch '+b1.en+' sends 400 EA of CTN-5PLY-40X30 to branch '+b2.en+' in the same city by company truck. Delivery note DN-2210, same-day arrival.'),
+ fields:[
+ {k:'f',l:P('من فرع','From Branch'),t:'sel',o:'ORGS',a:'B01'},
+ {k:'to',l:P('إلى فرع','To Branch'),t:'sel',o:'ORGS',a:'B02'},
+ {k:'tt',l:P('نوع التحويل','Transfer Type'),t:'sel',o:XFER,a:xferAns('B01','B02'),h:P('نفس المدينة = وصول في نفس اليوم.','Same city = same-day arrival.')},
+ {k:'item',l:P('الصنف','Item'),t:'sel',o:ITEMS,a:'CTN-5PLY-40X30'},
+ {k:'q',l:P('الكمية','Quantity'),t:'num',a:400},
+ {k:'u',l:P('الوحدة','UOM'),t:'sel',o:UOMS,a:'EA'},
+ {k:'ship',l:P('وسيلة النقل','Shipping Method'),t:'sel',o:SHIP,a:'Company truck'},
+ {k:'dn',l:P('رقم مستند التسليم','Delivery Note No.'),t:'txt',a:'DN-2210'}],
+ why:P('داخل المدينة الواحدة يدخل الرصيد مباشرة في الفرع المستلم دون حالة معلّقة، ويُسجَّل رقم مستند التسليم للتتبع.','Inside one city the stock lands directly in the receiving branch with no pending state, and the delivery note number is recorded for traceability.')},
+{id:12,tr:1,
+ t:P('تحويل بين مدينتين (مجمد، في الطريق)','Transfer Between Cities (frozen, In-transit)'),
+ path:'Inventory > Transactions > Inter-organization Transfer',
+ story:P('الفرع '+b1.ar+' يرسل 1500 كجم من MOZ-BLOCK-20KG (مجمد -18°م) إلى الفرع '+b4.ar+' في مدينة أخرى بناقل مبرد. بوليصة الشحن WB-5531، المدة المتوقعة يومان.','Branch '+b1.en+' sends 1500 KG of MOZ-BLOCK-20KG (frozen -18°C) to branch '+b4.en+' in another city by refrigerated carrier. Waybill WB-5531, expected transit 2 days.'),
+ fields:[
+ {k:'f',l:P('من فرع','From Branch'),t:'sel',o:'ORGS',a:'B01'},
+ {k:'to',l:P('إلى فرع','To Branch'),t:'sel',o:'ORGS',a:'B04'},
+ {k:'tt',l:P('نوع التحويل','Transfer Type'),t:'sel',o:XFER,a:xferAns('B01','B04'),h:P('مدينتان مختلفتان.','Different cities.')},
+ {k:'item',l:P('الصنف','Item'),t:'sel',o:ITEMS,a:'MOZ-BLOCK-20KG'},
+ {k:'q',l:P('الكمية','Quantity'),t:'num',a:1500},
+ {k:'u',l:P('الوحدة','UOM'),t:'sel',o:UOMS,a:'KG'},
+ {k:'ship',l:P('وسيلة النقل','Shipping Method'),t:'sel',o:SHIP,a:'Refrigerated carrier',h:P('المجمد لا يُنقل إلا مبرداً.','Frozen goods ship refrigerated only.')},
+ {k:'wb',l:P('رقم بوليصة الشحن','Waybill No.'),t:'txt',a:'WB-5531'},
+ {k:'days',l:P('أيام النقل المتوقعة','Expected transit days'),t:'num',a:2},
+ {k:'tmp',l:P('حرارة الشحن °م','Shipping temperature °C'),t:'num',a:-18}],
+ why:P('بين مدينتين تبقى الكمية على الطريق مملوكة للمرسل حتى الاستلام. المجمد يتطلب ناقلاً مبرداً وتسجيل الحرارة لإثبات سلسلة التبريد.','Between cities the quantity stays on the road, owned by the sender, until receipt. Frozen needs a refrigerated carrier and a recorded temperature to prove the cold chain.')},
+{id:13,tr:1,
+ t:P('استلام شحنة في الطريق في الفرع المستلم','Receive an In-transit Shipment at the Destination Branch'),
+ path:'Inventory > Transactions > Receiving > Receipts',
+ story:P('وصلت الشحنة SH-3301 القادمة من '+b1.ar+' إلى الفرع '+b4.ar+': 1500 كجم من MOZ-BLOCK-20KG، الحرارة عند الاستلام -18 سليمة. خزّنها في المجمد النهائي FRZ-FG.','Shipment SH-3301 from '+b1.en+' arrived at branch '+b4.en+': 1500 KG of MOZ-BLOCK-20KG, temperature at receipt -18 is fine. Store it in finished frozen FRZ-FG.'),
+ fields:[
+ {k:'src',l:P('مصدر الاستلام','Receipt Source'),t:'sel',o:['Inventory (In-transit)','Vendor','Customer'],a:'Inventory (In-transit)',h:P('البضاعة قادمة من فرع آخر.','Goods come from another branch.')},
+ {k:'sh',l:P('رقم الشحنة','Shipment No.'),t:'txt',a:'SH-3301'},
+ {k:'org',l:P('الفرع المستلم','Receiving Branch'),t:'sel',o:'ORGS',a:'B04'},
+ {k:'item',l:P('الصنف','Item'),t:'sel',o:ITEMS,a:'MOZ-BLOCK-20KG'},
+ {k:'q',l:P('الكمية المستلمة','Quantity Received'),t:'num',a:1500},
+ {k:'s',l:P('المستودع الفرعي','Subinventory'),t:'sel',o:SUBS,a:'FRZ-FG'}],
+ why:P('الاستلام هو اللحظة التي يدخل فيها الرصيد فرع الوجهة وينتهي فيها وضع In-transit.','Receipt is the moment stock enters the destination branch and the In-transit state ends.')},
+{id:14,tr:1,
+ t:P('استلام مع نقص أو تلف','Receive With Shortage or Damage'),
+ path:'Inventory > Transactions > Receiving > Receipts',
+ story:P('الشحنة SH-3305 إلى الفرع '+b7.ar+' شُحن منها 1000 حبة من CTN-5PLY-40X30، وعند العد وُجد 940 سليمة و60 مهروسة أثناء النقل.','Shipment SH-3305 to branch '+b7.en+' shipped 1000 EA of CTN-5PLY-40X30; on counting, 940 are good and 60 were crushed in transit.'),
+ fields:[
+ {k:'sh',l:P('رقم الشحنة','Shipment No.'),t:'txt',a:'SH-3305'},
+ {k:'shq',l:P('الكمية المشحونة','Quantity Shipped'),t:'num',a:1000},
+ {k:'rq',l:P('الكمية المستلمة السليمة','Good Quantity Received'),t:'num',a:940},
+ {k:'dq',l:P('كمية الفرق','Discrepancy Quantity'),t:'num',a:60,h:P('1000 − 940.','1000 − 940.')},
+ {k:'act',l:P('الإجراء','Action'),t:'sel',o:['Receive actual qty and raise discrepancy','Receive full shipped qty','Reject shipment'],a:'Receive actual qty and raise discrepancy'},
+ {k:'r',l:P('سبب الفرق','Discrepancy Reason'),t:'sel',o:['Transit damage','Counting error at origin','Theft / loss','Wrong item'],a:'Transit damage'}],
+ why:P('نستلم الكمية الفعلية فقط ونوثق الفرق رسمياً لمطالبة الناقل أو التأمين. استلام الكمية المشحونة كاملة يخفي الفقد ويُفسد رصيد الفرع.','Receive only the actual quantity and record the gap formally for carrier/insurance claims. Receiving the full shipped quantity hides the loss and corrupts branch stock.')},
+{id:15,tr:1,
+ t:P('رفض شحنة وإرجاعها للفرع المرسل','Refuse a Shipment and Return It to the Origin Branch'),
+ path:'Inventory > Transactions > Receiving > Returns',
+ story:P('رفض الفرع '+b8.ar+' الشحنة SH-3302 (1200 كجم CHS-CURD-25KG) لأن حرارتها عند الوصول فوق المسموح. أعدها إلى الفرع '+b1.ar+'.','Branch '+b8.en+' refuses shipment SH-3302 (1200 KG CHS-CURD-25KG) because its arrival temperature is above the allowed limit. Return it to branch '+b1.en+'.'),
+ fields:[
+ {k:'sh',l:P('رقم الشحنة','Shipment No.'),t:'txt',a:'SH-3302'},
+ {k:'act',l:P('الإجراء','Action'),t:'sel',o:['Return to origin','Receive anyway','Write off'],a:'Return to origin'},
+ {k:'to',l:P('إرجاع إلى فرع','Return To Branch'),t:'sel',o:'ORGS',a:'B01'},
+ {k:'q',l:P('الكمية','Quantity'),t:'num',a:1200},
+ {k:'r',l:P('السبب','Reason'),t:'sel',o:STRSN,a:'Temperature deviation'}],
+ why:P('منتج مجمد خارج حرارته لا يُدخل المخزون. يُرجع للمرسل ويوثّق السبب ويقرر قسم الجودة مصيره.','A frozen product outside temperature never enters stock. It goes back to the sender with the reason documented, and QC decides its fate.')},
+{id:16,tr:1,
+ t:P('طلب داخلي من فرع إلى فرع','Internal Requisition Between Branches'),
+ path:'Purchasing > Requisitions > Requisitions',
+ story:P('الفرع '+b5.ar+' ينقصه 500 كجم من CHS-CURD-25KG ويطلبها من الفرع '+b1.ar+' الذي لديه رصيد.','Branch '+b5.en+' is short of 500 KG of CHS-CURD-25KG and requests it from branch '+b1.en+', which has stock.'),
+ fields:[
+ {k:'rt',l:P('نوع الطلب','Requisition Type'),t:'sel',o:['Internal Requisition','Purchase Requisition'],a:'Internal Requisition',h:P('المصدر فرع داخلي لا مورد.','Source is an internal branch, not a supplier.')},
+ {k:'st',l:P('نوع المصدر','Source Type'),t:'sel',o:['Inventory','Supplier'],a:'Inventory'},
+ {k:'so',l:P('الفرع المصدر','Source Branch'),t:'sel',o:'ORGS',a:'B01'},
+ {k:'de',l:P('الفرع الطالب','Requesting Branch'),t:'sel',o:'ORGS',a:'B05'},
+ {k:'item',l:P('الصنف','Item'),t:'sel',o:ITEMS,a:'CHS-CURD-25KG'},
+ {k:'q',l:P('الكمية','Quantity'),t:'num',a:500},
+ {k:'u',l:P('الوحدة','UOM'),t:'sel',o:UOMS,a:'KG'}],
+ why:P('الطلب الداخلي يترك أثراً رسمياً لمن طلب ومن وافق، ثم يتحول إلى أمر تحويل. الطلب الشفهي يصنع رصيداً لا أصل له.','An internal requisition leaves a formal record of who asked and who approved, then becomes a transfer order. A verbal request creates stock with no paper trail.')},
+{id:17,tr:1,
+ t:P('اختر نوع التحويل الصحيح','Choose the Correct Transfer Type'),
+ path:'Inventory > Transactions > (choose transaction type)',
+ story:P('اختر العملية الصحيحة في أوراكل لكل حالة من الحالات الثلاث.','Pick the right Oracle transaction for each of the three cases.'),
+ fields:[
+ {k:'c1',l:P('نقل 300 حبة من DRY-01 إلى DRY-02 داخل الفرع B01','Move 300 EA from DRY-01 to DRY-02 inside branch B01'),t:'sel',o:MATRIX,a:'Subinventory transfer'},
+ {k:'c2',l:P('نقل بضاعة من B01 إلى B02','Move goods from B01 to B02'),t:'sel',o:MATRIX,a:matAns('B01','B02'),h:P('انظر مدينة كل فرع في شاشة الفروع.','Check each branch city in the Branches tab.')},
+ {k:'c3',l:P('نقل بضاعة من B01 إلى B08','Move goods from B01 to B08'),t:'sel',o:MATRIX,a:matAns('B01','B08')}],
+ why:P('الخطأ الشائع هو استخدام صرف متنوع + استلام متنوع بدل التحويل، وهذا يقطع التتبع ويشوّه التكلفة.','The common mistake is a misc issue + misc receipt instead of a transfer; it breaks traceability and distorts cost.')}
+ ];
+}
+
+var SC=buildSC();
+function ans(f){return typeof f.a==='function'?f.a():f.a;}
+function chk(f,v){
+ if(v===''||v==null)return false;
+ var a=ans(f);
+ if(f.t==='num'){var n=parseFloat(String(v).replace(/,/g,''));if(isNaN(n))return false;return Math.abs(n-a)<=(f.tol||0.0001);}
+ return norm(v)===norm(a);
+}
+
+function fieldHTML(sc,f,mode){
+ var id='f_'+sc.id+'_'+f.k,inp;
+ if(f.t==='sel'){
+  var opts=f.o==='ORGS'?BR().map(function(b){return b.c;}):f.o;
+  inp='<select id="'+id+'"><option value="">'+T('choose')+'</option>'+opts.map(function(o){return '<option value="'+esc(o)+'">'+esc(optLabel(o))+'</option>';}).join('')+'</select>';
+ }else{inp='<input id="'+id+'" type="text" inputmode="'+(f.t==='num'?'decimal':'text')+'" autocomplete="off">';}
+ var hint=(mode==='learn'&&f.h)?'<div class="hint" id="h_'+id+'">'+I(f.h)+'</div>':'';
+ return '<div class="f" id="w_'+id+'"><label>'+f.l.ar+'<div class="en">'+f.l.en+'</div></label>'+inp+'<div class="msg" id="m_'+id+'"></div>'+hint+'</div>';
+}
+
+function scenarioView(sc,mode,onDone){
+ var box=el('<div class="card"></div>');
+ var h='<h2 style="color:var(--pri)">'+sc.id+'. '+sc.t.ar+'</h2><div class="en" style="margin-bottom:4px">'+sc.t.en+'</div>';
+ h+='<div class="nav-path">'+esc(sc.path)+'</div>';
+ h+='<div class="story">'+B(sc.story)+'</div>';
+ h+='<div class="win"><div class="tb"><span>Oracle Applications — '+esc(sc.path.split('>').pop().trim())+'</span><span>[ Simulation ]</span></div><div class="bd">'+sc.fields.map(function(f){return fieldHTML(sc,f,mode);}).join('')+'</div></div>';
+ h+='<div class="why" id="why"><b>'+T('why')+'</b>'+B(sc.why)+'</div>';
+ h+='<div class="row"><button class="btn" id="bSub">'+B(S.submit)+'</button>';
+ if(mode==='learn'){h+='<button class="btn ghost" id="bHint">'+B(S.hintBtn)+'</button><button class="btn ghost" id="bAns">'+B(S.ans)+'</button><button class="btn ghost" id="bRe">'+B(S.retry)+'</button>';}
+ h+='<span id="res" style="font-weight:700"></span></div>';
+ box.innerHTML=h;
+ var locked=false;
+ function run(){
+  if(locked)return;
+  var ok=0;
+  sc.fields.forEach(function(f){
+   var id='f_'+sc.id+'_'+f.k,node=box.querySelector('#'+id),w=box.querySelector('#w_'+id),m=box.querySelector('#m_'+id);
+   var good=chk(f,node.value);if(good)ok++;
+   w.className='f '+(good?'ok':'bad');
+   m.textContent=good?(mode==='learn'?'✔ '+T('right'):'✔'):(mode==='learn'?'✘ '+T('wrong'):'✘');
+  });
+  var pct=Math.round(ok/sc.fields.length*100);
+  box.querySelector('#res').textContent=T('score')+': '+ok+'/'+sc.fields.length+' ('+pct+'%)';
+  if(mode==='learn'){
+   if(pct===100)box.querySelector('#why').style.display='block';
+   var prev=state.data.practice[sc.id]||0;if(pct>prev){state.data.practice[sc.id]=pct;save();}
+  }else{
+   locked=true;box.querySelector('#bSub').disabled=true;
+   box.querySelector('#why').style.display='block';
+   sc.fields.forEach(function(f){var id='f_'+sc.id+'_'+f.k;if(!chk(f,box.querySelector('#'+id).value)){var a=ans(f);box.querySelector('#m_'+id).textContent='✘ '+T('expected')+': '+(f.t==='sel'?optLabel(a):a);}});
+   if(onDone)onDone(ok,sc.fields.length);
+  }
+ }
+ box.querySelector('#bSub').onclick=run;
+ if(mode==='learn'){
+  box.querySelector('#bHint').onclick=function(){box.querySelectorAll('.hint').forEach(function(x){x.style.display='block';});};
+  box.querySelector('#bAns').onclick=function(){sc.fields.forEach(function(f){box.querySelector('#f_'+sc.id+'_'+f.k).value=ans(f);});box.querySelector('#why').style.display='block';};
+  box.querySelector('#bRe').onclick=function(){render();};
+ }
+ return box;
+}
+
+function pctAll(){var v=0;SC.forEach(function(s){if(state.data.practice[s.id]===100)v++;});return Math.round(v/SC.length*100);}
+var main=document.getElementById('main'),navEl=document.getElementById('nav');
+
+function renderNav(){
+ var views=['home','concepts','branches','practice','map','lab','lots','exam','sheet','progress'];
+ navEl.innerHTML='';
+ views.forEach(function(v){var b=document.createElement('button');b.innerHTML=B(S[v]);if(state.view===v)b.className='on';b.onclick=function(){state.view=v;state.cur=null;state.exam=null;render();};navEl.appendChild(b);});
+}
+function renderHead(){
+ document.getElementById('ttl').innerHTML='<div class="ar">'+S.title.ar+'</div><div class="en">'+S.title.en+' — '+S.sub.en+'</div>';
+ document.getElementById('btnBW').textContent=document.body.classList.contains('bw')?T('bwOn'):T('bw');
+ document.getElementById('btnPrint').textContent=T('print');
+ var sel=document.getElementById('selTheme'),cur=document.body.getAttribute('data-theme'),keys=['classic','modern','dark','green'];
+ sel.innerHTML=keys.map(function(k,i){return '<option value="'+k+'"'+(k===cur?' selected':'')+'>'+I(S.themes[i])+'</option>';}).join('');
+}
+
+function vHome(){
+ var c=el('<div class="card"></div>');
+ c.innerHTML='<h2>'+S.welcome.ar+'</h2><div class="en" style="margin-bottom:8px">'+S.welcome.en+'</div><div class="prog"><i style="width:'+pctAll()+'%"></i></div><p class="sub">'+T('progress')+': '+pctAll()+'% — '+T('total')+': '+SC.length+'</p><h3>'+T('rules')+'</h3><ol>'+RULES.map(function(r){return '<li>'+B(r)+'</li>';}).join('')+'</ol>';
+ main.appendChild(c);
+}
+function vConcepts(){
+ var c=el('<div class="card"></div>');
+ c.innerHTML='<table><tr><th>'+T('term')+'</th><th>'+T('meaning')+'</th></tr>'+CONCEPTS.map(function(x){return '<tr><td><b>'+x.k+'</b></td><td>'+B(x)+'</td></tr>';}).join('')+'</table>';
+ main.appendChild(c);
+}
+function vBranches(){
+ var c=el('<div class="card"></div>');
+ var rows=BR().map(function(b,i){
+  return '<tr><td><b>'+b.c+'</b></td><td><input data-i="'+i+'" data-k="city" value="'+esc(b.city)+'" style="direction:ltr"></td><td><input data-i="'+i+'" data-k="ar" value="'+esc(b.ar)+'"></td><td><input data-i="'+i+'" data-k="en" value="'+esc(b.en)+'" style="direction:ltr"></td></tr>';
+ }).join('');
+ var groups={},same=0,cross=0,i,j;
+ BR().forEach(function(b){var k=norm(b.city);(groups[k]=groups[k]||[]).push(b.c);});
+ for(i=0;i<BR().length;i++){for(j=i+1;j<BR().length;j++){if(sameCity(BR()[i].c,BR()[j].c))same++;else cross++;}}
+ var g=Object.keys(groups).map(function(k){return '<tr><td><b>'+esc(k)+'</b></td><td style="direction:ltr;text-align:left">'+groups[k].join(', ')+'</td></tr>';}).join('');
+ var pol=[
+  [P('بين أقسام الفرع الواحد','Between sections of one branch'),'Subinventory transfer'],
+  [P('فرعان في نفس المدينة','Two branches in the same city'),'Inter-org Direct'],
+  [P('فرعان في مدينتين مختلفتين','Two branches in different cities'),'Inter-org Intransit'],
+  [P('فرع ينقصه صنف عند فرع آخر','A short branch asks another branch'),'Internal Requisition'],
+  [P('وصول شحنة بنقص أو تلف','Shipment arrives short or damaged'),'Receive actual qty and raise discrepancy'],
+  [P('شحنة مرفوضة عند الوصول','Shipment refused on arrival'),'Return to origin']
+ ].map(function(r){return '<tr><td>'+B(r[0])+'</td><td><b>'+r[1]+'</b><div class="en">'+(OPT[r[1]]||'')+'</div></td></tr>';}).join('');
+ c.innerHTML='<h2>'+T('brTitle')+'</h2><p class="sub">'+B(S.brNote)+'</p>'+
+  '<table><tr><th>'+T('code')+'</th><th>'+T('city')+'</th><th>'+T('nAr')+'</th><th>'+T('nEn')+'</th></tr>'+rows+'</table>'+
+  '<div class="row"><button class="btn ghost" id="rb">'+B(S.resetBr)+'</button></div>'+
+  '<h3 style="margin-top:16px">'+T('groups')+'</h3><table><tr><th>'+T('city')+'</th><th>'+T('code')+'</th></tr>'+g+'</table>'+
+  '<p>'+T('pairs')+' ('+(same+cross)+'): '+T('samePairs')+' = <b>'+same+'</b> | '+T('crossPairs')+' = <b>'+cross+'</b></p>'+
+  '<h3 style="margin-top:16px">'+T('policy')+'</h3><table><tr><th>'+T('caseC')+'</th><th>'+T('how')+'</th></tr>'+pol+'</table>';
+ c.querySelectorAll('input[data-i]').forEach(function(inp){
+  inp.onchange=function(){BR()[+inp.getAttribute('data-i')][inp.getAttribute('data-k')]=inp.value.trim();save();SC=buildSC();render();};
+ });
+ c.querySelector('#rb').onclick=function(){state.data.branches=cloneBR();save();SC=buildSC();render();};
+ main.appendChild(c);
+}
+function vPractice(){
+ if(state.cur){
+  var sc=SC.filter(function(s){return s.id===state.cur;})[0];
+  var b=el('<div class="row noprint"><button class="btn ghost" id="bk">'+B(S.back)+'</button></div>');
+  b.querySelector('#bk').onclick=function(){state.cur=null;render();};
+  main.appendChild(b);main.appendChild(scenarioView(sc,'learn'));return;
+ }
+ var g=el('<div class="grid"></div>');
+ SC.forEach(function(s){
+  var done=state.data.practice[s.id]===100;
+  var d=el('<div class="sc"><b>'+s.id+'.</b> '+s.t.ar+(s.tr?'<span class="tag">'+T('trans')+'</span>':'')+'<div class="en">'+s.t.en+'</div><span class="badge'+(done?' done':'')+'">'+(done?'✔ '+T('done'):T('todo'))+'</span></div>');
+  d.onclick=function(){state.cur=s.id;render();};g.appendChild(d);
+ });
+ main.appendChild(g);
+}
+function vExam(){
+ var ex=state.exam;
+ if(!ex){
+  var c=el('<div class="card"><h2>'+T('exam')+'</h2><p>'+SC.length+' '+(state.data?'':'')+'سيناريو بدون تلميحات ولا إظهار إجابات. نسبة النجاح 80%.<div class="en">'+SC.length+' scenarios, no hints or answers shown. Pass mark 80%.</div></p><label>'+T('name')+'<br><input id="nm" style="padding:8px;width:280px;max-width:100%" value="'+esc(state.data.name||'')+'"></label><div class="row"><button class="btn" id="go">'+B(S.startExam)+'</button></div></div>');
+  c.querySelector('#go').onclick=function(){var n=c.querySelector('#nm').value.trim();if(!n){c.querySelector('#nm').focus();return;}state.data.name=n;save();state.exam={i:0,ok:0,tot:0,fin:false};render();};
+  main.appendChild(c);return;
+ }
+ if(ex.fin){
+  var pct=Math.round(ex.ok/ex.tot*100),passed=pct>=80;
+  if(passed){state.data.exam={score:pct,date:new Date().toISOString().slice(0,10)};save();}
+  main.appendChild(el('<div class="card"><h2>'+T('score')+': '+pct+'%</h2>'+B(passed?S.pass:S.fail)+'</div>'));
+  if(passed)main.appendChild(certEl(state.data.name,pct,state.data.exam.date));
+  return;
+ }
+ var sc=SC[ex.i];
+ main.appendChild(el('<div class="card"><div class="prog"><i style="width:'+Math.round(ex.i/SC.length*100)+'%"></i></div><span class="sub">'+(ex.i+1)+' / '+SC.length+'</span></div>'));
+ var view=scenarioView(sc,'exam',function(ok,tot){
+  ex.ok+=ok;ex.tot+=tot;
+  var n=el('<div class="row"><button class="btn">'+B(S.next)+'</button></div>');
+  n.querySelector('button').onclick=function(){ex.i++;if(ex.i>=SC.length)ex.fin=true;render();};
+  view.appendChild(n);
+ });
+ main.appendChild(view);
+}
+function certEl(name,pct,date){
+ var c=el('<div id="certbox"><div class="card cert"><h2>'+S.certT.ar+'</h2><div class="en" style="font-size:16px;margin-bottom:8px">'+S.certT.en+'</div><div class="ar">'+S.certP.ar+'</div><div class="en">'+S.certP.en+'</div><div class="nm">'+esc(name)+'</div><div class="ar">'+S.certD.ar+' <b>'+pct+'%</b></div><div class="en">'+S.certD.en+' <b>'+pct+'%</b></div><p class="sub">'+date+' — Al-Munajem Foods / المنجم للأغذية</p><div class="row noprint" style="justify-content:center"><button class="btn" id="pc">'+B(S.printCert)+'</button></div></div></div>');
+ c.querySelector('#pc').onclick=function(){document.body.classList.add('printcert');window.print();setTimeout(function(){document.body.classList.remove('printcert');},500);};
+ return c;
+}
+function vSheet(){
+ main.appendChild(el('<div class="card noprint">'+B(S.wsInfo)+'<div class="row"><button class="btn" onclick="window.print()">'+B(S.print)+'</button></div></div>'));
+ SC.forEach(function(s){
+  main.appendChild(el('<div class="sheet"><b>'+s.id+'. '+s.t.ar+'</b><div class="en">'+s.t.en+'</div><div class="nav-path">'+esc(s.path)+'</div>'+B(s.story)+'<table style="margin-top:8px">'+s.fields.map(function(f){return '<tr><td style="width:55%">'+f.l.ar+'<div class="en">'+f.l.en+'</div></td><td><span class="blank"></span></td></tr>';}).join('')+'</table></div>'));
+ });
+ main.appendChild(el('<div class="sheet" style="page-break-before:always"><b>'+T('key')+'</b><table style="margin-top:8px">'+SC.map(function(s){return '<tr><td style="width:32%"><b>'+s.id+'. '+s.t.ar+'</b><div class="en">'+s.t.en+'</div></td><td>'+s.fields.map(function(f){var a=ans(f);return f.l.ar+' / '+f.l.en+': <b>'+esc(f.t==='sel'?optLabel(a):a)+'</b>';}).join('<br>')+'</td></tr>';}).join('')+'</table></div>'));
+}
+function vProgress(){
+ var c=el('<div class="card"></div>');
+ var h='<table><tr><th>#</th><th>'+T('practice')+'</th><th>%</th></tr>'+SC.map(function(s){return '<tr><td>'+s.id+'</td><td>'+s.t.ar+'<div class="en">'+s.t.en+'</div></td><td>'+(state.data.practice[s.id]||0)+'%</td></tr>';}).join('')+'</table>';
+ h+='<p><b>'+T('exam')+':</b> '+(state.data.exam?state.data.exam.score+'% ('+state.data.exam.date+')':'—')+'</p>'+labProgHTML()+'<div class="row"><button class="btn ghost" id="rs">'+B(S.reset)+'</button></div>';
+ c.innerHTML=h;
+ c.querySelector('#rs').onclick=function(){state.data={name:'',practice:{},exam:null,branches:state.data.branches};save();render();};
+ main.appendChild(c);
+ if(state.data.exam&&state.data.name)main.appendChild(certEl(state.data.name,state.data.exam.score,state.data.exam.date));
+}
+
+/* ===== HANDS-ON LAB / التطبيق العملي : receive a container shipment ===== */
+var LABD={
+ shipment:'RCS26994',receipt:'8685',waybill:'6467873',containers:'2642',
+ supplier:'CS Inventory Riyadh Organization',shipped:'22-OCT-2026 10:39',due:'22-OCT-2026 10:42',
+ item:'CHPKSEBR003',desc:'CHICKEN BONELESS SKINLESS BREAST SEARA 1*15 KG',kgct:15,reqId:'452993007',
+ lines:[
+  {kg:15,ct:1,lot:'L-CHPKSEBR003-R65',exp:'30-NOV-26'},
+  {kg:3450,ct:230,lot:'L-CHPKSEBR003-R75',exp:'30-JAN-27'},
+  {kg:7350,ct:490,lot:'L-CHPKSEBR003-B18',exp:'31-JAN-27'},
+  {kg:1125,ct:75,lot:'L-CHPKSEBR003-R81',exp:'30-JAN-27'},
+  {kg:4680,ct:312,lot:'L-CHPKSEBR003-R83',exp:'30-JAN-27'},
+  {kg:7800,ct:520,lot:'L-CHPKSEBR003-R80',exp:'30-JAN-27'}],
+ repOrder:[2,0,1,5,3,4]
+};
+function labTot(){var k=0,c=0;LABD.lines.forEach(function(l){k+=l.kg;c+=l.ct;});return {kg:k,ct:c};}
+var MON=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+function z2(n){return (n<10?'0':'')+n;}
+function nowStr(){var d=new Date();return z2(d.getDate())+'-'+MON[d.getMonth()]+'-'+d.getFullYear()+' '+z2(d.getHours())+':'+z2(d.getMinutes());}
+function dYY(){var d=new Date();return z2(d.getDate())+'-'+MON[d.getMonth()]+'-'+String(d.getFullYear()).slice(2);}
+function up(s){return String(s==null?'':s).trim().toUpperCase();}
+function nDate(s){var m=/^(\d{1,2})-([A-Za-z]{3})-(\d{2}|\d{4})$/.exec(String(s).trim());if(!m)return '';return z2(+m[1])+'-'+m[2].toUpperCase()+'-'+m[3].slice(-2);}
+var lab=null,LABSTEPS=[];
+function fnote(p){return '<div class="fnote">'+B(p)+'</div>';}
+function explHTML(arr){return '<div class="expl"><b>'+I(P('لماذا؟ وما أهمية ذلك','Why it matters'))+'</b><ul>'+arr.map(function(p){return '<li>'+B(p)+'</li>';}).join('')+'</ul></div>';}
+function helperHTML(){
+ return '<details class="doc" open><summary><b>'+I(P('جدول الدفعات المساعد','Lot helper table'))+'</b></summary><table class="dt"><tr><th>#</th><th>Lot</th><th>Expiry</th><th>KG</th><th>CRT</th></tr>'+LABD.lines.map(function(l,i){
+  function cp(v){return v+'<button type="button" class="cpb" data-cp="'+esc(v)+'" title="Copy / نسخ">&#10064;</button>';}
+  return '<tr><td>'+(i+1)+'</td><td>'+cp(l.lot)+'</td><td>'+cp(l.exp)+'</td><td>'+cp(String(l.kg))+'</td><td>'+cp(String(l.ct))+'</td></tr>';}).join('')+'</table></details>';
+}
+
+var LS={
+ guided:P('تدريب موجّه','Guided mode'),test:P('وضع الاختبار','Test mode'),
+ guidedD:P('تظهر لك الخطوات والقيم والتلميحات.','Steps, values and hints are shown.'),
+ testD:P('تظهر المهمة فقط، والأخطاء تُحتسب عليك.','Only the goal is shown; mistakes count against you.'),
+ guidedS:P('موجّه','Guided'),testS:P('اختبار','Test'),
+ briefT:P('المهمة: استلام شحنة حاوية قادمة من الرياض','Task: receive a container shipment from Riyadh'),
+ brief:P('وصلت الشحنة RCS26994 من مستودع الرياض إلى فرعنا. نفّذ دورة الاستلام كاملة كما في أوراكل: استلام ← فحص ← تسليم إلى المجمّد مع الدفعات ← تقرير التحقق. المحاكاة آمنة ولا تؤثر على أي مخزون حقيقي.','Shipment RCS26994 arrived from the Riyadh warehouse. Run the full Oracle receiving cycle: receive → inspect → deliver to the freezer with lots → verification report. The simulation is safe and never affects real stock.'),
+ docT:P('مستند الشحنة (تدريبي)','Shipment document (training)'),
+ trainer:P('ملاحظة للمدرّب: شاشة الفحص (Inspect) وتفاصيل المستودع والموقع مبنية على الصور المتاحة وتُراجع مع النظام الفعلي. بقية الشاشات والتقرير مطابقة للصور.','Trainer note: the Inspect screen and the subinventory/locator details are modelled from the available screenshots and should be checked against the live system. The other screens and the report follow the screenshots.'),
+ how:P('كيف؟','How?'),hintB:P('تلميح','Hint'),nextB:P('الخطوة التالية','Next step'),finishB:P('عرض النتيجة','Show result'),restartB:P('إعادة البدء','Restart'),startB:P('ابدأ التطبيق العملي','Start the lab'),
+ nosave:P('لا يوجد ما يُحفظ في هذه الخطوة.','Nothing to save in this step.'),
+ endT:P('نتيجة التطبيق العملي','Lab result'),firstT:P('خطوات صحيحة من أول مرة','Steps right at first try'),errsT:P('عدد الأخطاء','Mistakes'),hintsT:P('التلميحات المستخدمة','Hints used'),
+ okMsg:P('ممتاز: أنت مؤهل لتنفيذ الدورة على النظام الحقيقي.','Excellent: you are ready to run the cycle on the real system.'),
+ noMsg:P('أعد المحاولة في وضع التدريب الموجّه ثم وضع الاختبار.','Retry in guided mode, then in test mode.')
+};
+function LT(k){return I(LS[k]);}
+function lblH(en,ar){return '<label>'+en+'<span class="ar">'+ar+'</span></label>';}
+function inH(id,val,cls,ro){var c=(cls||'')+(ro?' ro':'');return '<input id="'+id+'" value="'+esc(val==null?'':val)+'" autocomplete="off"'+(ro?' readonly':'')+(c.trim()?' class="'+c.trim()+'"':'')+'>';}
+function slH(id,opts,val){return '<select id="'+id+'">'+opts.map(function(o){return '<option'+(o===val?' selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select>';}
+function frH(en,ar,h){return '<div class="of">'+lblH(en,ar)+h+'</div>';}
+function owH(title,inner){return '<div class="ow"><div class="owt">Oracle Applications - TRAINING &nbsp;(محاكاة / simulation)</div><div class="owm">File &nbsp; Edit &nbsp; View &nbsp; Folder &nbsp; Tools &nbsp; Window &nbsp; Help</div><div class="owtb"><button class="obtn" id="tbSave" type="button">Save</button></div><div class="owc"><div class="osub"><div class="osubt">'+title+'</div><div class="osubb">'+inner+'</div></div></div></div>';}
+function lnTbl(o){
+ o=o||{};
+ var h='<table class="otable"><tr>'+(o.chk?'<th></th>':'')+'<th>Quantity</th><th>UOM</th><th>Sec. Qty</th><th>Sec. UOM</th><th>Destination Type</th><th>Item</th><th>Description</th>'+(o.xh||'')+'</tr>';
+ LABD.lines.forEach(function(l,i){
+  h+='<tr id="r'+i+'">'+(o.chk?'<td><input type="checkbox" class="lchk" data-i="'+i+'"'+(o.checked&&o.checked[i]?' checked':'')+'></td>':'')+'<td>'+l.kg+'</td><td>Kilogram</td><td>'+l.ct+'</td><td>Carton</td><td>'+(o.dest||'Receiving')+'</td><td>'+LABD.item+'</td><td>'+LABD.desc+'</td>'+(o.x?o.x(i,l):'')+'</tr>';
+ });
+ return h+'</table>';
+}
+function infoH(o){
+ o=o||{};
+ return '<table class="oinfo"><tr><td>Supplier</td><td>'+LABD.supplier+'</td><td>Receipt</td><td>'+(o.rec||'')+'</td></tr><tr><td>Description</td><td>'+LABD.desc+'</td><td>Order</td><td>'+LABD.shipment+'</td></tr><tr><td>Order Type</td><td>Inventory</td><td>Parent Type</td><td>'+(o.parent||'')+'</td></tr><tr><td>Routing</td><td>Inspection Required</td><td>Inspection</td><td'+(o.bad?' class="red"':'')+'>'+(o.insp||'')+'</td></tr><tr><td>Due Date</td><td>'+LABD.due+'</td><td>Current Location</td><td>New Meat Factory Jeddah</td></tr></table>';
+}
+function bindChk(w,arr,single){
+ w.querySelectorAll('.lchk').forEach(function(c){
+  c.onchange=function(){
+   var i=+c.getAttribute('data-i');
+   if(single){for(var k=0;k<arr.length;k++)arr[k]=false;w.querySelectorAll('.lchk').forEach(function(o){o.checked=false;});}
+   arr[i]=c.checked;if(single){c.checked=true;arr[i]=true;}
+  };
+ });
+}
+function docHTML(){
+ var t=labTot();
+ return '<table class="dt"><tr><td>Shipment</td><td><b>'+LABD.shipment+'</b></td><td>Waybill</td><td><b>'+LABD.waybill+'</b></td></tr><tr><td>Containers</td><td><b>'+LABD.containers+'</b></td><td>From</td><td>'+LABD.supplier+'</td></tr><tr><td>Shipped</td><td>'+LABD.shipped+'</td><td>Item</td><td>'+LABD.item+'</td></tr></table>'+
+ '<table class="dt" style="margin-top:6px"><tr><th>KG</th><th>CRT</th><th>Lot (auto)</th><th>Expiry</th></tr>'+LABD.lines.map(function(l){return '<tr><td>'+l.kg+'</td><td>'+l.ct+'</td><td>'+l.lot+'</td><td>'+l.exp+'</td></tr>';}).join('')+'</table><div class="sub">'+LABD.kgct+' KG / CRT</div>';
+}
+function labNew(mode){lab={mode:mode,wins:[],front:-1,cm:0,cx:0,cc:0,cz:0,sx:0,clip:'',step:0,fail:[],passed:false,msgs:[],hints:0,sel:[false,false,false,false,false,false],isel:[false,false,false,false,false,false],lsel:[false,false,false,false,false,false],rec:null,insp:false,sub:[],loc:[],lot:[false,false,false,false,false,false],req:null,done:false};}
+function labFB(){var f=document.getElementById('labFB');if(!f)return;f.innerHTML=lab.msgs.map(function(x){return '<div class="fb '+x.t+'">'+(x.t==='ok'?'✔ ':(x.t==='bad'?'✘ ':''))+B(x.m)+'</div>';}).join('');}
+function labFail(arr){lab.fail[lab.step]=(lab.fail[lab.step]||0)+1;lab.msgs=arr.map(function(m){return {t:'bad',m:m};});labFB();}
+function labOK(m){lab.passed=true;lab.msgs=[{t:'ok',m:m}];render();}
+function labInfo(m){lab.msgs=[{t:'info',m:m}];labFB();}
+function labScore(){var n=LABSTEPS.length,f=0,e=0,i;for(i=0;i<n;i++){if(!lab.fail[i])f++;e+=(lab.fail[i]||0);}return {first:f,errs:e,pct:Math.round(f/n*100)};}
+function labSaveBest(){var s=labScore();state.data.lab=state.data.lab||{best:{}};state.data.lab.best=state.data.lab.best||{};if(s.pct>(state.data.lab.best[lab.mode]||0))state.data.lab.best[lab.mode]=s.pct;save();}
+function labProgHTML(){var b=(state.data.lab&&state.data.lab.best)||{};return '<p><b>'+I(S.lab)+':</b> '+I(LS.guidedS)+' '+(b.guided||0)+'% | '+I(LS.testS)+' '+(b.test||0)+'%</p>';}
+
+function wrongNav(sel,target){
+ if(sel==='Receipts'&&target==='Receiving Transactions')return P('Receipts لاستلام الشحنة وقد أنجزناها. الآن الفحص والتسليم من Receiving Transactions.','Receipts is for receiving the shipment, which is done. Now inspect and deliver from Receiving Transactions.');
+ if(sel==='Receiving Transactions'&&target==='Receipts')return P('هذه للفحص والتسليم بعد الاستلام، ولا تسجّل استلام شحنة جديدة.','This is for inspection and delivery after receiving; it does not record a new shipment receipt.');
+ var m={'Material Workbench':P('للاستعلام عن الرصيد وحالة الدفعات، لا لتسجيل استلام.','For stock and lot-status inquiry, not for recording a receipt.'),
+  'Interorganization Transfer':P('لإرسال بضاعة من فرعنا إلى فرع آخر، وليست للاستلام.','Sends goods from our branch to another; it does not receive them.'),
+  'Move Orders':P('طلبات نقل داخلي للمواد، وليست استلام شحنة.','Internal material move requests, not shipment receiving.'),
+  'Transact Move Orders':P('تنفيذ طلبات النقل الداخلي، وليست استلام شحنة.','Executes internal move orders, not shipment receiving.')};
+ return m[sel]||P('ليست الشاشة المطلوبة.','Not the required screen.');
+}
+function navBuild(w,target,okMsg){
+ var left=['Inventory Transactions','On Hand and Availability','Move Orders','Change Organizations','Stock Locator','Material Transactions','Shipping Transactions','Manage Shipments','Transaction Status Summary','Miscellaneous Transaction'];
+ var top=['Material Workbench','Receipts','Receiving Transactions','Interorganization Transfer','Move Orders','Transact Move Orders'];
+ var sel=null;
+ w.innerHTML='<div class="ow"><div class="owt">Oracle Applications - TRAINING &nbsp;(محاكاة / simulation)</div><div class="owm">File &nbsp; Edit &nbsp; View &nbsp; Folder &nbsp; Tools &nbsp; Window &nbsp; Help</div><div class="owtb"><button class="obtn" id="tbSave" type="button">Save</button></div><div class="owc"><div class="osub"><div class="osubt">Navigator - Jeddah New (YMF) Meat Factory Inventory Super User</div><div class="osubb"><div class="nav2"><div><b>Functions</b><ul class="nl">'+left.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul></div><div><b>Top Ten List</b><ol class="nl tn">'+top.map(function(t){return '<li data-n="'+t+'">'+t+'</li>';}).join('')+'</ol><div class="obtns"><button class="obtn" id="bOpen" type="button">Open</button></div></div></div></div></div></div></div>';
+ w.querySelectorAll('li[data-n]').forEach(function(li){li.onclick=function(){sel=li.getAttribute('data-n');w.querySelectorAll('li[data-n]').forEach(function(x){x.className='';});li.className='on';};});
+ w.querySelector('#bOpen').onclick=function(){
+  if(!sel){labFail([P('اختر شاشة من قائمة Top Ten أولاً.','Pick a screen from the Top Ten list first.')]);return;}
+  if(sel===target){labOK(okMsg);return;}
+  labFail([wrongNav(sel,target)]);
+ };
+}
+
+LABSTEPS.push({
+ t:P('فتح شاشة الاستلام','Open the Receipts screen'),
+ goal:P('وصلت حاوية من مستودع الرياض. افتح الشاشة المخصّصة لاستلام الشحنات.','A container arrived from the Riyadh warehouse. Open the screen made for receiving shipments.'),
+ guide:P('من قائمة Top Ten اختر Receipts ثم اضغط Open.','In the Top Ten list select Receipts, then press Open.'),
+ hint:P('الاستلام = Receipts. أما Receiving Transactions فللفحص والتسليم لاحقاً.','Receiving = Receipts. Receiving Transactions is for inspection and delivery later.'),
+ build:function(w){navBuild(w,'Receipts',P('تم فتح شاشة Receipts.','Receipts screen opened.'));}
+});
+
+LABSTEPS.push({
+ t:P('البحث عن الشحنة المتوقعة','Find the expected shipment'),
+ goal:P('ابحث عن الشحنة برقم الشحنة فقط.','Find the shipment using the shipment number only.'),
+ guide:P('اكتب RCS26994 في خانة Shipment واترك بقية الخانات فارغة ونوع المصدر All، ثم اضغط Find.','Type RCS26994 in the Shipment field, leave the other fields empty with Source Type All, then press Find.'),
+ hint:P('رقم الشحنة موجود في مستند الشحنة على اليسار.','The shipment number is on the shipment document on the left.'),
+ build:function(w){
+  w.innerHTML=owH('Find Expected Receipts (YMF)','<div class="sub" style="color:#222">Supplier and Internal &nbsp;|&nbsp; Customer</div>'+
+   frH('Operating Unit','الوحدة التشغيلية',inH('f_ou',''))+
+   frH('Source Type','نوع المصدر',slH('f_src',['All','Customer','Internal','Inventory','Supplier'],'All'))+
+   frH('Purchase Order','أمر الشراء',inH('f_po',''))+
+   frH('Requisition','طلب الشراء',inH('f_rq',''))+
+   frH('Supplier','المورد',inH('f_sp',''))+
+   frH('Shipment','رقم الشحنة',inH('f_sh','','req'))+
+   frH('Receiving Location','موقع الاستلام',inH('f_rl',''))+
+   '<div class="obtns"><button class="obtn" type="button" id="bUn">Unordered</button><button class="obtn" type="button" id="bClr">Clear</button><button class="obtn" type="button" id="bFind">Find</button></div>');
+  w.querySelector('#bClr').onclick=function(){['f_ou','f_po','f_rq','f_sp','f_sh','f_rl'].forEach(function(i){w.querySelector('#'+i).value='';});};
+  w.querySelector('#bFind').onclick=function(){
+   var m=[],sh=up(w.querySelector('#f_sh').value),src=w.querySelector('#f_src').value;
+   if(!sh)m.push(P('خانة Shipment فارغة: ابحث برقم الشحنة.','The Shipment field is empty: search by the shipment number.'));
+   else if(sh!==LABD.shipment)m.push(P('لا توجد شحنة متوقعة بهذا الرقم. راجع الرقم في المستند.','No expected shipment with this number. Check the number on the document.'));
+   if(src==='Customer'||src==='Supplier')m.push(P('نوع المصدر خاطئ: الشحنة تحويل داخلي من فرع الرياض، فاتركه All.','Wrong source type: this is an internal transfer from the Riyadh branch, so keep All.'));
+   if(w.querySelector('#f_po').value.trim()||w.querySelector('#f_rq').value.trim()||w.querySelector('#f_sp').value.trim())m.push(P('امسح الخانات الأخرى (أمر الشراء، الطلب، المورد) لأنها قد تخفي نتيجة البحث.','Clear the other fields (PO, requisition, supplier); they can hide the search result.'));
+   if(m.length){labFail(m);return;}
+   labOK(P('وُجدت الشحنة RCS26994 وفيها 6 سطور.','Shipment RCS26994 found with 6 lines.'));
+  };
+ }
+});
+
+LABSTEPS.push({
+ t:P('مراجعة السطور ومطابقة المجاميع','Review the lines and tie the totals'),
+ goal:P('حدّد كل سطور الشحنة؛ تُحسب المجاميع تلقائياً، ثم طابقها مع المستند.','Select every shipment line; totals are calculated automatically, then tie them to the document.'),
+ guide:P('ضع علامة على السطور الستة وراقب المجاميع (كيلو، كراتين، كيلو/كرتون) وهي تُحسب تلقائياً، قارنها بمستند الشحنة ثم Confirm.','Tick all six lines and watch the totals (KG, cartons, KG per carton) calculate automatically, compare them with the shipment document, then Confirm.'),
+ hint:P('الكيلو = الكراتين × 15 في كل سطر.','KG = cartons × 15 on every line.'),
+ build:function(w){
+  w.innerHTML=owH('Receipts (YMF)',lnTbl({chk:true,checked:lab.sel})+infoH({})+
+   '<div class="ctl"><b>Control check &nbsp; فحص المطابقة</b>'+frH('Total KG','مجموع الكيلو (تلقائي)',inH('c_kg','','',true))+frH('Total cartons','مجموع الكراتين (تلقائي)',inH('c_ct','','',true))+frH('KG per carton','كيلو لكل كرتون (تلقائي)',inH('c_pk','','',true))+'<div class="obtns"><button class="obtn" type="button" id="bOK">Confirm</button></div></div>');
+  bindChk(w,lab.sel,false);
+  function recalc(){var k=0,c=0;for(var i=0;i<6;i++){if(lab.sel[i]){k+=LABD.lines[i].kg;c+=LABD.lines[i].ct;}}
+   w.querySelector('#c_kg').value=c?k:'';w.querySelector('#c_ct').value=c?c:'';w.querySelector('#c_pk').value=c?Math.round(k/c*100)/100:'';}
+  w.querySelectorAll('.lchk').forEach(function(x){x.addEventListener('change',recalc);});
+  recalc();
+  w.querySelector('#bOK').onclick=function(){
+   var m=[],n=0,i,t=labTot();
+   for(i=0;i<6;i++){if(lab.sel[i])n++;}
+   if(n<6)m.push(P('حدّدت '+n+' من 6 سطور. كل سطور الشحنة يجب أن تُستلم.','You selected '+n+' of 6 lines. All shipment lines must be received.'));
+   if(parseFloat(w.querySelector('#c_kg').value)!==t.kg)m.push(P('مجموع الكيلو غير صحيح. اجمع الكميات من الجدول.','Total KG is wrong. Add up the quantities in the table.'));
+   if(parseFloat(w.querySelector('#c_ct').value)!==t.ct)m.push(P('مجموع الكراتين غير صحيح.','Total cartons is wrong.'));
+   if(parseFloat(w.querySelector('#c_pk').value)!==LABD.kgct)m.push(P('كيلو/كرتون غير صحيح: اقسم المجموع على عدد الكراتين.','KG per carton is wrong: divide total KG by total cartons.'));
+   if(m.length){labFail(m);return;}
+   labOK(P('المجاميع مطابقة: '+t.kg+' كجم و '+t.ct+' كرتون (15 كجم لكل كرتون).','Totals tie: '+t.kg+' KG and '+t.ct+' cartons (15 KG per carton).'));
+  };
+ }
+});
+
+LABSTEPS.push({
+ t:P('رأس الاستلام (Header)','Receipt Header'),
+ goal:P('سجّل بيانات الشحن في رأس الاستلام كاستلام جديد.','Record the shipping data in the receipt header as a new receipt.'),
+ guide:P('اضغط Header. اختر New Receipt، اكتب Waybill/Airbill = 6467873 و Containers = 2642 واسمك في Received By، ثم OK.','Press Header. Keep New Receipt, type Waybill/Airbill = 6467873, Containers = 2642 and your name in Received By, then OK.'),
+ hint:P('الرقمان موجودان في مستند الشحنة. تاريخ الاستلام هو تاريخ اليوم.','Both numbers are on the shipment document. Receipt date is today.'),
+ build:function(w){
+  w.innerHTML=owH('Receipts (YMF)',lnTbl({chk:true,checked:[true,true,true,true,true,true]})+infoH({})+'<div class="obtns"><button class="obtn" type="button" id="bHdr">Header</button></div><div id="hdrBox"></div>');
+  w.querySelector('#bHdr').onclick=function(){
+   w.querySelector('#hdrBox').innerHTML='<div class="osub"><div class="osubt">Receipt Header (YMF)</div><div class="osubb"><div class="of"><label>Receipt type<span class="ar">نوع الاستلام</span></label><span><input type="radio" name="hr" id="h_new"> New Receipt &nbsp; <input type="radio" name="hr" id="h_add"> Add To Receipt</span></div><div class="two"><div>'+
+    frH('Receipt','رقم الاستلام',inH('h_rec','','',true))+frH('Shipment','الشحنة',inH('h_sh',LABD.shipment,'',true))+frH('Packing Slip','قائمة التعبئة',inH('h_ps',''))+frH('Freight Carrier','الناقل',inH('h_fc',''))+frH('Containers','الحاويات',inH('h_ct','','req'))+frH('Supplier','المورد',inH('h_sup',LABD.supplier,'',true))+'</div><div>'+
+    frH('Receipt Date','تاريخ الاستلام',inH('h_rd',nowStr(),'req'))+frH('Shipped Date','تاريخ الشحن',inH('h_sd',LABD.shipped,'',true))+frH('Waybill/Airbill','البوليصة',inH('h_wb','','req'))+frH('Bill of Lading','بوليصة الشحن',inH('h_bl',''))+frH('Received By','المستلم',inH('h_rb','','req'))+'</div></div>'+frH('Comments','ملاحظات',inH('h_cm',''))+'<div class="obtns"><button class="obtn" type="button" id="hOK">OK</button></div></div></div>';
+   w.querySelector('#h_new').checked=true;
+   w.querySelector('#hOK').onclick=function(){
+    var m=[];
+    if(!w.querySelector('#h_new').checked)m.push(P('اختر New Receipt: هذا استلام جديد وليس إضافة لاستلام قائم.','Choose New Receipt: this is a new receipt, not an addition to an existing one.'));
+    if(up(w.querySelector('#h_wb').value)!==LABD.waybill)m.push(P('رقم Waybill/Airbill غير صحيح: انسخه من المستند.','Waybill/Airbill is wrong: copy it from the document.'));
+    if(up(w.querySelector('#h_ct').value)!==LABD.containers)m.push(P('رقم Containers غير صحيح.','Containers number is wrong.'));
+    if(w.querySelector('#h_rb').value.trim().length<3)m.push(P('اكتب اسم المستلم في Received By.','Type the receiver name in Received By.'));
+    if(!w.querySelector('#h_rd').value.trim())m.push(P('تاريخ الاستلام فارغ.','Receipt date is empty.'));
+    if(m.length){labFail(m);return;}
+    labOK(P('تم تسجيل رأس الاستلام.','Receipt header recorded.'));
+   };
+  };
+ }
+});
+
+LABSTEPS.push({
+ t:P('حفظ الاستلام','Save the receipt'),
+ goal:P('احفظ الاستلام ثم اقرأ حالة الفحص.','Save the receipt, then read the inspection status.'),
+ guide:P('اضغط Save في الشريط العلوي. بعد ظهور رقم الاستلام اختر حالة الفحص الصحيحة واضغط Check.','Press Save in the toolbar. When the receipt number appears, pick the correct inspection status and press Check.'),
+ hint:P('المسار Inspection Required يعني أن البضاعة لم تُفحص بعد.','Routing Inspection Required means the goods have not been inspected yet.'),
+ build:function(w){
+  w.innerHTML=owH('Receipts (YMF)',lnTbl({chk:false})+infoH({})+'<div id="saveArea"></div>');
+  w.querySelector('#tbSave').onclick=function(){
+   if(lab.rec){return;}
+   lab.rec=LABD.receipt;
+   w.querySelector('#saveArea').innerHTML='<div class="ctl"><b>Transaction complete.</b> Receipt number <b>'+LABD.receipt+'</b> created.</div>'+infoH({rec:LABD.receipt,parent:'Receive',insp:'?'})+'<div class="ctl">'+frH('Inspection status','حالة الفحص',slH('q_st',['','Accepted - Inspection Required','Delivered','Not Inspected - Inspection Required','Rejected'],''))+'<div class="obtns"><button class="obtn" type="button" id="bChk">Check</button></div></div>';
+   w.querySelector('#bChk').onclick=function(){
+    if(w.querySelector('#q_st').value==='Not Inspected - Inspection Required'){labOK(P('صحيح: الاستلام '+LABD.receipt+' محفوظ والبضاعة تنتظر الفحص.','Correct: receipt '+LABD.receipt+' is saved and the goods wait for inspection.'));}
+    else labFail([P('الحالة غير صحيحة: لم يتم الفحص بعد.','Wrong status: nothing has been inspected yet.')]);
+   };
+  };
+  if(lab.rec){lab.rec=null;}
+ }
+});
+
+LABSTEPS.push({
+ t:P('فتح شاشة الفحص والتسليم','Open Receiving Transactions'),
+ goal:P('افتح الشاشة التي تفحص وتسلّم ما تم استلامه.','Open the screen that inspects and delivers what was received.'),
+ guide:P('من قائمة Top Ten اختر Receiving Transactions ثم Open.','From Top Ten select Receiving Transactions, then Open.'),
+ hint:P('الرقم 3 في القائمة.','It is number 3 in the list.'),
+ build:function(w){navBuild(w,'Receiving Transactions',P('تم فتح Receiving Transactions.','Receiving Transactions opened.'));}
+});
+
+LABSTEPS.push({
+ t:P('البحث عن الاستلام برقمه','Find the receipt by its number'),
+ goal:P('ابحث عن الاستلام الذي حفظته قبل قليل.','Find the receipt you saved a moment ago.'),
+ guide:P('اكتب رقم الاستلام 8685 في خانة Receipt ثم Find.','Type receipt number 8685 in the Receipt field, then Find.'),
+ hint:P('رقم الاستلام ظهر بعد الحفظ في الخطوة 5.','The receipt number appeared after saving in step 5.'),
+ build:function(w){
+  w.innerHTML=owH('Find Receiving Transactions (YMF)',frH('Receipt','رقم الاستلام',inH('t_rc','','req'))+frH('Shipment','رقم الشحنة',inH('t_sh',''))+frH('Order','الطلب',inH('t_or',''))+frH('Item','الصنف',inH('t_it',''))+frH('Supplier','المورد',inH('t_sp',''))+'<div class="obtns"><button class="obtn" type="button" id="bFind">Find</button></div>');
+  w.querySelector('#bFind').onclick=function(){
+   var rc=up(w.querySelector('#t_rc').value),sh=up(w.querySelector('#t_sh').value);
+   if(!rc&&!sh){labFail([P('اكتب رقم الاستلام أو الشحنة.','Type the receipt or shipment number.')]);return;}
+   if(rc&&rc!==LABD.receipt){labFail([P('لا يوجد استلام بهذا الرقم. الرقم الصحيح ظهر بعد الحفظ.','No receipt with this number. The right number appeared after saving.')]);return;}
+   if(!rc&&sh!==LABD.shipment){labFail([P('رقم الشحنة غير صحيح.','Wrong shipment number.')]);return;}
+   labOK(P('وُجد الاستلام '+LABD.receipt+' بسطوره الستة.','Receipt '+LABD.receipt+' found with its six lines.'));
+  };
+ }
+});
+
+LABSTEPS.push({
+ t:P('فحص الشحنة وقبولها (Inspect)','Inspect and accept the shipment'),
+ goal:P('افحص كل السطور واقبلها بكامل كمياتها.','Inspect every line and accept it at its full quantity.'),
+ guide:P('ضع علامة على السطور الستة واضغط Inspect. في نافذة الفحص اجعل Quality = Accept لكل سطر والكمية كاملة، ثم OK.','Tick the six lines and press Inspect. In the inspection window set Quality = Accept on every line with the full quantity, then OK.'),
+ hint:P('الكمية المفحوصة = كمية السطر. لا سبب للرفض هنا.','Inspected quantity = line quantity. There is no reason to reject here.'),
+ build:function(w){
+  w.innerHTML=owH('Receiving Transactions (YMF)',lnTbl({chk:true,checked:lab.isel})+infoH({rec:LABD.receipt,parent:'Receive',insp:'Not Inspected - Inspection Required',bad:true})+'<div class="obtns"><button class="obtn" type="button" id="bInsp">Inspect</button></div><div id="inspBox"></div>');
+  bindChk(w,lab.isel,false);
+  w.querySelector('#bInsp').onclick=function(){
+   var n=0,i;for(i=0;i<6;i++){if(lab.isel[i])n++;}
+   if(n<6){labFail([P('حدّدت '+n+' من 6 سطور. افحص كل السطور.','You selected '+n+' of 6 lines. Inspect all lines.')]);return;}
+   w.querySelector('#inspBox').innerHTML='<div class="osub"><div class="osubt">Inspections (YMF)</div><div class="osubb"><table class="otable"><tr><th>Line</th><th>Line Qty</th><th>Quantity</th><th>Quality</th><th>Reason</th></tr>'+LABD.lines.map(function(l,k){return '<tr><td>'+(k+1)+'</td><td>'+l.kg+'</td><td><input id="i_q'+k+'" class="req" value=""></td><td>'+slH('i_c'+k,['','Accept','Reject'],'')+'</td><td>'+slH('i_r'+k,['','None','Damaged','Temperature deviation'],'')+'</td></tr>';}).join('')+'</table>'+fnote(P('Line Qty = الكمية المستلمة (مرجع). Quantity = الكمية التي تفحصها وتقبلها الآن (تُكتب يدوياً).','Line Qty = quantity received (reference). Quantity = the amount you inspect and accept now (typed manually).'))+'<div class="obtns"><button class="obtn" type="button" id="iOK">OK</button></div></div></div>';
+   w.querySelector('#iOK').onclick=function(){
+    var m=[],k,bq=0,bc=0,br=0;
+    for(k=0;k<6;k++){
+     if(parseFloat(w.querySelector('#i_q'+k).value)!==LABD.lines[k].kg)bq++;
+     var c=w.querySelector('#i_c'+k).value;if(c==='Reject')br++;else if(c!=='Accept')bc++;
+    }
+    if(bq)m.push(P('الكمية المفحوصة غير صحيحة في '+bq+' سطر: يجب أن تساوي كمية السطر.','Inspected quantity is wrong on '+bq+' line(s): it must equal the line quantity.'));
+    if(bc)m.push(P('لم تختر Quality في '+bc+' سطر.','Quality is not chosen on '+bc+' line(s).'));
+    if(br)m.push(P('لا يوجد عيب يبرر الرفض: اقبل السطور.','There is no defect to justify rejection: accept the lines.'));
+    if(m.length){labFail(m);return;}
+    lab.insp=true;
+    labOK(P('تم القبول: الحالة الآن Accepted وتتحول الوجهة إلى Inventory.','Accepted: status is now Accepted and the destination becomes Inventory.'));
+   };
+  };
+ }
+});
+
+LABSTEPS.push({
+ t:P('تحديد المستودع الفرعي والموقع','Set subinventory and locator'),
+ goal:P('حدّد أين تُسلَّم كل الكميات: المجمّد.','Decide where every quantity is delivered: the freezer.'),
+ guide:P('لكل سطر اختر Subinventory = Frozen و Locator = 1.Froz. ثم Check.','For every line choose Subinventory = Frozen and Locator = 1.Froz., then Check.'),
+ hint:P('اللحم الدجاج المجمّد يُخزَّن في Frozen فقط.','Frozen chicken is stored in Frozen only.'),
+ build:function(w){
+  w.innerHTML=owH('Receiving Transactions (YMF)',lnTbl({chk:false,dest:'Inventory',xh:'<th>Subinventory</th><th>Locator</th>',x:function(i){return '<td>'+slH('d_s'+i,['','Frozen','Chilled','Dry','Packaging'],lab.sub[i]||'')+'</td><td>'+slH('d_l'+i,['','1.Froz.','2.Froz.','1.Chill.'],lab.loc[i]||'')+'</td>';}})+infoH({rec:LABD.receipt,parent:'Accept',insp:'Accepted - Inspection Required'})+'<div class="obtns"><button class="obtn" type="button" id="bChk">Check</button></div>');
+  w.querySelector('#bChk').onclick=function(){
+   var m=[],i,bs=0,bl=0;
+   for(i=0;i<6;i++){lab.sub[i]=w.querySelector('#d_s'+i).value;lab.loc[i]=w.querySelector('#d_l'+i).value;if(lab.sub[i]!=='Frozen')bs++;if(lab.loc[i]!=='1.Froz.')bl++;}
+   if(bs)m.push(P('المستودع الفرعي غير صحيح في '+bs+' سطر: المنتج مجمّد فيذهب إلى Frozen.','Subinventory is wrong on '+bs+' line(s): the product is frozen so it goes to Frozen.'));
+   if(bl)m.push(P('الموقع غير صحيح في '+bl+' سطر: الموقع 1.Froz.','Locator is wrong on '+bl+' line(s): use 1.Froz.'));
+   if(m.length){labFail(m);return;}
+   labOK(P('تم تحديد Frozen / 1.Froz. لكل السطور.','Frozen / 1.Froz. set on all lines.'));
+  };
+ }
+});
+
+LABSTEPS.push({
+ t:P('إدخال الدفعات (Lot Entry)','Lot Entry for each line'),
+ goal:P('أدخل تاريخ الانتهاء والكمية (كجم) والكمية الثانوية (كراتين) لكل سطر؛ رقم الدفعة يتولد تلقائياً.','Enter expiry, quantity (KG) and secondary quantity (cartons) on each line; the lot number is generated automatically.'),
+ guide:P('اختر سطراً واحداً واضغط Lot-Serial. ستجد رقم الدفعة معبأً تلقائياً. اكتب تاريخ الانتهاء (مثل 30-JAN-27) والكمية بالكيلو والكمية الثانوية بالكراتين من مستند الشحنة، ثم Done. كرر للسطور الستة. استعن بالجدول المساعد للنسخ.','Select one line and press Lot-Serial. The lot number is already filled in automatically. Type the expiry (e.g. 30-JAN-27), the quantity in KG and the secondary quantity in cartons from the shipment document, then Done. Repeat for all six lines. Use the helper table to copy values.'),
+ hint:P('مجموع كميات الدفعات يجب أن يساوي كمية السطر تماماً، وكذلك الكمية الثانوية.','The lot quantities must add up exactly to the line quantity, and so must the secondary quantity.'),
+ build:function(w){
+  w.innerHTML=owH('Receiving Transactions (YMF)',lnTbl({chk:true,checked:lab.lsel,dest:'Inventory',xh:'<th>Lot</th>',x:function(i){return '<td id="ls'+i+'">'+(lab.lot[i]?'Lot ✔':'')+'</td>';}})+infoH({rec:LABD.receipt,parent:'Accept',insp:'Accepted - Inspection Required'})+'<div class="obtns"><button class="obtn" type="button" id="bLot">Lot-Serial</button></div><div id="lotBox"></div>');
+  bindChk(w,lab.lsel,true);
+  w.querySelector('#bLot').onclick=function(){
+   var i=lab.lsel.indexOf(true);
+   if(i<0){labFail([P('اختر سطراً أولاً ثم اضغط Lot-Serial.','Select a line first, then press Lot-Serial.')]);return;}
+   if(lab.lot[i]){labInfo(P('هذا السطر مكتمل. اختر سطراً آخر.','This line is already done. Pick another line.'));return;}
+   var l=LABD.lines[i];
+   w.querySelector('#lotBox').innerHTML='<div class="osub"><div class="osubt">Lot Entry (YMF)</div><div class="osubb"><div class="two"><div>'+
+    frH('Item','الصنف',inH('l_it',LABD.item,'',true))+frH('Subinventory','المستودع الفرعي',inH('l_sb',lab.sub[i],'',true))+frH('Locator','الموقع',inH('l_lc',lab.loc[i],'',true))+frH('UOM','الوحدة',inH('l_um','KG','',true))+frH('Quantity','الكمية',inH('l_q0',l.kg,'',true))+frH('Lot Quantity Entered','كمية الدفعات المدخلة',inH('l_qe','','',true))+'</div><div>'+
+    frH('Revision','المراجعة',inH('l_rv','','',true))+frH('Secondary UOM','الوحدة الثانوية',inH('l_su','CRT','',true))+frH('Secondary Quantity','الكمية الثانوية',inH('l_s0',l.ct,'',true))+frH('Secondary Lot Qty Entered','الكمية الثانوية المدخلة',inH('l_se','','',true))+'</div></div>'+
+    '<table class="otable"><tr><th>Parent Lot Number</th><th>Lot Number (auto)</th><th>Expiration Date</th><th>Quantity</th><th>Secondary Quantity</th></tr><tr><td><input id="l_pl"></td><td><input id="l_ln" class="ro" readonly value="'+esc(l.lot)+'"></td><td><input id="l_ex" class="req" placeholder="DD-MON-YY"></td><td><input id="l_qq" class="req"></td><td><input id="l_sq" class="req"></td></tr></table>'+
+    fnote(P('Lot Number يتولد تلقائياً (لا يُكتب). Quantity = الوزن بالكيلوجرام. Secondary Quantity = عدد الكراتين.','Lot Number is auto-generated (not typed). Quantity = weight in KG. Secondary Quantity = number of cartons.'))+'<div class="obtns"><button class="obtn" type="button" id="lCancel">Cancel</button><button class="obtn" type="button" id="lDone">Done</button></div></div></div>';
+   var q=w.querySelector('#l_qq'),sq=w.querySelector('#l_sq');
+   q.oninput=function(){w.querySelector('#l_qe').value=q.value;};
+   sq.oninput=function(){w.querySelector('#l_se').value=sq.value;};
+   w.querySelector('#lCancel').onclick=function(){w.querySelector('#lotBox').innerHTML='';};
+   w.querySelector('#lDone').onclick=function(){
+    var m=[];
+    if(up(w.querySelector('#l_ln').value)!==up(l.lot))m.push(P('رقم الدفعة لا يطابق مستند الشحنة لهذا السطر.','Lot number does not match the shipment document for this line.'));
+    if(nDate(w.querySelector('#l_ex').value)!==nDate(l.exp))m.push(P('تاريخ الانتهاء لا يطابق المستند (الصيغة DD-MON-YY).','Expiry date does not match the document (format DD-MON-YY).'));
+    if(parseFloat(w.querySelector('#l_qq').value)!==l.kg)m.push(P('مجموع كميات الدفعات يجب أن يساوي '+l.kg+' كجم.','Lot quantities must add up to '+l.kg+' KG.'));
+    if(parseFloat(w.querySelector('#l_sq').value)!==l.ct)m.push(P('الكمية الثانوية يجب أن تساوي '+l.ct+' كرتون.','Secondary quantity must equal '+l.ct+' cartons.'));
+    if(m.length){labFail(m);return;}
+    lab.lot[i]=true;lab.lsel[i]=false;
+    var done=lab.lot.filter(function(x){return x;}).length;
+    if(done===6){labOK(P('اكتملت دفعات السطور الستة.','Lots are complete on all six lines.'));return;}
+    w.querySelector('#lotBox').innerHTML='';w.querySelector('#ls'+i).textContent='Lot ✔';
+    w.querySelectorAll('.lchk')[i].checked=false;
+    lab.msgs=[{t:'ok',m:P('تم السطر '+(i+1)+'. المتبقي '+(6-done)+' سطر.','Line '+(i+1)+' done. '+(6-done)+' line(s) left.')}];labFB();
+   };
+  };
+ }
+});
+
+LABSTEPS.push({
+ t:P('حفظ التسليم للمخزون','Save the delivery to stock'),
+ goal:P('احفظ حركات التسليم ليدخل الرصيد المجمّد.','Save the delivery transactions so the stock enters the freezer.'),
+ guide:P('اضغط Save في الشريط العلوي.','Press Save in the toolbar.'),
+ hint:P('بعد الحفظ تختفي السطور لأنها سُلّمت.','After saving the lines disappear because they were delivered.'),
+ build:function(w){
+  w.innerHTML=owH('Receiving Transactions (YMF)',lnTbl({chk:false,dest:'Inventory',xh:'<th>Lot</th>',x:function(){return '<td>Lot ✔</td>';}})+infoH({rec:LABD.receipt,parent:'Accept',insp:'Accepted - Inspection Required'})+'<div id="saveArea"></div>');
+  w.querySelector('#tbSave').onclick=function(){
+   w.querySelector('#saveArea').innerHTML='<div class="ctl"><b>Transaction complete.</b> 6 delivery transactions saved to Frozen / 1.Froz.</div>';
+   labOK(P('تم حفظ 6 حركات تسليم إلى Frozen / 1.Froz.','6 delivery transactions saved to Frozen / 1.Froz.'));
+  };
+ }
+});
+
+var REPS=['Munajem 3 Months AVG Sales for DBI','Munajem All Issues New Report','Munajem All Receiving New Report','Munajem Auto Standard Cost Calculation','Munajem Average for Container Distribution Screen','Munajem Branch Throughput Report','Munajem Branch Transfer Transportation Cost Update','Munajem Cycle Count Details','Munajem Daily Cost Difference','Munajem Daily Cost Updation','Munajem Received Containers in the Branch','Munajem Receiving VS Planning Performance','Munajem Removing Duplicate Shipment','Munajem Return From DRD Reports','Munajem Receipt Details','Munajem Receipt Details Using Shipment Number','Munajem Receiving From Port-Daily Report','Munajem Receiving Summary','Munajem Receiving Summary Using Shipment Number'];
+var REPOK='Munajem Receiving Summary Using Shipment Number';
+function wrongRep(n){
+ if(n==='Munajem Receipt Details Using Shipment Number')return P('هذا تقرير تفاصيل. المطلوب ملخص الاستلام حسب رقم الشحنة.','This is a details report. We need the receiving summary by shipment number.');
+ if(n==='Munajem Receiving Summary')return P('ملخص عام بدون تحديد الشحنة. المطلوب النسخة التي تعمل برقم الشحنة.','A general summary that does not target one shipment. We need the version that runs by shipment number.');
+ if(n==='Munajem Removing Duplicate Shipment')return P('تحذير: هذا تقرير لإزالة الشحنات المكررة وليس للتحقق. لا تشغّله.','Warning: this removes duplicate shipments; it is not a check report. Do not run it.');
+ return P('ليس التقرير المطلوب. ابحث عن ملخص الاستلام برقم الشحنة.','Not the required report. Look for the receiving summary by shipment number.');
+}
+LABSTEPS.push({
+ t:P('تشغيل تقرير التحقق','Run the verification report'),
+ goal:P('شغّل تقرير ملخص الاستلام لهذه الشحنة.','Run the receiving summary report for this shipment.'),
+ guide:P('اضغط (…) بجانب Name واختر Munajem Receiving Summary Using Shipment Number ثم OK. اضغط (…) بجانب Parameters واكتب Shipment No = RCS26994 ثم OK. أخيراً Submit.','Press (…) next to Name and choose Munajem Receiving Summary Using Shipment Number, then OK. Press (…) next to Parameters and type Shipment No = RCS26994, then OK. Finally Submit.'),
+ hint:P('اكتب MUNajem re% في Find لتقصير القائمة.','Type MUNajem re% in Find to shorten the list.'),
+ build:function(w){
+  lab.req={name:'',param:'',id:null,polls:0};
+  w.innerHTML=owH('Submit Request','<div class="ctl" style="margin-top:0"><b>Run this Request</b>'+
+   frH('Name','الاسم','<input id="s_nm" class="req ro" readonly><button class="obtn" type="button" id="bLov">…</button>')+
+   frH('Operating Unit','الوحدة التشغيلية',inH('s_ou','','',true))+
+   frH('Parameters','المعاملات','<input id="s_pm" class="req ro" readonly><button class="obtn" type="button" id="bPar">…</button>')+
+   frH('Language','اللغة',inH('s_lg','American English','',true))+'</div>'+
+   '<div class="ctl"><b>At these Times</b>'+frH('Schedule Description','الجدولة',inH('s_sc','As Soon as Possible','',true))+'</div>'+
+   '<div class="ctl"><b>Upon Completion</b>'+frH('Layout','القالب',inH('s_ly','','',true))+frH('Print to','الطباعة إلى',inH('s_pr','noprint','',true))+'</div>'+
+   '<div class="obtns"><button class="obtn" type="button" id="bSubmit">Submit</button><button class="obtn" type="button" id="bCan">Cancel</button></div><div id="modal"></div>');
+  var md=w.querySelector('#modal'),chosen=null;
+  w.querySelector('#bLov').onclick=function(){
+   md.innerHTML='<div class="osub"><div class="osubt">Reports</div><div class="osubb"><div class="of"><label>Find<span class="ar">بحث</span></label><input id="m_f" value="Munajem %"><button class="obtn" type="button" id="mFind">Find</button></div><ul class="nl tn" id="m_l"></ul><div class="obtns"><button class="obtn" type="button" id="mOK">OK</button><button class="obtn" type="button" id="mCan">Cancel</button></div></div></div>';
+   function fill(){
+    var f=up(md.querySelector('#m_f').value).replace(/%/g,'');
+    var ul=md.querySelector('#m_l');
+    ul.innerHTML=REPS.filter(function(n){return up(n).indexOf(f.trim())===0||!f.trim();}).map(function(n){return '<li data-n="'+esc(n)+'">'+esc(n)+'</li>';}).join('');
+    ul.querySelectorAll('li').forEach(function(li){li.onclick=function(){chosen=li.getAttribute('data-n');ul.querySelectorAll('li').forEach(function(x){x.className='';});li.className='on';};});
+   }
+   fill();
+   md.querySelector('#mFind').onclick=fill;
+   md.querySelector('#mCan').onclick=function(){md.innerHTML='';};
+   md.querySelector('#mOK').onclick=function(){
+    if(!chosen){labFail([P('اختر تقريراً من القائمة.','Choose a report from the list.')]);return;}
+    lab.req.name=chosen;w.querySelector('#s_nm').value=chosen;w.querySelector('#s_ly').value=(chosen===REPOK?'MNJ_RECEIPT_SUMM_SHIP':'');md.innerHTML='';
+   };
+  };
+  w.querySelector('#bPar').onclick=function(){
+   md.innerHTML='<div class="osub"><div class="osubt">Parameters</div><div class="osubb">'+frH('Shipment No','رقم الشحنة',inH('p_sh','','req'))+'<div class="obtns"><button class="obtn" type="button" id="pOK">OK</button><button class="obtn" type="button" id="pCan">Cancel</button><button class="obtn" type="button" id="pClr">Clear</button></div></div></div>';
+   md.querySelector('#pCan').onclick=function(){md.innerHTML='';};
+   md.querySelector('#pClr').onclick=function(){md.querySelector('#p_sh').value='';};
+   md.querySelector('#pOK').onclick=function(){lab.req.param=up(md.querySelector('#p_sh').value);w.querySelector('#s_pm').value=lab.req.param;md.innerHTML='';};
+  };
+  w.querySelector('#bCan').onclick=function(){md.innerHTML='';};
+  w.querySelector('#bSubmit').onclick=function(){
+   var m=[];
+   if(!lab.req.name)m.push(P('لم تختر اسم التقرير.','No report name chosen.'));
+   else if(lab.req.name!==REPOK)m.push(wrongRep(lab.req.name));
+   if(!lab.req.param)m.push(P('لم تدخل Shipment No في المعاملات.','Shipment No is not entered in Parameters.'));
+   else if(lab.req.param!==LABD.shipment)m.push(P('رقم الشحنة في المعاملات غير صحيح.','The shipment number in Parameters is wrong.'));
+   if(m.length){labFail(m);return;}
+   lab.req.id=LABD.reqId;
+   md.innerHTML='<div class="osub"><div class="osubt">Note</div><div class="osubb">Request submitted. Request ID = <b>'+LABD.reqId+'</b>. Submit another request?<div class="obtns"><button class="obtn" type="button" id="nYes">Yes</button><button class="obtn" type="button" id="nNo">No</button></div></div></div>';
+   md.querySelector('#nYes').onclick=function(){labInfo(P('لا حاجة لطلب آخر. اضغط No.','No other request is needed. Press No.'));};
+   md.querySelector('#nNo').onclick=function(){labOK(P('تم إرسال الطلب '+LABD.reqId+'.','Request '+LABD.reqId+' submitted.'));};
+  };
+ }
+});
+
+LABSTEPS.push({
+ t:P('متابعة الطلب وفتح المخرجات','Track the request and open the output'),
+ goal:P('انتظر اكتمال طلبك ثم افتح مخرجاته.','Wait for your request to complete, then open its output.'),
+ guide:P('اختر الصف الذي معاملاته 3244, RCS26994، واضغط Refresh Data حتى تصبح Phase = Completed ثم View Output.','Select the row whose parameters are 3244, RCS26994, press Refresh Data until Phase = Completed, then View Output.'),
+ hint:P('الطلبات الأخرى في القائمة ليست طلبك.','The other requests in the list are not yours.'),
+ build:function(w){
+  var polls=lab.req?lab.req.polls:0,sel=null;
+  function phase(){return polls>=2?['Completed','Normal']:(polls===1?['Running','Normal']:['Pending','Normal']);}
+  function draw(){
+   var ph=phase();
+   var rows=[[LABD.reqId,'Munajem Receiving Summary Using Shipment Number',ph[0],ph[1],'3244, '+LABD.shipment,true],
+    ['452992977','Munajem WMS Hold Locat','Running','Normal',', , , 982635031'],['452992976','Munajem WMS Hold Locat','Running','Normal',', , , 982635027'],['452992966','Receiving Transaction Proc','Completed','Normal','IMMEDIATE, 12277252'],['452992896','Receiving Transaction Proc','Completed','Normal','IMMEDIATE, 12277248']];
+   w.innerHTML=owH('Requests','<div class="obtns" style="margin:0 0 6px"><button class="obtn" type="button" id="bRef">Refresh Data</button><button class="obtn" type="button" disabled>Find Requests</button><button class="obtn" type="button" disabled>Submit a New Request</button></div><table class="otable"><tr><th>Request ID</th><th>Name</th><th>Phase</th><th>Status</th><th>Parameters</th></tr>'+rows.map(function(r,i){return '<tr data-i="'+i+'" class="'+(sel===i?'on':'')+'" style="cursor:pointer"><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td></tr>';}).join('')+'</table><div class="obtns"><button class="obtn" type="button" id="bOut">View Output</button><button class="obtn" type="button" disabled>View Log</button><button class="obtn" type="button" disabled>View Details</button></div>');
+   w.querySelectorAll('tr[data-i]').forEach(function(tr){tr.onclick=function(){sel=+tr.getAttribute('data-i');draw();};});
+   w.querySelector('#bRef').onclick=function(){polls++;if(lab.req)lab.req.polls=polls;draw();};
+   w.querySelector('#bOut').onclick=function(){
+    if(sel===null){labFail([P('اختر صف طلبك أولاً.','Select your request row first.')]);return;}
+    if(sel!==0){labFail([P('هذا ليس طلبك. اختر الصف الذي معاملاته 3244, RCS26994.','This is not your request. Pick the row whose parameters are 3244, RCS26994.')]);return;}
+    if(phase()[0]!=='Completed'){labFail([P('الطلب لم يكتمل بعد: اضغط Refresh Data حتى تصبح Completed.','The request is not complete: press Refresh Data until it is Completed.')]);return;}
+    labOK(P('اكتمل الطلب وفُتحت مخرجاته.','The request completed and its output opened.'));
+   };
+  }
+  draw();
+ }
+});
+
+LABSTEPS.push({
+ t:P('قراءة التقرير والتحقق','Read the report and verify'),
+ goal:P('اقرأ التقرير وتحقق أن ما سُلّم يطابق مستند الشحنة.','Read the report and verify that what was delivered matches the shipment document.'),
+ guide:P('اكتب إجمالي pqty (الكيلو) وإجمالي sqty (الكراتين) من التقرير، والدفعة الأقرب انتهاءً، ثم Verify.','Type the pqty total (KG), the sqty total (cartons) and the lot with the nearest expiry from the report, then Verify.'),
+ hint:P('pqty = الكيلو و sqty = الكراتين. الأقرب انتهاءً هو أقل تاريخ.','pqty = KG and sqty = cartons. The nearest expiry is the earliest date.'),
+ build:function(w){
+  var rows=LABD.repOrder.map(function(i){var l=LABD.lines[i];return '<tr><td></td><td>'+LABD.item+'<br>'+LABD.desc+'</td><td>'+dYY()+'</td><td>'+l.lot+'</td><td>'+l.exp+'</td><td>'+l.ct+'</td><td>'+l.kg+'</td><td>'+LABD.shipment+'</td><td></td></tr>';}).join('');
+  var t=labTot();
+  w.innerHTML='<div class="ow"><div class="owt">Report output &nbsp;(محاكاة / simulation)</div><div class="owc"><div class="rep"><h4>Inventory Reports</h4><h4>Munajem Item Receipt Summary</h4><p>Shipment No: <b>'+LABD.shipment+'</b></p><table><tr><th>Org</th><th>Item ID/Description</th><th>Receipt Date</th><th>Lot</th><th>Exp.date</th><th>sqty</th><th>pqty</th><th>Ship.no</th><th>Container No</th></tr>'+rows+'<tr><td colspan="5"><b>Total</b></td><td><b>'+t.ct+'</b></td><td><b>'+t.kg+'</b></td><td colspan="2"></td></tr></table></div>'+
+   '<div class="ctl"><div class="trn"><b>تمرين تدريبي — ليس شاشة أوراكل</b><span class="ar"></span>Training exercise — not an Oracle screen. The trainee fills it from the report.</div>'+frH('Total pqty (KG)','إجمالي pqty (كجم)',inH('v_kg','','req'))+fnote(P('pqty = إجمالي الكيلو؛ يجب أن يطابق مستند الشحنة.','pqty = total KG; it must tie to the shipment document.'))+frH('Total sqty (cartons)','إجمالي sqty (كراتين)',inH('v_ct','','req'))+fnote(P('sqty = إجمالي الكراتين؛ يساوي الكيلو ÷ 15.','sqty = total cartons; equals KG / 15.'))+frH('Nearest expiry lot','الدفعة الأقرب انتهاءً',inH('v_lt','','req'))+fnote(P('الأقرب انتهاءً تُصرف أولاً (FEFO) لتجنب انتهاء الصلاحية.','The nearest expiry is issued first (FEFO) to avoid expiry losses.'))+'<div class="obtns"><button class="obtn" type="button" id="bVer">Verify</button></div></div></div></div>';
+  if(lab.passed){
+   var tdAr=false;
+   w.insertAdjacentHTML('beforeend','<div class="tdwrap"><div class="tdbar"><b>'+I(P('المخرج النهائي: مستند التحويل بين المنشآت','Final output: Inter Organization Transfer Document'))+'</b><label><input type="checkbox" id="tdAr"> '+I(P('إظهار العناوين العربية','Show Arabic labels'))+'</label><button class="btn" type="button" id="tdPrint">'+B(P('طباعة المستند','Print document'))+'</button></div><div id="tdBox">'+tdocHTML(labTdocData(),false)+'</div></div>');
+   w.querySelector('#tdAr').onchange=function(){w.querySelector('#tdBox').innerHTML=tdocHTML(labTdocData(),this.checked);};
+   w.querySelector('#tdPrint').onclick=function(){document.body.classList.add('print-tdoc');try{window.print();}catch(e){}document.body.classList.remove('print-tdoc');};
+  }
+  w.querySelector('#bVer').onclick=function(){
+   var m=[];
+   if(parseFloat(w.querySelector('#v_kg').value)!==t.kg)m.push(P('إجمالي pqty غير صحيح: اقرأ آخر صف Total.','The pqty total is wrong: read the last Total row.'));
+   if(parseFloat(w.querySelector('#v_ct').value)!==t.ct)m.push(P('إجمالي sqty غير صحيح.','The sqty total is wrong.'));
+   if(up(w.querySelector('#v_lt').value)!==up('L-CHPKSEBR003-R65'))m.push(P('الدفعة الأقرب انتهاءً غير صحيحة: ابحث عن أقل Exp.date في التقرير.','The nearest-expiry lot is wrong: look for the earliest Exp.date in the report.'));
+   if(m.length){labFail(m);return;}
+   labOK(P('التقرير يطابق مستند الشحنة: '+t.kg+' كجم و '+t.ct+' كرتون. الدفعة الأقرب انتهاءً L-CHPKSEBR003-R65 تُصرف أولاً (FEFO).','The report matches the shipment document: '+t.kg+' KG and '+t.ct+' cartons. The nearest-expiry lot L-CHPKSEBR003-R65 is issued first (FEFO).'));
+  };
+ }
+});
+
+function labStart(){
+ var c=el('<div class="card"><h2>'+LS.briefT.ar+'</h2><div class="en" style="margin-bottom:6px">'+LS.briefT.en+'</div>'+B(LS.brief)+'<h3 style="margin-top:12px">'+LT('docT')+'</h3>'+docHTML()+
+  '<div class="story" style="margin-top:12px"><label><input type="radio" name="lm" value="guided" checked> <b>'+LT('guided')+'</b></label>'+B(LS.guidedD)+'<label><input type="radio" name="lm" value="test"> <b>'+LT('test')+'</b></label>'+B(LS.testD)+'</div>'+
+  '<div class="sub">'+B(LS.trainer)+'</div><div class="row"><button class="btn" id="labGo">'+B(LS.startB)+'</button></div></div>');
+ c.querySelector('#labGo').onclick=function(){var v=c.querySelector('input[name=lm]:checked').value;labNew(v);render();};
+ return c;
+}
+function labEnd(){
+ var s=labScore(),pass=s.pct>=80;
+ var rows=LABSTEPS.map(function(st,i){return '<tr><td>'+(i+1)+'</td><td>'+st.t.ar+'<div class="en">'+st.t.en+'</div></td><td>'+(lab.fail[i]?('✘ '+lab.fail[i]):'✔')+'</td></tr>';}).join('');
+ var c=el('<div class="card"><h2>'+LT('endT')+': '+s.pct+'%</h2>'+B(pass?LS.okMsg:LS.noMsg)+'<p>'+LT('firstT')+': <b>'+s.first+' / '+LABSTEPS.length+'</b> — '+LT('errsT')+': <b>'+s.errs+'</b> — '+LT('hintsT')+': <b>'+lab.hints+'</b></p><table><tr><th>#</th><th>'+T('practice')+'</th><th></th></tr>'+rows+'</table><div class="row noprint"><button class="btn" id="labAgain">'+B(LS.restartB)+'</button><button class="btn ghost" onclick="window.print()">'+B(S.print)+'</button></div></div>');
+ c.querySelector('#labAgain').onclick=function(){lab=null;render();};
+ return c;
+}
+(function(){var t=labTot();
+ LABSTEPS[2].explain=[
+  P('الكيلو (KG) هي الوحدة الأساسية للتخزين والتكلفة، والكرتون (CRT) وحدة ثانوية للعدّ والجرد.','Kilogram (KG) is the primary unit for storage and cost; carton (CRT) is a secondary unit for counting.'),
+  P('كيلو/كرتون = إجمالي الكيلو ÷ إجمالي الكراتين ('+t.kg+' ÷ '+t.ct+'). يجب أن يساوي 15 دائماً؛ وإن اختلف فهناك خطأ في الكمية أو عدد الكراتين.','KG per carton = total KG / total cartons ('+t.kg+' / '+t.ct+'). It must always be 15; if not, a quantity or carton count is wrong.')];
+ LABSTEPS[7].explain=[
+  P('Line Qty: الكمية المستلمة على السطر، مرجع للقراءة فقط.','Line Qty: the quantity received on the line, a read-only reference.'),
+  P('Quantity: الكمية التي تفحصها وتحكم عليها الآن، وتُكتب يدوياً.','Quantity: the amount you inspect and judge now, typed manually.'),
+  P('عند قبول الشحنة كاملة تتساوي القيمتان. وعند عيب جزئي (مثلاً 100 كجم تالفة من 3450) تقبل 3350 وترفض 100، ولا تتجاوز Quantity قيمة Line Qty.','For a full acceptance both values are equal. For a partial defect (e.g. 100 KG damaged out of 3450) you accept 3350 and reject 100; Quantity never exceeds Line Qty.'),
+  P('الأهمية: تمنع فحص كمية أكبر مما استُلم، وتثبّت كمية القبول والرفض بدقة.','Why: it prevents inspecting more than was received and records accepted/rejected quantities precisely.')];
+ LABSTEPS[9].explain=[
+  P('Lot Number: يتولد تلقائياً من أوراكل عند الاستلام، ولا يكتبه المتدرب بل يراجعه فقط. شكله هنا مثال تدريبي.','Lot Number: generated automatically by Oracle at receiving; the trainee only checks it, never types it. Its shape here is a training example.'),
+  P('Expiration Date: من مستند الشحنة بصيغة DD-MON-YY. أهميته: الصرف بنظام FEFO (الأقرب انتهاءً أولاً) وتتبع الصلاحية.','Expiration Date: from the shipment document in DD-MON-YY. Why: FEFO issuing (nearest expiry first) and shelf-life tracking.'),
+  P('Quantity = الوزن بالكيلوجرام (KG). Secondary Quantity = عدد الكراتين (CRT). مثال: 1125 كجم = 75 كرتون.','Quantity = weight in kilograms (KG). Secondary Quantity = number of cartons (CRT). Example: 1125 KG = 75 cartons.'),
+  P('مجموع كميات الدفعات يساوي كمية السطر. وجود الكميتين معاً يكشف الخطأ: 1125 كجم مع 76 كرتون لا يتطابقان.','Lot quantities add up to the line quantity. Having both quantities exposes mistakes: 1125 KG with 76 cartons does not agree.'),
+  P('الجدول المساعد في الأسفل يضم قيم كل سطر مع أزرار نسخ لتسريع التعبئة.','The helper table below holds each line\'s values with copy buttons to speed up entry.')];
+ LABSTEPS[9].helper=true;
+ LABSTEPS[13].explain=[
+  P('هذا النموذج تمرين تدريبي ولا يوجد في أوراكل؛ يعبّئه المتدرب بما يقرؤه من التقرير.','This form is a training exercise and does not exist in Oracle; the trainee fills it from what the report shows.'),
+  P('pqty: إجمالي الكيلو ('+t.kg+') ويجب أن يطابق مستند الشحنة.','pqty: total KG ('+t.kg+'); it must tie to the shipment document.'),
+  P('sqty: إجمالي الكراتين ('+t.ct+') ويساوي الكيلو ÷ 15.','sqty: total cartons ('+t.ct+'); equals KG / 15.'),
+  P('الدفعة الأقرب انتهاءً: هي التي تُصرف أولاً (FEFO) لتجنب خسارة انتهاء الصلاحية.','Nearest expiry lot: issued first (FEFO) to avoid expiry losses.'),
+  P('Verify: يقارن إجاباتك بالتقرير ويعطيك النتيجة فوراً.','Verify: compares your answers with the report and gives the result at once.')];
+})();
+
+/* ===== LOT TOOL / أداة الدفعات ===== */
+var CAT=[{"id":"RM-0001","g":"RM","code":"BFPTVFBR001","en":"BEEF TRIMMINGS 70 VL-MF","ar":"تشافي لحم بقري دهون اقل","kgct":""},{"id":"RM-0002","g":"RM","code":"BFPTXXUY001","en":"BEEF TRIMMINGS 65CL FLETCHER TACUAREMBO URUGUAY","ar":"تشافي لحم بقري دهون زيادة","kgct":""},{"id":"RM-0003","g":"RM","code":"MTPTFLAU001","en":"MUTTON TRIMMINGS 50CL FLETCHER","ar":"تشافي لحم غنم","kgct":""},{"id":"RM-0004","g":"RM","code":"CHPKNORU001","en":"RM- STRIPS CHICKEN B/L S/L BREAST NOOR INNER FILLET 15 KG","ar":"ستريبس فيليه صدر دجاج داخلي (موزات) بدون عظم وبدون جلد","kgct":15.0},{"id":"RM-0005","g":"RM","code":"CHPKNORU03T","en":"CHICKEN B/L S/L BREAST NOOR W/OUT INNER FILLET BULK 15 KG","ar":"صدر دجاج كامل بدون عظم وبدون جلد","kgct":15.0},{"id":"RM-0006","g":"RM","code":"CHPKSEBR008","en":"RM- STRIPS CHICKEN B/L S/L BREAST SEARA INNER FILLET 15 KG","ar":"ستربس فيليه دجاج داخلي (موزات) بدون عظم وبدون جلد","kgct":15.0},{"id":"RM-0007","g":"RM","code":"CHPKSEBR003","en":"CHICKEN BONELESS SKINLESS BREAST SEARA 1*15 KG","ar":"صدر دجاج كامل بدون عظم وبدون جلد","kgct":15.0},{"id":"RM-0008","g":"RM","code":"CHPNSEBR01T","en":"CHICKEN SKIN SEARA 1*15 KG","ar":"جلد دجاج مجمد فلت","kgct":15.0},{"id":"RM-0009","g":"RM","code":"VLPCMNIN001","en":"BOBBY VEAL MANNAT 20*900 GM","ar":"لحم عجل بوبي بدون عظم مجمد","kgct":18.0},{"id":"RM-0010","g":"RM","code":"BFPQPLBR001","en":"BEEF FOREQUARTER  PUL","ar":"ربع أمامي بقري - علامة بُول","kgct":""},{"id":"RM-0011","g":"RM","code":"ANPQHBIN001","en":"BUFFALO B/L FOREQUARTER HABRA 4*4.5 KG","ar":"ربع أمامي هبرة جاموس مجمد بدون عظم","kgct":18.0},{"id":"RM-0012","g":"RM","code":"GRGXSCIN01T","en":"TEXTURED SOYA PROTEIN SONIC 20 KG","ar":"بروتين صويا","kgct":20.0},{"id":"RM-0013","g":"RM","code":"GRGXXXIN001","en":"TEXTURED SOYA PROTEIN","ar":"فول صويا","kgct":""},{"id":"RM-0014","g":"RM","code":"GRRXXXAR001","en":"SOYA PROTEIN GRANULES","ar":"بروتين صويا حبيبات","kgct":""},{"id":"FG-0001","g":"FG","code":"BFRMASSA001","en":"BEEF MINCE ANAME SAUDI 20*400","ar":"لحم مفروم بقري الأنعام سعودي 400 جرام","kgct":8.0},{"id":"FG-0002","g":"FG","code":"MTRMHBSA001","en":"MUTTON MINCE ANAM SAUDI AL HABRA 20*400","ar":"لحم مفروم غنم الأنعام الهبرة سعودي 400 جرام","kgct":8.0},{"id":"FG-0003","g":"FG","code":"MTRMASSA001","en":"MUTTON MINCE ANAM SAUDI AL 20*400","ar":"لحم مفروم غنم الأنعام سعودي 400 جرام","kgct":8.0},{"id":"FG-0004","g":"FG","code":"CHRMDRSA01T","en":"MUTTON MINCE DARI 20*400","ar":"لحم مفروم غنم داري 400 جرام","kgct":8.0},{"id":"FG-0005","g":"FG","code":"CHRMDRSA01T","en":"CHICKEN MINCE DARI 20*400","ar":"لحم مفروم دجاج داري 400 جرام","kgct":8.0},{"id":"FG-0006","g":"FG","code":"CHPKDRSA002","en":"CHICKEN BREAST TENDERIZED DARI 10*1 KG - MF","ar":"صدور دجاج طرية داري اكيلو","kgct":10.0},{"id":"FG-0007","g":"FG","code":"CHPKDRSA001","en":"CHICKEN BREAST TENDERIZED DARI 5*2 KG - MF","ar":"صدور دجاج طرية داري2 كيلو","kgct":10.0},{"id":"FG-0008","g":"FG","code":"CHPKDXSA002","en":"CHICKEN BREAST TENDERIZED DOUX 10*1 KG","ar":"صدور دجاج طرية دو1 كيلو","kgct":10.0},{"id":"FG-0009","g":"FG","code":"CHPKDXSA001","en":"CHICKEN BREAST TENDERIZED DOUX 5*2 KG - MF","ar":"صدور دجاج طرية دو2 كيلو","kgct":10.0},{"id":"FG-0010","g":"FG","code":"CHPPDXSA006","en":"DOUX REGULAR CHICKEN STRIPS 12*700 GM","ar":"ستريبس دجاج دو العادي 700 جرام","kgct":8.4},{"id":"FG-0011","g":"FG","code":"CHPPDXSA005","en":"DOUX SPICY CHICKEN STRIPS 12*700 GM","ar":"ستريبس دجاج دو الحار 700 جرام","kgct":8.4},{"id":"FG-0012","g":"FG","code":"CHRBHBSA02T","en":"CHICKEN BREADED BURGER AL HABRA 8*855","ar":"برجر دجاج بالبقسماط الهبرة 855 جرام","kgct":6.84},{"id":"FG-0013","g":"FG","code":"CHPUDXSA001","en":"CHICKEN BURGER -DOUX 660 GM","ar":"برجر دجاج دو    660 جرام","kgct":""},{"id":"FG-0014","g":"FG","code":"CHPUDXSA002","en":"CIIICKEN BREADED BURGER -DOUX 660 GM","ar":"برجر دجاج بالبقسماط دو660 جرام","kgct":""},{"id":"FG-0015","g":"FG","code":"CHPTDXSA001","en":"CHICKEN BREADED NUGETS DOUX 10*1","ar":"ناجت دجاج دو بالبقسماط  اكيلو","kgct":10.0},{"id":"FG-0016","g":"FG","code":"CHPTDXSA002","en":"CHICKEN BREADED NUGGETS -DOUX 12*500","ar":"ناجت دجاج بالبقسماط دو 500 جرام","kgct":6.0},{"id":"FG-0017","g":"FG","code":"","en":"CHICKEN NUGGETS -DOUX 1 KG","ar":"ناجت دجاج دو العادي 1 كيلو","kgct":1.0},{"id":"FG-0018","g":"FG","code":"CHPWDXSA001","en":"CHICKEN BREADED FINGERS DOUX 12*500 GM - A","ar":"أصابع دجاج بالبقسماط دو  500 جرام","kgct":6.0},{"id":"FG-0019","g":"FG","code":"CHPWDXSA002","en":"CHICKEN BREADED STEAK DOUX 12*600 GM - A","ar":"ستيك دجاج بالبقسماط دو   600 جرام","kgct":7.2}];
+var GRP={RM:P('مواد خام مجمدة','Frozen raw'),FG:P('منتجات نهائية مجمدة','Frozen finished')};
+var lotUI={q:'',g:'ALL',open:null};
+function LD(){var d=state.data.lots;if(!d.seeded){d.rows['RM-0007']=LABD.lines.map(function(l){return {lot:l.lot,exp:l.exp,kg:l.kg};});d.seeded=1;}return d;}
+function kgOf(it){var v=LD().kg[it.id];return (v===undefined||v==='')?it.kgct:v;}
+function ctOf(it,kg){var k=parseFloat(kgOf(it)),q=parseFloat(kg);if(!(k>0)||isNaN(q))return '';return Math.round(q/k*100)/100;}
+function copyText(t){try{navigator.clipboard.writeText(t);return;}catch(e){}try{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);}catch(e2){}}
+function lotRowsAll(){var out=[];CAT.forEach(function(it){(LD().rows[it.id]||[]).forEach(function(r){out.push([it.g,it.id,it.code,it.en,it.ar,r.lot,r.exp,r.kg,ctOf(it,r.kg)]);});});return out;}
+function vLots(){
+ LD();
+ var c=el('<div class="card"></div>');
+ c.innerHTML='<h3>'+I(S.lots)+'</h3>'+B(P('أداة مساعدة تضم أصناف المواد الخام المجمدة والمنتجات النهائية المجمدة (من كتالوج المستودع) مع أكواد أوراكل، لتسجيل دفعات كل صنف وتواريخها وكمياتها بالكيلو والكراتين وتسريع التعبئة. الدفعات تتولد تلقائياً في أوراكل؛ هذه الأداة لتسجيل ما يظهر ومراجعته. الأصناف الجافة تُضاف بعد اعتماد طريقة عملها.','A helper tool listing the frozen raw-material and frozen finished-product items (from the warehouse catalog) with Oracle codes, to record each item\'s lots, expiries and quantities in KG and cartons and speed up entry. Lots are generated automatically in Oracle; this tool records and reviews what appears. Dry items are added once their way of working is agreed.'))+
+  fnote(P('كيلو/كرتون مستخرج من اسم الصنف كتقدير وقابل للتعديل. الدفعات الستة لصنف CHPKSEBR003 من شحنة التدريب.','KG per carton is estimated from the item name and is editable. The six lots of CHPKSEBR003 come from the training shipment.'))+
+  '<div class="tbar"><input id="lq" placeholder="Search / بحث (code, name, lot)"><select id="lg"><option value="ALL">'+I(P('الكل','All'))+'</option><option value="RM">'+I(GRP.RM)+'</option><option value="FG">'+I(GRP.FG)+'</option></select><button class="btn ghost" id="lcopy" type="button">'+B(P('نسخ الجدول (Excel)','Copy table (Excel)'))+'</button><button class="btn ghost" id="lcsv" type="button">'+B(P('تصدير CSV','Export CSV'))+'</button><span id="lmsg" class="sub"></span></div><div id="lotTbl" style="overflow:auto"></div>';
+ main.appendChild(c);
+ var tbl=c.querySelector('#lotTbl'),msgEl=c.querySelector('#lmsg');
+ function say(t){msgEl.textContent=t;}
+ function draw(){
+  var q=up(lotUI.q),rows='';
+  CAT.forEach(function(it){
+   if(lotUI.g!=='ALL'&&it.g!==lotUI.g)return;
+   var lots=LD().rows[it.id]||[];
+   var hit=!q||up(it.code+' '+it.en+' '+it.ar+' '+it.id).indexOf(q)>=0||lots.some(function(r){return up(r.lot).indexOf(q)>=0;});
+   if(!hit)return;
+   rows+='<tr class="it" data-op="open" data-id="'+it.id+'"><td>'+it.id+'</td><td>'+I(GRP[it.g])+'</td><td'+(it.code?'':' class="bad"')+'>'+(it.code?esc(it.code):'— (no code / بلا كود)')+'</td><td style="direction:ltr">'+esc(it.en)+'<br><span class="sub" style="direction:rtl;display:block">'+esc(it.ar)+'</span></td><td><input data-k="kgct" data-id="'+it.id+'" value="'+esc(kgOf(it))+'" style="width:70px"></td><td>'+lots.length+'</td><td><button class="cpb" type="button" data-op="add" data-id="'+it.id+'">+ Lot</button></td></tr>';
+   if(lotUI.open===it.id){
+    rows+='<tr class="sub2"><td colspan="7"><table class="lt"><tr><th>Lot</th><th>Expiry</th><th>KG</th><th>CRT</th><th></th></tr>'+(lots.length?lots.map(function(r,i){return '<tr><td><input data-k="lot" data-id="'+it.id+'" data-i="'+i+'" value="'+esc(r.lot)+'"><button class="cpb" type="button" data-op="cp" data-v="'+esc(r.lot)+'">&#10064;</button></td><td><input data-k="exp" data-id="'+it.id+'" data-i="'+i+'" value="'+esc(r.exp)+'"><button class="cpb" type="button" data-op="cp" data-v="'+esc(r.exp)+'">&#10064;</button></td><td><input data-k="kg" data-id="'+it.id+'" data-i="'+i+'" value="'+esc(r.kg)+'"><button class="cpb" type="button" data-op="cp" data-v="'+esc(r.kg)+'">&#10064;</button></td><td class="ctc">'+ctOf(it,r.kg)+'<button class="cpb" type="button" data-op="cp" data-v="'+ctOf(it,r.kg)+'">&#10064;</button></td><td><button class="cpb" type="button" data-op="del" data-id="'+it.id+'" data-i="'+i+'">&#10005;</button></td></tr>';}).join(''):'<tr><td colspan="5">'+B(P('لا دفعات بعد. اضغط + Lot.','No lots yet. Press + Lot.'))+'</td></tr>')+'</table></td></tr>';
+   }
+  });
+  tbl.innerHTML='<table class="lt"><tr><th>ID</th><th>'+I(P('المجموعة','Group'))+'</th><th>Oracle code</th><th>'+I(P('الصنف','Item'))+'</th><th>KG / CRT</th><th>Lots</th><th></th></tr>'+(rows||'<tr><td colspan="7">'+B(P('لا نتائج.','No results.'))+'</td></tr>')+'</table>';
+ }
+ c.querySelector('#lq').oninput=function(){lotUI.q=this.value;draw();};
+ c.querySelector('#lg').onchange=function(){lotUI.g=this.value;draw();};
+ c.querySelector('#lcopy').onclick=function(){var t=[['Group','ID','Oracle code','Name EN','Name AR','Lot','Expiry','KG','CRT']].concat(lotRowsAll()).map(function(r){return r.join('\t');}).join('\n');copyText(t);say('Copied / تم النسخ');};
+ c.querySelector('#lcsv').onclick=function(){
+  var t='﻿'+[['Group','ID','Oracle code','Name EN','Name AR','Lot','Expiry','KG','CRT']].concat(lotRowsAll()).map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');
+  try{var b=new Blob([t],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='oracle_lots_'+dYY()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);say('CSV ✔');}catch(e){say('CSV ✘');}
+ };
+ tbl.addEventListener('click',function(e){
+  var t=e.target.closest('[data-op]');if(!t)return;
+  var op=t.getAttribute('data-op'),id=t.getAttribute('data-id');
+  if(op==='cp'){copyText(t.getAttribute('data-v'));say('Copied / تم النسخ');e.stopPropagation();return;}
+  if(op==='add'){var d=LD();(d.rows[id]=d.rows[id]||[]).push({lot:'',exp:'',kg:''});lotUI.open=id;save();draw();e.stopPropagation();return;}
+  if(op==='del'){LD().rows[id].splice(+t.getAttribute('data-i'),1);save();draw();e.stopPropagation();return;}
+  if(op==='open'){if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON')return;lotUI.open=(lotUI.open===id?null:id);draw();}
+ });
+ tbl.addEventListener('change',function(e){
+  var t=e.target;if(t.tagName!=='INPUT')return;
+  var k=t.getAttribute('data-k'),id=t.getAttribute('data-id'),it=null;CAT.forEach(function(x){if(x.id===id)it=x;});
+  if(k==='kgct'){LD().kg[id]=t.value.trim();save();draw();return;}
+  var r=LD().rows[id][+t.getAttribute('data-i')];
+  if(k==='lot')r.lot=up(t.value);else if(k==='exp')r.exp=nDate(t.value)||up(t.value);else r.kg=t.value.trim();
+  save();draw();
+ });
+ draw();
+}
+
+/* ===== Inter Organization Transfer Document (printed form) ===== */
+function fmt2(n){return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function tdocHTML(d,ar){
+ function a(t){return ar?'<span class="tdar">'+t+'</span>':'';}
+ function row(l,la,v,cls){return '<div class="hr"><div class="l">'+l+a(la)+'</div><div>'+(v==null?'':esc(v))+'</div></div>';}
+ var tc=0,tk=0;
+ d.rows.forEach(function(r){tc+=Number(r.crt);tk+=Number(r.kg);});
+ return '<div class="tdoc"><div class="tdlogo"><div class="lg"><b>المنجم</b>ALMUNAJEM</div></div><h2>Inter Organization Transfer Document'+(ar?'<span class="tdar" style="text-align:center;font-size:13px">مستند تحويل بين المنشآت</span>':'')+'</h2>'+
+  '<div class="hd"><div>'+row('Shipment Number','رقم الشحنة',d.ship)+row('Container Num','رقم الحاوية',d.cont)+row('Transport Agent','وكيل النقل',d.agent)+row('Transport Fee','أجرة النقل',d.fee)+row('Truck No','رقم الشاحنة',d.truck)+'</div>'+
+  '<div>'+row('Document Date','تاريخ المستند',d.date)+row('Police Num','رقم الشرطة',d.police)+row('From Branch','من فرع',d.from)+row('To Branch','إلى فرع',d.to)+row('Driver','السائق',d.driver)+'</div></div>'+
+  '<table><tr><th colspan="2">Item'+a('الصنف')+'</th><th rowspan="2">Lot'+a('الدفعة')+'</th><th rowspan="2">Expiry date'+a('تاريخ الانتهاء')+'</th><th rowspan="2">Quantity (CRT)'+a('الكمية (كرتون)')+'</th><th rowspan="2">QTY(KG)'+a('الكمية (كجم)')+'</th></tr>'+
+  '<tr><th>Code'+a('الكود')+'</th><th>Description'+a('الوصف')+'</th></tr>'+
+  d.rows.map(function(r){return '<tr><td>'+esc(r.code)+'</td><td>'+esc(r.desc)+'</td><td>'+esc(r.lot)+'</td><td class="n">'+esc(r.exp)+'</td><td>'+r.crt+'</td><td class="n">'+r.kg+'</td></tr>';}).join('')+
+  '<tr class="tot"><td colspan="2" style="text-align:center">Total'+a('الإجمالي')+'</td><td></td><td></td><td class="n">'+fmt2(tc)+'</td><td class="n">'+fmt2(tk)+'</td></tr></table></div>';
+}
+function labTdocData(){
+ return {ship:LABD.shipment,cont:LABD.containers,agent:'',fee:'',truck:'',date:dYY(),police:'',from:LABD.supplier,to:'CS Jeddah New Meat Factory Inventory Organization',driver:'',
+  rows:LABD.lines.map(function(l){return {code:LABD.item,desc:LABD.desc,lot:l.lot,exp:l.exp,crt:l.ct,kg:l.kg};})};
+}
+
+/* ===== PROCESS MAP / خريطة الخطوات ===== */
+var PMAP=[
+ {s:[0,1],t:P('الوصول إلى الشحنة','Reach the shipment'),sc:'Navigator, Find Expected Receipts',out:P('قائمة سطور الشحنة المتوقعة','List of the expected shipment lines'),cm:P('لا حفظ (استعلام فقط)','No save (inquiry only)')},
+ {s:[2,3,4],t:P('الاستلام','Receive'),sc:'Receipts, Receipt Header',out:P('استلام جديد برقمه وحالته «لم يُفحص»','A new receipt with its number, status "Not Inspected"'),cm:P('حفظ رقم 1: يُنشئ رقم الاستلام','Save #1: creates the receipt number')},
+ {s:[5,6,7],t:P('الفحص','Inspect'),sc:'Find Receiving Transactions, Receiving Transactions, Inspections',out:P('السطور مقبولة (Accepted)','Lines accepted (Accepted)'),cm:P('OK في نافذة الفحص: تتغير حالة الفحص','OK in the Inspections window: inspection status changes')},
+ {s:[8,9,10],t:P('التسليم للمخزون','Deliver to stock'),sc:'Receiving Transactions (Subinventory/Locator), Lot Entry',out:P('رصيد في Frozen / 1.Froz. بدفعاته','Stock in Frozen / 1.Froz. with its lots'),cm:P('حفظ رقم 2: يدخل الرصيد المخزون فعلياً','Save #2: the stock actually enters inventory')},
+ {s:[11,12,13],t:P('التحقق والمخرج','Verify & output'),sc:'Submit Request, Requests, Report output',out:P('تقرير Munajem ثم مستند التحويل بين المنشآت','Munajem report, then the Inter Organization Transfer Document'),cm:P('لا حفظ في المخزون (تقارير فقط)','No inventory save (reports only)')}
+];
+function vMap(){
+ var n=LABSTEPS.length;
+ var c=el('<div class="card"></div>');
+ var flow=PMAP.map(function(g,i){return '<div class="pmg g'+(i+1)+'"><b>'+(i+1)+'</b>'+B(g.t)+'<div class="sub">'+(g.s[0]+1)+(g.s.length>1?' – '+(g.s[g.s.length-1]+1):'')+'</div></div>';}).join('<div class="pmar">&#10140;</div>');
+ var rows=PMAP.map(function(g,i){
+  return '<tr><td><b>'+(i+1)+'</b></td><td>'+B(g.t)+'</td><td style="direction:ltr;text-align:left">'+g.s.map(function(k){return (k+1)+'. '+esc(LABSTEPS[k].t.en)+'<div class="sub" style="direction:rtl;text-align:right">'+esc(LABSTEPS[k].t.ar)+'</div>';}).join('')+'</td><td style="direction:ltr;text-align:left">'+esc(g.sc)+'</td><td>'+B(g.out)+'</td><td>'+B(g.cm)+'</td></tr>';
+ }).join('');
+ c.innerHTML='<h3>'+I(S.map)+'</h3>'+B(P('رحلة استلام الشحنة في أوراكل من أول فتح الشاشة حتى المخرج النهائي.','The shipment-receiving journey in Oracle, from opening the first screen to the final output.'))+
+  '<div class="pmsum"><div><b>'+n+'</b>'+B(P('خطوة','Steps'))+'</div><div><b>'+PMAP.length+'</b>'+B(P('مجموعات تنفيذ','Execution groups'))+'</div><div><b>11</b>'+B(P('شاشة ونافذة','Screens / windows'))+'</div><div><b>2</b>'+B(P('نقطتا حفظ للمخزون','Inventory save points'))+'</div><div><b>1</b>'+B(P('مخرج نهائي (مستند التحويل)','Final output (transfer document)'))+'</div></div>'+
+  '<div class="pmflow">'+flow+'</div>'+
+  '<div style="overflow:auto"><table class="pmt"><tr><th>#</th><th>'+I(P('المجموعة','Group'))+'</th><th>'+I(P('الخطوات','Steps'))+'</th><th>'+I(P('الشاشات','Screens'))+'</th><th>'+I(P('النتيجة','Result'))+'</th><th>'+I(P('نقطة الحفظ','Save point'))+'</th></tr>'+rows+'</table></div>'+
+  fnote(P('شاشتا الفحص وتفاصيل المستودع والموقع مبنيتان على الصور المتاحة وتُراجعان مع النظام الفعلي.','The Inspect screen and the subinventory/locator details are modelled from the available screenshots and should be checked against the live system.'))+
+  '<div class="row noprint"><button class="btn" id="pmGo" type="button">'+B(P('ابدأ التطبيق العملي','Start the hands-on lab'))+'</button></div>';
+ main.appendChild(c);
+ c.querySelector('#pmGo').onclick=function(){state.view='lab';state.cur=null;state.exam=null;render();};
+}
+
+var MENUS=[
+ {en:'File',ar:'ملف',it:[['New','جديد','new'],['Save','حفظ','save'],['-'],['Close Form','إغلاق النافذة','close'],['Exit','خروج','exit']]},
+ {en:'Edit',ar:'تحرير',it:[['Cut','قص','cut'],['Copy','نسخ','copy'],['Paste','لصق','paste'],['-'],['Clear Field','مسح الحقل','cf'],['Clear Record','مسح السجل','cr']]},
+ {en:'View',ar:'عرض',it:[['Find...','بحث','find'],['Query By Example','الاستعلام بالمثال','qbe']]},
+ {en:'Folder',ar:'مجلد',it:[['Hide Description column','إخفاء عمود الوصف','hd'],['Hide Sec. Qty / Sec. UOM','إخفاء الكمية الثانوية','hs'],['Show all columns','إظهار كل الأعمدة','sa']]},
+ {en:'Tools',ar:'أدوات',it:[['Zoom','تكبير/تصغير الخط','zoom'],['Copy Field','نسخ الحقل','copy']]},
+ {en:'Window',ar:'نافذة',it:'dyn'},
+ {en:'Help',ar:'مساعدة',it:[['Help on this window','شرح هذه النافذة','help']]}
+];
+function syncAttrs(root){
+ root.querySelectorAll('input').forEach(function(e){if(e.type==='checkbox'||e.type==='radio'){if(e.checked)e.setAttribute('checked','');else e.removeAttribute('checked');}else e.setAttribute('value',e.value);});
+ root.querySelectorAll('select').forEach(function(s){for(var k=0;k<s.options.length;k++){if(k===s.selectedIndex)s.options[k].setAttribute('selected','');else s.options[k].removeAttribute('selected');}});
+}
+function vLab(){
+ if(!lab){main.appendChild(labStart());return;}
+ if(lab.done){main.appendChild(labEnd());return;}
+ var st=LABSTEPS[lab.step],guided=lab.mode==='guided';
+ var wrap=el('<div class="lab"><div class="labL"><div class="card" id="labCard"></div></div><div class="labR"><div class="desk" id="desk"><div class="dmsg" id="dmsg"></div><div class="stk" id="stk"></div><div id="labWin"></div><div id="snapWin"></div><div id="clsBox"></div><div id="hlpBox"></div><div class="tskb" id="tskb"></div></div></div></div>');
+ var h='<div class="sub">'+(lab.step+1)+' / '+LABSTEPS.length+' — '+I(guided?LS.guidedS:LS.testS)+'</div><div class="prog"><i style="width:'+Math.round(lab.step/LABSTEPS.length*100)+'%"></i></div>';
+ h+='<h3 style="margin-top:8px">'+st.t.ar+'</h3><div class="en">'+st.t.en+'</div><div class="story">'+B(st.goal)+'</div>';
+ if(guided&&st.explain)h+=explHTML(st.explain);
+ if(guided)h+='<div class="guide"><b>'+LT('how')+'</b>'+B(st.guide)+'<div class="row"><button class="btn ghost" id="bHintL">'+B(LS.hintB)+'</button></div><div id="hintTxt" style="display:none;margin-top:6px">'+B(st.hint)+'</div></div>';
+ h+='<div id="labFB"></div>';
+ if(lab.passed)h+='<div class="row"><button class="btn" id="labNext">'+B(lab.step===LABSTEPS.length-1?LS.finishB:LS.nextB)+'</button></div>';
+ if(st.helper)h+=helperHTML();
+ h+='<details class="doc" open><summary><b>'+LT('docT')+'</b></summary>'+docHTML()+'</details><div class="row"><button class="btn ghost" id="labRe">'+B(LS.restartB)+'</button></div>';
+ wrap.querySelector('#labCard').innerHTML=h;
+ wrap.querySelector('#labCard').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-cp]');if(!b)return;var v=b.getAttribute('data-cp');lab.clip=v;copyText(v);msg(P('تم النسخ: '+v,'Copied: '+v));});
+ main.appendChild(wrap);
+ var desk=wrap.querySelector('#desk'),win=wrap.querySelector('#labWin'),snapWin=wrap.querySelector('#snapWin'),stk=wrap.querySelector('#stk'),clsBox=wrap.querySelector('#clsBox'),hlpBox=wrap.querySelector('#hlpBox'),tskb=wrap.querySelector('#tskb'),dmsg=wrap.querySelector('#dmsg');
+ var lastEl=null,mt=null,curTitle=(lab.step+1)+'. '+I(st.t);
+ function msg(p){dmsg.innerHTML=B(p);dmsg.style.display='block';clearTimeout(mt);mt=setTimeout(function(){dmsg.style.display='none';},4500);}
+ function winItems(){
+  var s='<div data-f="-1" class="'+(lab.front===-1?'on':'')+'">'+esc(curTitle)+'</div>';
+  lab.wins.forEach(function(x,i){s+='<div data-f="'+i+'" class="'+(lab.front===i?'on':'')+'">'+esc(x.title)+'</div>';});
+  return s;
+ }
+ function menuHTML(){return MENUS.map(function(m){var it=m.it==='dyn'?winItems():m.it.map(function(x){return x[0]==='-'?'<hr>':'<div data-a="'+x[2]+'">'+x[0]+'<span class="ar">'+x[1]+'</span></div>';}).join('');return '<span class="mb"><button type="button" data-m="1">'+m.en+' '+m.ar+'</button><span class="mdd">'+it+'</span></span>';}).join('');}
+ function ctl(k){return '<span class="wc"><button type="button" data-w="'+k+'min" title="Minimize / تصغير">_</button><button type="button" data-w="'+k+'max" title="Maximize / تكبير">&#9634;</button><button type="button" class="x" data-w="'+k+'close" title="Close / إغلاق">&#10005;</button></span>';}
+ function applyDesk(){
+  var ow=win.querySelector('.ow');
+  var curShown=lab.front===-1&&!lab.cm&&!lab.cc;
+  win.style.display=curShown?'':'none';
+  if(ow){ow.classList.toggle('max',!!lab.cx&&curShown);ow.classList.toggle('zoomed',!!lab.cz);var om=ow.querySelector('.owm');if(om)om.innerHTML=menuHTML();}
+  clsBox.innerHTML=(lab.front===-1&&lab.cc)?'<div class="wclosed">'+B(P('النافذة مغلقة. أعد فتحها لإكمال الخطوة.','The window is closed. Reopen it to finish the step.'))+'<button class="btn" type="button" data-a="reopen">'+B(P('إعادة فتح','Reopen'))+'</button></div>':'';
+  var bars='';
+  lab.wins.forEach(function(x,i){if(lab.front!==i)bars+='<div class="ow" data-i="'+i+'"><div class="owt"><span class="tt">'+esc(x.title)+'</span><span class="wc"><button type="button" class="x" data-w="bclose" data-i="'+i+'" title="Close / إغلاق">&#10005;</button></span></div></div>';});
+  if(lab.front!==-1)bars+='<div class="ow" data-i="-1"><div class="owt"><span class="tt">'+esc(curTitle)+'</span></div></div>';
+  stk.innerHTML=bars;
+  if(lab.front>=0&&lab.wins[lab.front]){
+   var s=lab.wins[lab.front];
+   snapWin.innerHTML='<div class="ow snap'+(lab.sx?' max':'')+'"><div class="owt"><span class="tt">'+esc(s.title)+'</span>'+ctl('s')+'</div><div class="snapnote">'+B(P('نافذة سابقة للعرض فقط. اضغط _ للرجوع إلى النافذة الحالية.','Previous window, view only. Press _ to go back to the current window.'))+'</div>'+s.html+'</div>';
+  }else snapWin.innerHTML='';
+  tskb.innerHTML=(lab.cm&&!lab.cc&&lab.front===-1)?'<button type="button" data-t="1">&#9635; '+esc(curTitle)+'</button>':'';
+ }
+ function decorate(){
+  var ow=win.querySelector('.ow');if(!ow||ow.querySelector('.wc'))return;
+  var t=ow.querySelector('.owt');t.innerHTML='<span class="tt">'+t.innerHTML+'</span>'+ctl('c');
+  applyDesk();
+ }
+ function setCols(names){
+  win.querySelectorAll('table.otable').forEach(function(tb){
+   var rows=tb.rows;if(!rows.length)return;var hs=rows[0].cells,c,r;
+   for(c=0;c<hs.length;c++){var hide=names.indexOf(hs[c].textContent.trim())>=0;for(r=0;r<rows.length;r++){if(rows[r].cells[c])rows[r].cells[c].classList.toggle('hcol',hide);}}
+  });
+ }
+ function closeCur(){
+  if(!lab.passed)labFail([P('أغلقت النافذة قبل إكمال الخطوة. أعد فتحها من زر إعادة فتح أو من قائمة Window.','You closed the window before finishing the step. Reopen it with the Reopen button or the Window menu.')]);
+  lab.cc=1;lab.cx=0;applyDesk();
+ }
+ function fire(el2){el2.dispatchEvent(new Event('input',{bubbles:true}));el2.dispatchEvent(new Event('change',{bubbles:true}));}
+ function act(a){
+  var f=lastEl&&win.contains(lastEl)?lastEl:null,ed=f&&(f.tagName==='INPUT'||f.tagName==='SELECT')&&!f.readOnly&&f.type!=='checkbox';
+  if(a==='save'){var b=win.querySelector('#tbSave');if(b)b.click();}
+  else if(a==='new'){win.querySelectorAll('.owc input[type=text],.owc input:not([type])').forEach(function(i){if(!i.readOnly)i.value='';});msg(P('جديد: تم تفريغ الحقول القابلة للتعديل.','New: editable fields were cleared.'));}
+  else if(a==='close'){closeCur();}
+  else if(a==='exit'){msg(P('خروج: في التدريب لا نغلق أوراكل كله. استخدم ✕ لإغلاق نافذة.','Exit: in training we do not close Oracle. Use ✕ to close a window.'));}
+  else if(a==='copy'||a==='cut'){if(!f||f.value===undefined){msg(P('اضغط داخل حقل أولاً.','Click inside a field first.'));return;}lab.clip=f.value;try{navigator.clipboard.writeText(f.value);}catch(e){}if(a==='cut'&&ed){f.value='';fire(f);}msg(P('تم '+(a==='cut'?'القص':'النسخ')+'.',(a==='cut'?'Cut':'Copied')+'.'));}
+  else if(a==='paste'){if(!ed){msg(P('اختر حقلاً قابلاً للكتابة أولاً.','Select a writable field first.'));return;}f.value=lab.clip||'';fire(f);}
+  else if(a==='cf'){if(!ed){msg(P('اختر حقلاً قابلاً للكتابة أولاً.','Select a writable field first.'));return;}f.value='';fire(f);}
+  else if(a==='cr'){var scope=(f&&(f.closest('tr')||f.closest('.ctl')||f.closest('.osubb')))||win;scope.querySelectorAll('input:not([type=checkbox]):not([type=radio]),select').forEach(function(i){if(!i.readOnly){i.value='';fire(i);}});msg(P('تم مسح السجل الحالي.','Current record cleared.'));}
+  else if(a==='find'){var fb=win.querySelector('#bFind');if(fb)fb.click();else msg(P('لا يوجد بحث في هذه الشاشة. افتح شاشة Find أولاً.','There is no Find on this screen. Open a Find screen first.'));}
+  else if(a==='qbe'){msg(P('الاستعلام بالمثال: في أوراكل الحقيقي اضغط F11 لدخول وضع الاستعلام، اكتب الشرط، ثم Ctrl+F11 للتنفيذ.','Query By Example: in real Oracle press F11 to enter query mode, type the criteria, then Ctrl+F11 to run.'));}
+  else if(a==='hd'){setCols(['Description']);}
+  else if(a==='hs'){setCols(['Sec. Qty','Sec. UOM']);}
+  else if(a==='sa'){setCols([]);}
+  else if(a==='zoom'){lab.cz=lab.cz?0:1;applyDesk();}
+  else if(a==='help'){hlpBox.innerHTML='<div class="hlp"><b>'+I(P('شرح النافذة','Window help'))+'</b>'+B(st.goal)+(guided?B(st.guide):'')+'<button class="btn ghost" type="button" data-a="hclose">'+B(P('إغلاق','Close'))+'</button></div>';}
+  else if(a==='hclose'){hlpBox.innerHTML='';}
+  else if(a==='reopen'){lab.cc=0;lab.cm=0;lab.front=-1;applyDesk();}
+ }
+ desk.addEventListener('focusin',function(e){lastEl=e.target;});
+ desk.addEventListener('click',function(e){
+  var t=e.target;
+  desk.querySelectorAll('.mb.open').forEach(function(m){if(!m.contains(t))m.classList.remove('open');});
+  var w=t.closest&&t.closest('[data-w]');
+  if(w){
+   var k=w.getAttribute('data-w');
+   if(k==='cmin'){lab.cm=1;applyDesk();}
+   else if(k==='cmax'){lab.cx=lab.cx?0:1;applyDesk();}
+   else if(k==='cclose'){closeCur();}
+   else if(k==='smin'){lab.front=-1;lab.sx=0;applyDesk();}
+   else if(k==='smax'){lab.sx=lab.sx?0:1;applyDesk();}
+   else if(k==='sclose'){lab.wins.splice(lab.front,1);lab.front=-1;lab.sx=0;applyDesk();}
+   else if(k==='bclose'){lab.wins.splice(+w.getAttribute('data-i'),1);applyDesk();}
+   e.stopPropagation();return;
+  }
+  var m=t.closest&&t.closest('[data-m]');
+  if(m){var mb=m.parentNode,was=mb.classList.contains('open');desk.querySelectorAll('.mb.open').forEach(function(x){x.classList.remove('open');});if(!was)mb.classList.add('open');return;}
+  var f=t.closest&&t.closest('[data-f]');
+  if(f){var i=+f.getAttribute('data-f');lab.front=i;lab.sx=0;if(i===-1){lab.cc=0;lab.cm=0;}applyDesk();return;}
+  var bar=t.closest&&t.closest('#stk .ow[data-i]');
+  if(bar){var j=+bar.getAttribute('data-i');lab.front=j;lab.sx=0;if(j===-1){lab.cc=0;lab.cm=0;}applyDesk();return;}
+  if(t.closest&&t.closest('[data-t]')){lab.cm=0;lab.front=-1;applyDesk();return;}
+  var a=t.closest&&t.closest('[data-a]');
+  if(a){desk.querySelectorAll('.mb.open').forEach(function(x){x.classList.remove('open');});act(a.getAttribute('data-a'));}
+ });
+ st.build(win);
+ var tb=win.querySelector('#tbSave');
+ if(tb&&!tb.onclick){tb.onclick=function(){labInfo(LS.nosave);};}
+ decorate();
+ try{new MutationObserver(function(){decorate();}).observe(win,{childList:true});}catch(e){}
+ if(lab.passed)win.querySelectorAll('.owc').forEach(function(o){o.classList.add('frozen');});
+ if(guided){wrap.querySelector('#bHintL').onclick=function(){lab.hints++;wrap.querySelector('#hintTxt').style.display='block';};}
+ var nx=wrap.querySelector('#labNext');
+ if(nx)nx.onclick=function(){
+  var ow=win.querySelector('.ow');
+  if(ow){syncAttrs(ow);var c=ow.cloneNode(true),x1=c.querySelector('.owtb'),x2=c.querySelector('.owc');lab.wins.push({title:curTitle,html:((x1?x1.outerHTML:'')+(x2?x2.outerHTML:'')).replace(/ id="[^"]*"/g,'')});if(lab.wins.length>5)lab.wins.shift();}
+  lab.cm=0;lab.cx=0;lab.cc=0;lab.cz=0;lab.sx=0;lab.front=-1;
+  lab.step++;lab.passed=false;lab.msgs=[];if(lab.step>=LABSTEPS.length){lab.done=true;labSaveBest();}render();
+ };
+ wrap.querySelector('#labRe').onclick=function(){lab=null;render();};
+ labFB();
+}
+
+function render(){
+ renderHead();renderNav();main.innerHTML='';
+ var m={home:vHome,concepts:vConcepts,branches:vBranches,practice:vPractice,map:vMap,lab:vLab,lots:vLots,exam:vExam,sheet:vSheet,progress:vProgress};
+ (m[state.view]||vHome)();
+}
+document.getElementById('btnBW').onclick=function(){document.body.classList.toggle('bw');render();};
+document.getElementById('btnPrint').onclick=function(){window.print();};
+document.getElementById('selTheme').onchange=function(e){document.body.setAttribute('data-theme',e.target.value);};
+window.__oit={sc:function(){return SC;},ans:ans,state:state,lab:function(){return lab;},LABD:LABD,tdoc:tdocHTML};
+render();
+})();
+</script>
+</body>
+</html>
