@@ -1,0 +1,409 @@
+<!doctype html>
+<!-- VERSION: v01 | 2026-10-25 -->
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oracle Inventory Training | تدريب مخزون أوراكل</title>
+<style>
+:root{--bg:#f3f1ee;--card:#fff;--ink:#1d1d1d;--mute:#6b6b6b;--pri:#c74634;--pri2:#312d2a;--ok:#1b7f3b;--bad:#c0262d;--line:#d9d5d0;--head:#312d2a;--headink:#fff;--field:#fbfaf9}
+body[data-theme=modern]{--bg:#eef3fa;--pri:#1f5fbf;--pri2:#16325c;--head:#16325c;--line:#cfdaec;--field:#f7faff}
+body[data-theme=dark]{--bg:#14161a;--card:#1d2026;--ink:#e8e8e8;--mute:#9aa0a8;--pri:#ff7a59;--pri2:#e8e8e8;--line:#333943;--head:#0d0f12;--field:#262a31;--ok:#4cd07a;--bad:#ff6b72}
+body[data-theme=green]{--bg:#eef5ef;--pri:#2b8a4b;--pri2:#173d27;--head:#173d27;--line:#cfe2d3;--field:#f6fbf7}
+body.bw{--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--pri:#000;--pri2:#000;--ok:#000;--bad:#000;--line:#000;--head:#000;--headink:#fff;--field:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Tahoma,Arial,sans-serif;line-height:1.6}
+header{background:var(--head);color:var(--headink);padding:12px 18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+header h1{font-size:18px;margin:0}
+header h1 small{display:block;font-weight:400;opacity:.75;font-size:12px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tools select,.tools button{padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.4);background:transparent;color:var(--headink);cursor:pointer;font:inherit;font-size:13px}
+.tools select option{color:#000}
+nav{display:flex;gap:4px;flex-wrap:wrap;padding:8px 14px;background:var(--card);border-bottom:2px solid var(--pri)}
+nav button{border:0;background:transparent;color:var(--ink);padding:8px 14px;cursor:pointer;font:inherit;font-weight:600;border-bottom:3px solid transparent}
+nav button.on{color:var(--pri);border-bottom-color:var(--pri)}
+main{max-width:1100px;margin:16px auto;padding:0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.sc{cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--card);transition:.15s}
+.sc:hover{border-color:var(--pri);transform:translateY(-2px)}
+.sc b{color:var(--pri)}
+.badge{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;border:1px solid var(--line);color:var(--mute)}
+.badge.done{border-color:var(--ok);color:var(--ok)}
+.nav-path{font-family:Consolas,monospace;font-size:13px;background:var(--field);border:1px dashed var(--line);padding:6px 10px;border-radius:6px;direction:ltr;text-align:left;margin:8px 0}
+.story{background:var(--field);border-inline-start:4px solid var(--pri);padding:10px 14px;border-radius:6px;margin:10px 0}
+.win{border:2px solid var(--pri2);border-radius:6px;overflow:hidden;margin-top:12px}
+.win .tb{background:var(--pri2);color:var(--bg);padding:6px 12px;font-size:13px;display:flex;justify-content:space-between;direction:ltr}
+body.bw .win .tb{color:#fff}
+.win .bd{padding:14px;display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.f label{display:block;font-size:13px;font-weight:600;margin-bottom:3px}
+.f input,.f select{width:100%;padding:8px;border:1px solid var(--line);background:var(--field);color:var(--ink);border-radius:4px;font:inherit;direction:ltr;text-align:left}
+.f.ok input,.f.ok select{border:2px solid var(--ok)}
+.f.bad input,.f.bad select{border:2px dashed var(--bad);background:rgba(192,38,45,.06)}
+.f .msg{font-size:12px;min-height:16px}
+.f.ok .msg{color:var(--ok)}.f.bad .msg{color:var(--bad)}
+.hint{font-size:12px;color:var(--mute)}
+.btn{background:var(--pri);color:#fff;border:2px solid var(--pri);padding:9px 18px;border-radius:6px;cursor:pointer;font:inherit;font-weight:700}
+body.bw .btn{background:#fff;color:#000}
+.btn.ghost{background:transparent;color:var(--pri)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.why{margin-top:12px;padding:10px 14px;border:1px solid var(--ok);border-radius:6px;display:none}
+.prog{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--pri)}
+table{border-collapse:collapse;width:100%}
+td,th{border:1px solid var(--line);padding:7px 10px;text-align:start;vertical-align:top}
+th{background:var(--field)}
+.cert{border:6px double var(--pri2);padding:34px;text-align:center}
+.cert h2{font-size:30px;color:var(--pri);margin:0}
+.cert .nm{font-size:26px;border-bottom:2px solid var(--ink);display:inline-block;min-width:260px;margin:14px 0}
+.sheet{page-break-inside:avoid;border:1px solid #000;padding:10px;margin-bottom:12px}
+.blank{display:inline-block;min-width:120px;border-bottom:1px solid #000;height:18px;vertical-align:bottom}
+.only-print{display:none}
+@media print{
+ header,nav,.noprint,.row,.btn{display:none!important}
+ .only-print{display:block}
+ body{background:#fff;color:#000}
+ .card{border:1px solid #000;break-inside:avoid}
+ body.printcert main>*:not(#certbox){display:none!important}
+}
+</style>
+</head>
+<body data-theme="classic">
+<header>
+ <h1 id="ttl"></h1>
+ <div class="tools noprint">
+  <select id="selTheme"></select>
+  <button id="btnBW"></button>
+  <button id="btnLang"></button>
+  <button id="btnPrint"></button>
+ </div>
+</header>
+<nav id="nav"></nav>
+<main id="main"></main>
+
+<script>
+(function(){
+var LS='or_inv_training_v01';
+var state={lang:'ar',view:'home',cur:null,mode:'learn',exam:null,data:{name:'',practice:{},exam:null}};
+try{var raw=localStorage.getItem(LS);if(raw){var p=JSON.parse(raw);if(p&&p.data)state.data=p.data;if(p&&p.lang)state.lang=p.lang;}}catch(e){}
+function save(){try{localStorage.setItem(LS,JSON.stringify({data:state.data,lang:state.lang}));}catch(e){}}
+
+var S={
+ title:{ar:'نظام تدريب مدخلي بيانات المخزون — أوراكل',en:'Oracle Inventory Data-Entry Training'},
+ sub:{ar:'بيئة محاكاة آمنة: لا تؤثر على أي مخزون حقيقي',en:'Safe simulation: never touches real inventory'},
+ home:{ar:'الرئيسية',en:'Home'},concepts:{ar:'المفاهيم',en:'Concepts'},practice:{ar:'التدريب',en:'Practice'},exam:{ar:'الامتحان',en:'Exam'},sheet:{ar:'ورقة التمارين',en:'Worksheet'},progress:{ar:'التقدم',en:'Progress'},
+ bw:{ar:'أبيض وأسود',en:'Black & White'},bwOn:{ar:'ألوان',en:'Colour'},print:{ar:'طباعة',en:'Print'},langBtn:{ar:'English',en:'العربية'},
+ submit:{ar:'حفظ (Save)',en:'Save (Submit)'},hintBtn:{ar:'تلميح',en:'Hint'},ans:{ar:'أظهر الإجابة',en:'Show answer'},retry:{ar:'إعادة المحاولة',en:'Retry'},next:{ar:'التالي',en:'Next'},back:{ar:'رجوع للقائمة',en:'Back to list'},
+ right:{ar:'صحيح',en:'Correct'},wrong:{ar:'خطأ',en:'Incorrect'},choose:{ar:'— اختر —',en:'— Select —'},
+ score:{ar:'النتيجة',en:'Score'},why:{ar:'لماذا؟',en:'Why?'},expected:{ar:'المتوقع: ',en:'Expected: '},
+ pass:{ar:'ناجح — مؤهل لإدخال البيانات الحقيقية',en:'PASSED — cleared for live data entry'},fail:{ar:'لم تجتز — أعد التدريب ثم الامتحان',en:'Not passed — practise and retake'},
+ startExam:{ar:'ابدأ الامتحان',en:'Start exam'},name:{ar:'اسم المتدرب',en:'Trainee name'},
+ examInfo:{ar:'10 سيناريوهات بدون تلميحات ولا إظهار إجابات. نسبة النجاح 80%.',en:'10 scenarios, no hints or answers shown. Pass mark 80%.'},
+ certT:{ar:'شهادة اجتياز تدريب مخزون أوراكل',en:'Oracle Inventory Training Certificate'},certP:{ar:'يشهد المستودع بأن المتدرب',en:'This certifies that'},certD:{ar:'اجتاز الامتحان العملي بنتيجة',en:'passed the practical exam with'},
+ printCert:{ar:'طباعة الشهادة',en:'Print certificate'},key:{ar:'مفتاح الإجابات',en:'Answer key'},
+ reset:{ar:'مسح التقدم',en:'Reset progress'},done:{ar:'منجز',en:'Done'},todo:{ar:'لم يُنجز',en:'Not done'},
+ welcome:{ar:'مرحباً بك. اتبع المسار: المفاهيم ← التدريب (التلميحات مفعّلة) ← الامتحان ← الشهادة.',en:'Welcome. Follow the path: Concepts → Practice (hints on) → Exam → Certificate.'},
+ rules:{ar:'قواعد الذهب لمدخل البيانات',en:'Golden rules for data-entry staff'},
+ themes:{ar:['كلاسيكي','عصري أزرق','داكن','أخضر'],en:['Classic','Modern blue','Dark','Green']}
+};
+function t(o){return o[state.lang];}
+function T(k){return S[k][state.lang];}
+
+var RULES={ar:['لا تدخل معاملة قبل التأكد من المستودع الفرعي (Subinventory) والموقع (Locator).','الصنف المُدار بالدفعات (Lot) لا يُدخل أو يُصرف بدون رقم الدفعة وتاريخ الانتهاء.','الصرف يتم بنظام الأقدم انتهاءً أولاً (FEFO) للأغذية.','لا تخمّن الكمية: طابق الوحدة (UOM) مع المستند.','أي فرق جرد فوق نسبة السماح يُرفع للاعتماد ولا يُعدَّل مباشرة.','دفعة فشلت في الفحص تُوضع Hold فوراً.'],
+en:['Never post a transaction before confirming Subinventory and Locator.','Lot-controlled items need a lot number and expiry date on every transaction.','Issue by FEFO (First Expired, First Out) for food.','Never guess quantity: match the UOM to the source document.','Count variances above tolerance go for approval, never direct adjustment.','A lot that fails QC is put on Hold immediately.']};
+
+var CONCEPTS=[
+ {k:'Organization (Org)',ar:'المنشأة: المصنع أو المركز اللوجستي الذي يملك مخزونه الخاص (مثل JED مصنع جدة).',en:'The plant or distribution centre owning its own inventory (e.g. JED factory).'},
+ {k:'Subinventory',ar:'قسم تخزين داخل المنشأة: جاف DRY-01، مجمد خام FRZ-RAW، مجمد نهائي FRZ-FG، مرحلة إنتاج PROD-STG.',en:'A storage section inside the org: DRY-01, FRZ-RAW, FRZ-FG, PROD-STG.'},
+ {k:'Locator',ar:'الموقع الدقيق داخل القسم (ممر-رف-مستوى) مثل A-02-03.',en:'Exact position inside a subinventory (aisle-rack-level) e.g. A-02-03.'},
+ {k:'UOM',ar:'وحدة القياس: EA حبة، KG كيلو، CTN كرتون. الخطأ فيها يضاعف الكمية.',en:'Unit of measure: EA, KG, CTN. A wrong UOM multiplies quantity.'},
+ {k:'Lot',ar:'دفعة إنتاج أو توريد لها رقم وتاريخ انتهاء، أساس تتبع الأغذية.',en:'A production/supply batch with number and expiry — the basis of food traceability.'},
+ {k:'FEFO',ar:'الأقدم انتهاءً يُصرف أولاً، وليس الأقدم استلاماً.',en:'First Expired, First Out — not first received.'},
+ {k:'Transaction Type',ar:'نوع الحركة: استلام شراء، استلام متنوع، صرف متنوع، تحويل داخلي، تحويل بين المنشآت، صرف للإنتاج.',en:'Receipt, Misc receipt, Misc issue, Subinventory transfer, Inter-org transfer, WIP issue.'},
+ {k:'Reason Code',ar:'سبب الحركة (تالف، فائض إنتاج، عيب جودة...) وهو إلزامي للتدقيق.',en:'Why the transaction happened (damaged, surplus, defect…). Mandatory for audit.'},
+ {k:'Move Order',ar:'طلب نقل أو صرف يصدره الإنتاج ويُنفذ من المستودع.',en:'A request to move/issue material, raised by production and executed by the warehouse.'},
+ {k:'Cycle Count',ar:'جرد دوري لجزء من الأصناف مقابل رصيد النظام، مع نسبة سماح للفروقات.',en:'Periodic count of part of the items against system balance, with variance tolerance.'},
+ {k:'On-hand vs ATT',ar:'On-hand كل ما في الرف، أما Available to Transact فهو المتاح فعلاً بعد الحجوزات.',en:'On-hand is everything on the shelf; Available to Transact excludes reservations.'},
+ {k:'In-transit',ar:'بضاعة خرجت من منشأة ولم تُستلم في الأخرى بعد.',en:'Goods shipped from one org but not yet received by the other.'}
+];
+
+var ITEMS=['CTN-5PLY-40X30','MOZ-BLOCK-20KG','CHS-CURD-25KG','FILM-PE-500M'];
+var SUBS=['DRY-01','DRY-02','FRZ-RAW','FRZ-FG','PROD-STG','CHILL-01'];
+var SC=[
+{id:1,
+ t:{ar:'استلام أمر شراء',en:'Purchase Order Receipt'},
+ path:'Inventory > Transactions > Receiving > Receipts',
+ story:{ar:'وصلت شاحنة كراتين من المورد على أمر الشراء PO-45012: 5000 حبة من الصنف CTN-5PLY-40X30. المكان المخصص: المستودع الجاف DRY-01، الموقع A-02-03.',en:'A truck arrived on PO-45012 with 5000 EA of CTN-5PLY-40X30. Assigned location: dry store DRY-01, locator A-02-03.'},
+ fields:[
+ {k:'po',l:{ar:'رقم أمر الشراء',en:'PO Number'},t:'txt',a:'PO-45012',h:{ar:'انسخه كما في المستند.',en:'Copy it as on the document.'}},
+ {k:'item',l:{ar:'الصنف',en:'Item'},t:'sel',o:ITEMS,a:'CTN-5PLY-40X30',h:{ar:'الصنف المذكور في القصة.',en:'The item named in the story.'}},
+ {k:'q',l:{ar:'الكمية المستلمة',en:'Quantity Received'},t:'num',a:5000,h:{ar:'بدون فواصل.',en:'No separators.'}},
+ {k:'u',l:{ar:'الوحدة',en:'UOM'},t:'sel',o:['EA','KG','CTN'],a:'EA',h:{ar:'الكراتين تُعد بالحبة.',en:'Cartons are counted per piece.'}},
+ {k:'s',l:{ar:'المستودع الفرعي',en:'Subinventory'},t:'sel',o:SUBS,a:'DRY-01',h:{ar:'مواد تغليف جافة.',en:'Dry packaging material.'}},
+ {k:'loc',l:{ar:'الموقع',en:'Locator'},t:'sel',o:['A-01-01','A-02-03','B-02-03','C-01-05'],a:'A-02-03',h:{ar:'ممر A، رف 02، مستوى 03.',en:'Aisle A, rack 02, level 03.'}}],
+ why:{ar:'الاستلام على أمر الشراء يربط الكمية بالمورد والفاتورة. خطأ الموقع يعني بضاعة موجودة في النظام ومفقودة على الرف.',en:'Receiving against the PO links quantity to supplier and invoice. A wrong locator means stock exists in the system but is lost on the shelf.'}},
+{id:2,
+ t:{ar:'استلام متنوع (فائض إنتاج)',en:'Miscellaneous Receipt (Production Surplus)'},
+ path:'Inventory > Transactions > Miscellaneous Transaction',
+ story:{ar:'خرج من خط الإنتاج فائض 1200 كجم من MOZ-BLOCK-20KG بدون أمر شغل، دفعة L261025-A، يُخزَّن في المجمد النهائي FRZ-FG.',en:'The line produced 1200 KG surplus of MOZ-BLOCK-20KG with no work order, lot L261025-A, stored in finished frozen FRZ-FG.'},
+ fields:[
+ {k:'tt',l:{ar:'نوع الحركة',en:'Transaction Type'},t:'sel',o:['Miscellaneous receipt','Miscellaneous issue','Subinventory transfer','PO Receipt'],a:'Miscellaneous receipt',h:{ar:'دخول بدون أمر شراء.',en:'Stock in, no PO.'}},
+ {k:'item',l:{ar:'الصنف',en:'Item'},t:'sel',o:ITEMS,a:'MOZ-BLOCK-20KG'},
+ {k:'s',l:{ar:'المستودع الفرعي',en:'Subinventory'},t:'sel',o:SUBS,a:'FRZ-FG',h:{ar:'منتج نهائي مجمد.',en:'Finished frozen product.'}},
+ {k:'q',l:{ar:'الكمية',en:'Quantity'},t:'num',a:1200},
+ {k:'lot',l:{ar:'رقم الدفعة',en:'Lot Number'},t:'txt',a:'L261025-A',h:{ar:'إلزامي للصنف المُدار بالدفعات.',en:'Mandatory for lot-controlled items.'}},
+ {k:'r',l:{ar:'السبب',en:'Reason'},t:'sel',o:['Production Surplus','Damaged','Quality Defect','Count Adjustment'],a:'Production Surplus'}],
+ why:{ar:'الاستلام المتنوع يحتاج سبباً ودفعة، وإلا يصبح رصيداً بلا أصل يمكن تتبعه.',en:'A misc receipt needs a reason and lot, otherwise it is untraceable stock.'}},
+{id:3,
+ t:{ar:'صرف متنوع (تالف)',en:'Miscellaneous Issue (Damaged)'},
+ path:'Inventory > Transactions > Miscellaneous Transaction',
+ story:{ar:'تلف 300 حبة من CTN-5PLY-40X30 بسبب تسرب مياه في DRY-01. أخرجها من الرصيد.',en:'300 EA of CTN-5PLY-40X30 were damaged by a water leak in DRY-01. Remove them from stock.'},
+ fields:[
+ {k:'tt',l:{ar:'نوع الحركة',en:'Transaction Type'},t:'sel',o:['Miscellaneous receipt','Miscellaneous issue','Subinventory transfer','PO Receipt'],a:'Miscellaneous issue'},
+ {k:'item',l:{ar:'الصنف',en:'Item'},t:'sel',o:ITEMS,a:'CTN-5PLY-40X30'},
+ {k:'s',l:{ar:'المستودع الفرعي',en:'Subinventory'},t:'sel',o:SUBS,a:'DRY-01'},
+ {k:'q',l:{ar:'الكمية (موجبة)',en:'Quantity (positive)'},t:'num',a:300,h:{ar:'نوع الحركة هو الذي يحدد الاتجاه، لا تكتب سالباً.',en:'The type sets direction; do not type a negative.'}},
+ {k:'r',l:{ar:'السبب',en:'Reason'},t:'sel',o:['Production Surplus','Damaged','Quality Defect','Count Adjustment'],a:'Damaged'}],
+ why:{ar:'الصرف المتنوع يحتاج سبباً دقيقاً لأنه يظهر في تقارير الفقد والتدقيق المالي.',en:'A misc issue needs an exact reason: it feeds loss reports and financial audit.'}},
+{id:4,
+ t:{ar:'تحويل بين المستودعات الفرعية',en:'Subinventory Transfer'},
+ path:'Inventory > Transactions > Subinventory Transfer',
+ story:{ar:'اطلب الإنتاج 800 كجم من CHS-CURD-25KG لتُنقل من المجمد الخام إلى منطقة تجهيز الإنتاج.',en:'Production needs 800 KG of CHS-CURD-25KG moved from frozen raw store to the production staging area.'},
+ fields:[
+ {k:'item',l:{ar:'الصنف',en:'Item'},t:'sel',o:ITEMS,a:'CHS-CURD-25KG'},
+ {k:'from',l:{ar:'من مستودع فرعي',en:'From Subinventory'},t:'sel',o:SUBS,a:'FRZ-RAW'},
+ {k:'to',l:{ar:'إلى مستودع فرعي',en:'To Subinventory'},t:'sel',o:SUBS,a:'PROD-STG',h:{ar:'منطقة تجهيز الإنتاج.',en:'The production staging area.'}},
+ {k:'q',l:{ar:'الكمية',en:'Quantity'},t:'num',a:800},
+ {k:'u',l:{ar:'الوحدة',en:'UOM'},t:'sel',o:['EA','KG','CTN'],a:'KG'}],
+ why:{ar:'التحويل الداخلي لا يغيّر إجمالي المنشأة، فقط موقع الرصيد. عكس (من/إلى) يقلب الرصيد في الاتجاه الخطأ.',en:'An internal transfer keeps org total unchanged, only moves the balance. Swapping from/to moves stock the wrong way.'}},
+{id:5,
+ t:{ar:'صرف للإنتاج بنظام FEFO',en:'Issue to Production (FEFO)'},
+ path:'Inventory > Move Orders > Transact Move Orders',
+ story:{ar:'أمر الشغل WO-7788 يطلب 600 كجم من CHS-CURD-25KG من FRZ-RAW. الدفعات المتاحة: L261001-B تنتهي 2027-01-10، L261020-C تنتهي 2026-12-05، L261015-A تنتهي 2027-02-20.',en:'Work order WO-7788 requests 600 KG of CHS-CURD-25KG from FRZ-RAW. Available lots: L261001-B expires 2027-01-10, L261020-C expires 2026-12-05, L261015-A expires 2027-02-20.'},
+ fields:[
+ {k:'mo',l:{ar:'نوع الطلب',en:'Move Order Type'},t:'sel',o:['Move Order Requisition','Pick Wave Move Order','Replenishment'],a:'Move Order Requisition'},
+ {k:'job',l:{ar:'أمر الشغل',en:'Work Order'},t:'txt',a:'WO-7788'},
+ {k:'s',l:{ar:'المصدر',en:'Source Subinventory'},t:'sel',o:SUBS,a:'FRZ-RAW'},
+ {k:'lot',l:{ar:'الدفعة المختارة',en:'Lot Selected'},t:'sel',o:['L261001-B','L261020-C','L261015-A'],a:'L261020-C',h:{ar:'أقرب تاريخ انتهاء.',en:'Nearest expiry date.'}},
+ {k:'q',l:{ar:'الكمية',en:'Quantity'},t:'num',a:600}],
+ why:{ar:'FEFO يمنع انتهاء الصلاحية في المخزن. الدفعة L261020-C هي الأقرب انتهاءً رغم أنها ليست الأقدم استلاماً.',en:'FEFO prevents expiry in store. L261020-C expires first even if it was not received first.'}},
+{id:6,
+ t:{ar:'إدخال جرد دوري',en:'Cycle Count Entry'},
+ path:'Inventory > Counting > Cycle Counts > Cycle Count Entries',
+ story:{ar:'رصيد النظام للصنف FILM-PE-500M في DRY-02 هو 4200 EA. العدّ الفعلي 4060 EA. نسبة السماح المعتمدة 2%.',en:'System balance of FILM-PE-500M in DRY-02 is 4200 EA. Physical count is 4060 EA. Approved tolerance is 2%.'},
+ fields:[
+ {k:'c',l:{ar:'الكمية المعدودة',en:'Counted Quantity'},t:'num',a:4060},
+ {k:'v',l:{ar:'الفرق (معدود − نظام)',en:'Variance (counted − system)'},t:'num',a:-140,h:{ar:'4060 − 4200.',en:'4060 − 4200.'}},
+ {k:'p',l:{ar:'نسبة الفرق % (بدون إشارة)',en:'Variance % (no sign)'},t:'num',a:3.3,tol:0.1,h:{ar:'140 ÷ 4200 × 100.',en:'140 ÷ 4200 × 100.'}},
+ {k:'act',l:{ar:'الإجراء',en:'Action'},t:'sel',o:['Auto-adjust','Submit for approval','Ignore variance'],a:'Submit for approval',h:{ar:'3.3% أكبر من 2%.',en:'3.3% is above 2%.'}}],
+ why:{ar:'الفرق خارج السماح لذلك لا يُعدَّل الرصيد مباشرة بل يرفع للمشرف للاعتماد.',en:'The variance exceeds tolerance, so balance is not adjusted directly; it goes to the supervisor.'}},
+{id:7,
+ t:{ar:'تغيير حالة دفعة (Hold)',en:'Lot Status Change (Hold)'},
+ path:'Inventory > On-hand > Material Workbench > Update Lot Status',
+ story:{ar:'فحص الجودة وجد أن الدفعة L261020-C تعرضت لارتفاع حرارة أثناء التخزين. امنع صرفها فوراً.',en:'QC found lot L261020-C suffered a temperature excursion in storage. Block it from issue immediately.'},
+ fields:[
+ {k:'lot',l:{ar:'الدفعة',en:'Lot'},t:'txt',a:'L261020-C'},
+ {k:'st',l:{ar:'الحالة الجديدة',en:'New Status'},t:'sel',o:['Active','Hold','Expired','Released'],a:'Hold',h:{ar:'حجز مؤقت لحين قرار الجودة.',en:'Temporary block pending QC decision.'}},
+ {k:'r',l:{ar:'سبب الحالة',en:'Status Reason'},t:'sel',o:['Temperature deviation','Packaging damage','Supplier recall','Count error'],a:'Temperature deviation'}],
+ why:{ar:'حالة Hold تمنع النظام من إدراج الدفعة في أي صرف أو شحن حتى يقرر قسم الجودة.',en:'Hold stops the system from including the lot in any issue or shipment until QC decides.'}},
+{id:8,
+ t:{ar:'إرجاع للمورد',en:'Return to Vendor'},
+ path:'Inventory > Transactions > Receiving > Returns',
+ story:{ar:'من الاستلام RCV-9921، تبين أن 120 حبة من CTN-5PLY-40X30 معيبة (طباعة مشوهة). أعدها للمورد.',en:'From receipt RCV-9921, 120 EA of CTN-5PLY-40X30 have defective printing. Return them to the supplier.'},
+ fields:[
+ {k:'rc',l:{ar:'رقم الاستلام',en:'Receipt Number'},t:'txt',a:'RCV-9921'},
+ {k:'q',l:{ar:'كمية الإرجاع',en:'Return Quantity'},t:'num',a:120},
+ {k:'to',l:{ar:'الإرجاع إلى',en:'Return To'},t:'sel',o:['Supplier','Receiving','Inventory'],a:'Supplier'},
+ {k:'r',l:{ar:'سبب الإرجاع',en:'Return Reason'},t:'sel',o:['Quality Defect','Over shipment','Wrong item','Late delivery'],a:'Quality Defect'}],
+ why:{ar:'الإرجاع يجب أن يرتبط برقم الاستلام الأصلي كي يصدر إشعار الخصم للمورد تلقائياً.',en:'A return must reference the original receipt so the supplier debit memo is generated.'}},
+{id:9,
+ t:{ar:'تحويل بين المنشآت (In-transit)',en:'Inter-Organization Transfer'},
+ path:'Inventory > Transactions > Inter-organization Transfer',
+ story:{ar:'شحن 2000 EA من FILM-PE-500M من مصنع جدة JED إلى مركز الرياض RUH. البضاعة ستكون في الطريق عدة أيام.',en:'Ship 2000 EA of FILM-PE-500M from Jeddah plant JED to Riyadh DC RUH. Goods will be on the road for days.'},
+ fields:[
+ {k:'f',l:{ar:'من منشأة',en:'From Org'},t:'sel',o:['JED','RUH','DMM'],a:'JED'},
+ {k:'to',l:{ar:'إلى منشأة',en:'To Org'},t:'sel',o:['JED','RUH','DMM'],a:'RUH'},
+ {k:'tt',l:{ar:'نوع التحويل',en:'Transfer Type'},t:'sel',o:['Direct','Intransit'],a:'Intransit',h:{ar:'الاستلام لاحقاً في المنشأة الأخرى.',en:'Received later at the other org.'}},
+ {k:'item',l:{ar:'الصنف',en:'Item'},t:'sel',o:ITEMS,a:'FILM-PE-500M'},
+ {k:'q',l:{ar:'الكمية',en:'Quantity'},t:'num',a:2000}],
+ why:{ar:'نوع In-transit يُبقي الكمية معلّقة على الطريق ولا تدخل رصيد الرياض حتى يتم الاستلام الفعلي.',en:'Intransit keeps stock suspended on the road; Riyadh balance rises only after physical receipt.'}},
+{id:10,
+ t:{ar:'استعلام الرصيد المتاح',en:'On-hand / ATT Query'},
+ path:'Inventory > On-hand > On-hand Quantity',
+ story:{ar:'مدير المبيعات يسأل: كم كمية MOZ-BLOCK-20KG القابلة للشحن الآن بعد استبعاد الكميات المحجوزة، وبحسب كل دفعة؟',en:'The sales manager asks: how much MOZ-BLOCK-20KG can ship right now after excluding reserved stock, by lot?'},
+ fields:[
+ {k:'w',l:{ar:'الشاشة',en:'Window'},t:'sel',o:['On-hand Quantity','Cycle Count Entries','Receiving Returns'],a:'On-hand Quantity'},
+ {k:'qt',l:{ar:'نوع الكمية',en:'Quantity Type'},t:'sel',o:['On-hand','Available to Transact','Available to Reserve','Pending'],a:'Available to Transact',h:{ar:'الأقرب لما يمكن شحنه فعلاً.',en:'Closest to what can ship.'}},
+ {k:'g',l:{ar:'التجميع حسب',en:'Group By'},t:'sel',o:['Item only','Subinventory + Lot','Org only'],a:'Subinventory + Lot'}],
+ why:{ar:'On-hand يشمل المحجوز، أما Available to Transact فهو الرقم الصحيح للوعد بالتسليم.',en:'On-hand includes reserved stock; Available to Transact is the right number to promise delivery.'}}
+];
+
+function norm(s){return String(s).trim().toUpperCase();}
+function chk(f,v){
+ if(v===''||v==null)return false;
+ if(f.t==='num'){var n=parseFloat(String(v).replace(/,/g,''));if(isNaN(n))return false;return Math.abs(n-f.a)<=(f.tol||0.0001);}
+ return norm(v)===norm(f.a);
+}
+function el(h){var d=document.createElement('div');d.innerHTML=h;return d.firstElementChild;}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+function fieldHTML(sc,f,mode){
+ var id='f_'+sc.id+'_'+f.k,inp;
+ if(f.t==='sel'){inp='<select id="'+id+'"><option value="">'+T('choose')+'</option>'+f.o.map(function(o){return '<option>'+esc(o)+'</option>';}).join('')+'</select>';}
+ else{inp='<input id="'+id+'" type="'+(f.t==='num'?'text':'text')+'" inputmode="'+(f.t==='num'?'decimal':'text')+'" autocomplete="off">';}
+ var hint=(mode==='learn'&&f.h)?'<span class="hint" style="display:none" id="h_'+id+'">'+t(f.h)+'</span>':'';
+ return '<div class="f" id="w_'+id+'"><label>'+t(f.l)+'</label>'+inp+'<div class="msg" id="m_'+id+'"></div>'+hint+'</div>';
+}
+
+function scenarioView(sc,mode,onDone){
+ var box=el('<div class="card"></div>');
+ var h='<h2 style="margin:0 0 4px;color:var(--pri)">'+sc.id+'. '+t(sc.t)+'</h2>';
+ h+='<div class="nav-path">'+esc(sc.path)+'</div>';
+ h+='<div class="story">'+t(sc.story)+'</div>';
+ h+='<div class="win"><div class="tb"><span>Oracle Applications — '+esc(sc.path.split('>').pop().trim())+'</span><span>[ Simulation ]</span></div><div class="bd">'+sc.fields.map(function(f){return fieldHTML(sc,f,mode);}).join('')+'</div></div>';
+ h+='<div class="why" id="why"><b>'+T('why')+'</b> '+t(sc.why)+'</div>';
+ h+='<div class="row"><button class="btn" id="bSub">'+T('submit')+'</button>';
+ if(mode==='learn'){h+='<button class="btn ghost" id="bHint">'+T('hintBtn')+'</button><button class="btn ghost" id="bAns">'+T('ans')+'</button><button class="btn ghost" id="bRe">'+T('retry')+'</button>';}
+ h+='<span id="res" style="align-self:center;font-weight:700"></span></div>';
+ box.innerHTML=h;
+ var locked=false;
+ function run(){
+  if(locked)return;
+  var ok=0;
+  sc.fields.forEach(function(f){
+   var id='f_'+sc.id+'_'+f.k,node=box.querySelector('#'+id),w=box.querySelector('#w_'+id),m=box.querySelector('#m_'+id);
+   var good=chk(f,node.value);if(good)ok++;
+   w.className='f '+(good?'ok':'bad');
+   if(mode==='learn'){m.textContent=good?'✔ '+T('right'):'✘ '+T('wrong');}
+   else{m.textContent=good?'✔':'✘';}
+  });
+  var pct=Math.round(ok/sc.fields.length*100);
+  box.querySelector('#res').textContent=T('score')+': '+ok+'/'+sc.fields.length+' ('+pct+'%)';
+  if(mode==='learn'){
+   if(pct===100)box.querySelector('#why').style.display='block';
+   var prev=state.data.practice[sc.id]||0;if(pct>prev){state.data.practice[sc.id]=pct;save();}
+  }else{
+   locked=true;box.querySelector('#bSub').disabled=true;
+   box.querySelector('#why').style.display='block';
+   sc.fields.forEach(function(f){var id='f_'+sc.id+'_'+f.k;if(!chk(f,box.querySelector('#'+id).value)){box.querySelector('#m_'+id).textContent='✘ '+T('expected')+f.a;}});
+   onDone&&onDone(ok,sc.fields.length);
+  }
+ }
+ box.querySelector('#bSub').onclick=run;
+ if(mode==='learn'){
+  box.querySelector('#bHint').onclick=function(){box.querySelectorAll('.hint').forEach(function(x){x.style.display='block';});};
+  box.querySelector('#bAns').onclick=function(){sc.fields.forEach(function(f){var n=box.querySelector('#f_'+sc.id+'_'+f.k);n.value=f.a;});box.querySelector('#why').style.display='block';};
+  box.querySelector('#bRe').onclick=function(){render();};
+ }
+ return box;
+}
+
+function pctAll(){var v=Object.keys(state.data.practice).length?SC.reduce(function(a,s){return a+(state.data.practice[s.id]===100?1:0);},0):0;return Math.round(v/SC.length*100);}
+
+var main=document.getElementById('main'),navEl=document.getElementById('nav');
+function renderNav(){
+ var views=['home','concepts','practice','exam','sheet','progress'];
+ navEl.innerHTML='';
+ views.forEach(function(v){var b=document.createElement('button');b.textContent=T(v);if(state.view===v)b.className='on';b.onclick=function(){state.view=v;state.cur=null;state.exam=null;render();};navEl.appendChild(b);});
+}
+function renderHead(){
+ document.getElementById('ttl').innerHTML=T('title')+'<small>'+T('sub')+'</small>';
+ document.getElementById('btnBW').textContent=document.body.classList.contains('bw')?T('bwOn'):T('bw');
+ document.getElementById('btnLang').textContent=T('langBtn');
+ document.getElementById('btnPrint').textContent=T('print');
+ var sel=document.getElementById('selTheme'),cur=document.body.getAttribute('data-theme'),keys=['classic','modern','dark','green'];
+ sel.innerHTML=keys.map(function(k,i){return '<option value="'+k+'"'+(k===cur?' selected':'')+'>'+S.themes[state.lang][i]+'</option>';}).join('');
+ document.documentElement.lang=state.lang;document.documentElement.dir=state.lang==='ar'?'rtl':'ltr';
+ document.title=T('title');
+}
+
+function vHome(){
+ var c=el('<div class="card"></div>');
+ c.innerHTML='<h2 style="margin-top:0">'+T('welcome')+'</h2><div class="prog"><i style="width:'+pctAll()+'%"></i></div><p class="hint">'+T('progress')+': '+pctAll()+'%</p><h3>'+T('rules')+'</h3><ol>'+RULES[state.lang].map(function(r){return '<li>'+r+'</li>';}).join('')+'</ol>';
+ main.appendChild(c);
+}
+function vConcepts(){
+ var c=el('<div class="card"></div>');
+ c.innerHTML='<table><tr><th>Term</th><th>'+(state.lang==='ar'?'الشرح':'Meaning')+'</th></tr>'+CONCEPTS.map(function(x){return '<tr><td><b>'+x.k+'</b></td><td>'+x[state.lang]+'</td></tr>';}).join('')+'</table>';
+ main.appendChild(c);
+}
+function vPractice(){
+ if(state.cur){
+  var sc=SC.filter(function(s){return s.id===state.cur;})[0];
+  var b=el('<div class="row noprint"><button class="btn ghost" id="bk">'+T('back')+'</button></div>');
+  b.querySelector('#bk').onclick=function(){state.cur=null;render();};
+  main.appendChild(b);main.appendChild(scenarioView(sc,'learn'));return;
+ }
+ var g=el('<div class="grid"></div>');
+ SC.forEach(function(s){
+  var done=state.data.practice[s.id]===100;
+  var d=el('<div class="sc"><b>'+s.id+'.</b> '+t(s.t)+'<br><span class="badge'+(done?' done':'')+'">'+(done?'✔ '+T('done'):T('todo'))+'</span></div>');
+  d.onclick=function(){state.cur=s.id;render();};g.appendChild(d);
+ });
+ main.appendChild(g);
+}
+function vExam(){
+ var ex=state.exam;
+ if(!ex){
+  var c=el('<div class="card"><h2 style="margin-top:0">'+T('exam')+'</h2><p>'+T('examInfo')+'</p><label>'+T('name')+'<br><input id="nm" style="padding:8px;width:280px;max-width:100%" value="'+esc(state.data.name||'')+'"></label><div class="row"><button class="btn" id="go">'+T('startExam')+'</button></div></div>');
+  c.querySelector('#go').onclick=function(){var n=c.querySelector('#nm').value.trim();if(!n){c.querySelector('#nm').focus();return;}state.data.name=n;save();state.exam={i:0,ok:0,tot:0,fin:false,answered:false};render();};
+  main.appendChild(c);return;
+ }
+ if(ex.fin){
+  var pct=Math.round(ex.ok/ex.tot*100),passed=pct>=80;
+  if(passed){state.data.exam={score:pct,date:new Date().toISOString().slice(0,10)};save();}
+  var r=el('<div class="card"><h2 style="margin-top:0">'+T('score')+': '+pct+'% — '+(passed?T('pass'):T('fail'))+'</h2></div>');
+  main.appendChild(r);
+  if(passed){main.appendChild(certEl(state.data.name,pct,state.data.exam.date));}
+  return;
+ }
+ var sc=SC[ex.i];
+ var bar=el('<div class="card"><div class="prog"><i style="width:'+Math.round(ex.i/SC.length*100)+'%"></i></div><span class="hint">'+(ex.i+1)+' / '+SC.length+'</span></div>');
+ main.appendChild(bar);
+ var view=scenarioView(sc,'exam',function(ok,tot){
+  ex.ok+=ok;ex.tot+=tot;
+  var n=el('<div class="row"><button class="btn">'+T('next')+'</button></div>');
+  n.querySelector('button').onclick=function(){ex.i++;if(ex.i>=SC.length)ex.fin=true;render();};
+  view.appendChild(n);
+ });
+ main.appendChild(view);
+}
+function certEl(name,pct,date){
+ var c=el('<div id="certbox"><div class="card cert"><h2>'+T('certT')+'</h2><p>'+T('certP')+'</p><div class="nm">'+esc(name)+'</div><p>'+T('certD')+' <b>'+pct+'%</b></p><p class="hint">'+date+' — Al-Munajem Foods</p><div class="row noprint" style="justify-content:center"><button class="btn" id="pc">'+T('printCert')+'</button></div></div></div>');
+ c.querySelector('#pc').onclick=function(){document.body.classList.add('printcert');window.print();setTimeout(function(){document.body.classList.remove('printcert');},500);};
+ return c;
+}
+function vSheet(){
+ var top=el('<div class="card noprint"><p>'+(state.lang==='ar'?'ورقة تمارين للطباعة (تعمل بالأبيض والأسود). مفتاح الإجابات في الصفحة الأخيرة.':'Printable worksheet (B&W friendly). Answer key on the last page.')+'</p><div class="row"><button class="btn" onclick="window.print()">'+T('print')+'</button></div></div>');
+ main.appendChild(top);
+ SC.forEach(function(s){
+  var d=el('<div class="sheet"><b>'+s.id+'. '+t(s.t)+'</b><div class="nav-path">'+esc(s.path)+'</div><div>'+t(s.story)+'</div><table style="margin-top:8px">'+s.fields.map(function(f){return '<tr><td style="width:40%">'+t(f.l)+'</td><td><span class="blank"></span></td></tr>';}).join('')+'</table></div>');
+  main.appendChild(d);
+ });
+ var k=el('<div class="sheet" style="page-break-before:always"><b>'+T('key')+'</b><table style="margin-top:8px">'+SC.map(function(s){return '<tr><td style="width:30%"><b>'+s.id+'. '+t(s.t)+'</b></td><td>'+s.fields.map(function(f){return t(f.l)+': <b>'+esc(f.a)+'</b>';}).join(' | ')+'</td></tr>';}).join('')+'</table></div>');
+ main.appendChild(k);
+}
+function vProgress(){
+ var c=el('<div class="card"></div>');
+ var h='<table><tr><th>#</th><th>'+T('practice')+'</th><th>%</th></tr>'+SC.map(function(s){return '<tr><td>'+s.id+'</td><td>'+t(s.t)+'</td><td>'+(state.data.practice[s.id]||0)+'%</td></tr>';}).join('')+'</table>';
+ h+='<p><b>'+T('exam')+':</b> '+(state.data.exam?state.data.exam.score+'% ('+state.data.exam.date+')':'—')+'</p><div class="row"><button class="btn ghost" id="rs">'+T('reset')+'</button></div>';
+ c.innerHTML=h;
+ c.querySelector('#rs').onclick=function(){state.data={name:'',practice:{},exam:null};save();render();};
+ main.appendChild(c);
+ if(state.data.exam&&state.data.name)main.appendChild(certEl(state.data.name,state.data.exam.score,state.data.exam.date));
+}
+
+function render(){
+ renderHead();renderNav();main.innerHTML='';
+ var m={home:vHome,concepts:vConcepts,practice:vPractice,exam:vExam,sheet:vSheet,progress:vProgress};
+ (m[state.view]||vHome)();
+}
+document.getElementById('btnLang').onclick=function(){state.lang=state.lang==='ar'?'en':'ar';save();render();};
+document.getElementById('btnBW').onclick=function(){document.body.classList.toggle('bw');render();};
+document.getElementById('btnPrint').onclick=function(){window.print();};
+document.getElementById('selTheme').onchange=function(e){document.body.setAttribute('data-theme',e.target.value);};
+render();
+})();
+</script>
+</body>
+</html>
