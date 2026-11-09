@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<!-- VERSION: v01 | 2026-11-09 -->
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Receiving Location Generator · مولّد وكيشن الاستلام</title>
+<style>
+:root{
+  --blue:#0070c0; --green:#00a651; --red:#ee0000; --ink:#16324a; --mute:#5b6b7a;
+  --bg:#f3f6f9; --card:#fff; --line:#d5dde5; --soft:#eaf3fb; --warn:#b45309; --warnbg:#fff4e0;
+  --a-A:#0070c0; --a-B:#00a651; --a-C:#a0522d; --a-D:#6a4fb3; --a-E:#d98200; --a-F:#c2185b;
+}
+body.bw{
+  --blue:#000; --green:#000; --red:#000; --ink:#000; --mute:#333; --bg:#fff; --card:#fff; --line:#000; --soft:#eee; --warn:#000; --warnbg:#fff;
+  --a-A:#000; --a-B:#000; --a-C:#000; --a-D:#000; --a-E:#000; --a-F:#000;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic","Noto Sans Arabic",Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+header.top{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;border-top:5px solid var(--blue)}
+header.top .stripe{width:6px;align-self:stretch;background:linear-gradient(var(--blue) 0 60%,var(--green) 60% 100%);border-radius:3px}
+header.top h1{font-size:20px;margin:0}
+header.top small{display:block;color:var(--mute);font-size:12.5px;direction:ltr;text-align:right}
+header.top .sp{flex:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px}
+.card h2{font-size:15px;margin:0 0 10px;color:var(--blue)}
+body.bw .card h2{color:#000}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600}
+label.f span em{font-style:normal;font-weight:400;color:var(--mute);font-size:11.5px;direction:ltr;unicode-bidi:isolate;margin-inline-start:4px}
+select,input[type=number],input[type=text],textarea{font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#000;width:100%}
+textarea{min-height:44px;resize:vertical;direction:ltr;text-align:left}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.mode{border:2px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;background:#fff;display:flex;gap:10px;align-items:flex-start}
+.mode input{margin-top:4px}
+.mode b{display:block;font-size:14px}
+.mode small{color:var(--mute);font-size:12px;display:block;direction:ltr;text-align:right}
+.mode .ex{font-family:Consolas,monospace;direction:ltr;text-align:left;font-size:12px;color:var(--ink);margin-top:3px;display:block}
+.mode.on{border-color:var(--blue);background:var(--soft)}
+body.bw .mode.on{border-color:#000;border-width:3px;background:#fff}
+.btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:inherit;font-weight:600;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;background:var(--blue);color:#fff}
+button.sec{background:#fff;color:var(--ink);border:1px solid var(--line)}
+button.sec:hover{background:var(--soft)}
+body.bw button{background:#000;color:#fff} body.bw button.sec{background:#fff;color:#000;border:1px solid #000}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:13px}
+.sum{display:flex;flex-wrap:wrap;gap:10px;margin-top:2px}
+.pill{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px}
+.pill b{font-family:Consolas,monospace;direction:ltr;unicode-bidi:isolate}
+.warn{background:var(--warnbg);border:1px solid #f1c27b;color:var(--warn);border-radius:8px;padding:8px 12px;margin-top:10px;font-size:13px;font-weight:600}
+body.bw .warn{border:2px solid #000;color:#000}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+th,td{border:1px solid var(--line);padding:5px 8px;text-align:center}
+thead th{background:var(--blue);color:#fff;font-size:12.5px;position:sticky;top:0}
+thead th em{display:block;font-style:normal;font-weight:400;font-size:10.5px;direction:ltr;opacity:.9}
+body.bw thead th{background:#fff;color:#000;border:2px solid #000}
+td.code{font-family:Consolas,"Courier New",monospace;font-weight:800;font-size:18px;direction:ltr;unicode-bidi:isolate;color:var(--red);letter-spacing:.5px}
+td.num{color:var(--mute);width:48px}
+td.chk{width:54px} td.chk i{display:inline-block;width:18px;height:18px;border:2px solid var(--ink);border-radius:3px}
+td.note{min-width:130px}
+tr.a-A td:first-child{border-inline-start:6px solid var(--a-A)} tr.a-B td:first-child{border-inline-start:6px solid var(--a-B)}
+tr.a-C td:first-child{border-inline-start:6px solid var(--a-C)} tr.a-D td:first-child{border-inline-start:6px solid var(--a-D)}
+tr.a-E td:first-child{border-inline-start:6px solid var(--a-E)} tr.a-F td:first-child{border-inline-start:6px solid var(--a-F)}
+body.bw tr td:first-child{border-inline-start:6px solid #000 !important}
+body.bw tr.a-D td:first-child,body.bw tr.a-E td:first-child,body.bw tr.a-F td:first-child{border-inline-start:6px double #000 !important}
+.fx-zebra tbody tr:nth-child(even) td{background:#f3f8fc} body.bw.fx-zebra tbody tr:nth-child(even) td{background:#eee}
+.fx-bold td.code{font-size:22px} .fx-bold thead th{font-size:13.5px}
+.fx-lines td{border-left:0;border-right:0} .fx-lines th{border-left:0;border-right:0}
+.rowbreak td{border-top:3px solid var(--ink)}
+/* map */
+.zones{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.zone{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
+.zone h3{font-size:13px;margin:0 0 6px;display:flex;justify-content:space-between;gap:6px}
+.zone h3 span{direction:ltr;font-weight:400;color:var(--mute);font-size:12px}
+.cols{display:flex;gap:26px;justify-content:center;position:relative;direction:ltr}
+.cols:before{content:"";position:absolute;inset:0 calc(50% - 10px);background:repeating-linear-gradient(0deg,#d9e0e6 0 6px,transparent 6px 12px);opacity:.7}
+body.bw .cols:before{background:repeating-linear-gradient(0deg,#000 0 3px,transparent 3px 9px)}
+.col{display:flex;flex-direction:column;gap:3px;position:relative;z-index:1;align-items:center}
+.col .hd{font-weight:800;font-size:13px;margin-bottom:2px}
+.cell{width:34px;height:20px;border:1px solid #9fb0bf;border-radius:3px;font-size:11px;display:flex;align-items:center;justify-content:center;background:#fff;color:#3a4a58;position:relative;overflow:hidden;font-family:Consolas,monospace}
+.cell.empty{visibility:hidden}
+.cell .fill{position:absolute;inset:auto 0 0 0;background:var(--a);opacity:.55}
+.cell span{position:relative}
+.cell.first{outline:2px solid var(--red);outline-offset:1px}
+.cell.last{outline:2px dashed var(--ink);outline-offset:1px}
+body.bw .cell{border-color:#000} body.bw .cell .fill{background:repeating-linear-gradient(45deg,#000 0 2px,#fff 2px 5px);opacity:1}
+body.bw .cell.first{outline:3px solid #000} body.bw .cell.last{outline:3px dashed #000}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mute);margin-top:8px}
+.legend i{display:inline-block;width:16px;height:12px;border:1px solid #9fb0bf;vertical-align:middle;margin-inline-end:4px}
+details summary{cursor:pointer;font-weight:700;color:var(--blue)} body.bw details summary{color:#000}
+.cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:10px}
+.cfg div{border:1px solid var(--line);border-radius:8px;padding:8px}
+.cfg b{display:block;margin-bottom:4px}
+.cfg label{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:12.5px;margin-top:4px}
+.cfg input{width:62px}
+.printhead{display:none}
+.hint{font-size:12px;color:var(--mute);margin-top:6px}
+@media print{
+  @page{size:A4 portrait;margin:10mm}
+  body{background:#fff;font-size:12px}
+  .wrap{padding:0;max-width:none}
+  .noprint,header.top,#controls,#mapcard,#cfgcard{display:none !important}
+  body.pmap #mapcard{display:block !important}
+  .card{border:0;padding:0;margin:0}
+  .printhead{display:block;margin-bottom:6px}
+  .printhead .bar{height:7px;background:linear-gradient(90deg,var(--blue) 0 65%,var(--green) 65% 100%);margin-bottom:6px}
+  body.bw .printhead .bar{background:#000}
+  .printhead h1{font-size:17px;margin:0} .printhead small{color:#444;direction:ltr;display:block}
+  .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0;font-size:11.5px}
+  .meta div{border:1px solid #000;padding:3px 6px;min-height:24px}
+  .meta b{display:block;font-size:10px;font-weight:600;color:#444}
+  thead{display:table-header-group} tr{break-inside:avoid}
+  thead th{position:static;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  td.code{font-size:16px}
+}
+</style>
+</head>
+<body class="fx-zebra">
+<div class="wrap">
+
+<header class="top noprint">
+  <div class="stripe"></div>
+  <div>
+    <h1>مولّد وكيشن الاستلام</h1>
+    <small>Receiving Location Generator · Al-Munajem Dry Store</small>
+  </div>
+  <div class="sp"></div>
+  <label class="chk"><input type="checkbox" id="bw"> بدون ألوان · B&amp;W</label>
+</header>
+
+<section class="card" id="controls">
+  <h2>١) طريقة التوزيع · Distribution mode</h2>
+  <div class="modes" id="modes">
+    <label class="mode on"><input type="radio" name="mode" value="single" checked>
+      <div><b>كل جهة لحالها</b><small>Each side on its own</small>
+      <span class="ex">AA1 → AA2 → AA3 …</span></div></label>
+    <label class="mode"><input type="radio" name="mode" value="facing">
+      <div><b>جهتان متقابلتان</b><small>Two facing sides (same direction)</small>
+      <span class="ex">A1 ⇄ D1 · A2 ⇄ D2 …</span></div></label>
+    <label class="mode"><input type="radio" name="mode" value="reversed">
+      <div><b>جهتان معكوستان</b><small>Two reversed sides (2nd side numbered backwards)</small>
+      <span class="ex">A1 ⇄ D(last) · A2 ⇄ D(last-1) …</span></div></label>
+  </div>
+
+  <h2 style="margin-top:16px">٢) بيانات الاستلام · Receipt</h2>
+  <div class="grid">
+    <label class="f"><span>عدد البالتات المستلمة <em>Pallets received</em></span><input type="number" id="n" min="1" max="3000" value="12"></label>
+    <label class="f" id="scopeWrap"><span>النطاق <em>Scope</em></span><select id="scope"></select></label>
+    <label class="f"><span>ابدأ بالجهة <em>Start with</em></span>
+      <select id="first"><option value="L">اليسار A·B·C · Left</option><option value="R">اليمين D·E·F · Right</option></select></label>
+    <label class="f"><span>التبديل بين الجهتين <em>Alternate every</em></span>
+      <select id="gran"><option value="rack">راك كامل · Whole rack</option><option value="level">مستوى · Level</option><option value="pallet">بالت · Pallet</option></select></label>
+    <label class="f"><span>اتجاه الراكات <em>Rack direction</em></span>
+      <select id="dir"><option value="asc">من الأول للأخير 1→n</option><option value="desc">من الأخير للأول n→1</option></select></label>
+  </div>
+
+  <h2 style="margin-top:16px">٣) نقطة البداية والمواقع المشغولة · Start point &amp; occupied</h2>
+  <div class="grid">
+    <label class="f"><span>ابدأ من منطقة <em>Start area</em></span><select id="sArea"><option value="">تلقائي · Auto (أول موقع)</option></select></label>
+    <label class="f"><span>راك رقم <em>Rack #</em></span><input type="number" id="sRack" min="1" value="1"></label>
+    <label class="f"><span>المستوى <em>Level</em></span><select id="sLvl"></select></label>
+    <label class="f" style="grid-column:1/-1"><span>مواقع مشغولة تُتجاوز (مثل AA1, AB1, CD3) <em>Occupied rack-levels to skip: Area+Level+Rack</em></span><textarea id="occ" placeholder="AA1, AB1, DC7"></textarea></label>
+  </div>
+
+  <div class="btns" style="margin-top:14px">
+    <button id="go">توليد الوكيشن · Generate</button>
+    <button class="sec" id="copy">نسخ · Copy</button>
+    <button class="sec" id="print">طباعة · Print</button>
+    <label class="chk"><input type="checkbox" id="pmap"> الخريطة في الطباعة · Map in print</label>
+    <label class="f" style="flex-direction:row;align-items:center;gap:6px"><span style="font-weight:400">نمط الجدول · Style</span>
+      <select id="fx" style="width:auto"><option value="fx-zebra">مخطط · Zebra</option><option value="fx-bold">عريض · Bold</option><option value="fx-lines">خطوط · Lines</option><option value="">عادي · Plain</option></select></label>
+  </div>
+</section>
+
+<section class="card">
+  <div class="printhead">
+    <div class="bar"></div>
+    <h1>ورقة وكيشن الاستلام · Receiving Location Sheet</h1>
+    <small>Al-Munajem Foods · Dry Store</small>
+    <div class="meta">
+      <div><b>التاريخ · Date</b><span id="pDate"></span></div>
+      <div><b>رقم الحاوية · Container</b><span id="pCont"></span></div>
+      <div><b>الصنف · Item</b><span id="pItem"></span></div>
+      <div><b>المستلم · Receiver</b><span id="pRecv"></span></div>
+    </div>
+  </div>
+  <div class="noprint grid" style="margin-bottom:10px">
+    <label class="f"><span>رقم الحاوية <em>Container</em></span><input type="text" id="cCont"></label>
+    <label class="f"><span>الصنف <em>Item</em></span><input type="text" id="cItem"></label>
+    <label class="f"><span>المستلم <em>Receiver</em></span><input type="text" id="cRecv"></label>
+  </div>
+  <div class="sum" id="sum"></div>
+  <div id="msg"></div>
+  <div style="overflow:auto"><table id="tbl">
+    <thead><tr>
+      <th>#</th>
+      <th>الوكيشن<em>Location</em></th>
+      <th id="thP">الموضع<em>Position</em></th>
+      <th>المنطقة<em>Area</em></th>
+      <th>الجهة<em>Side</em></th>
+      <th>الراك<em>Rack</em></th>
+      <th>المستوى<em>Level</em></th>
+      <th>تم<em>Done</em></th>
+      <th>ملاحظات<em>Notes</em></th>
+    </tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+</section>
+
+<section class="card" id="mapcard">
+  <h2>خريطة الاستلام · Receiving map</h2>
+  <div class="zones" id="zones"></div>
+  <div class="legend">
+    <span><i style="background:var(--blue);opacity:.55"></i>مستخدم · Used (الارتفاع = نسبة الامتلاء)</span>
+    <span><i style="outline:2px solid #e00"></i>أول موقع · First</span>
+    <span><i style="outline:2px dashed #16324a"></i>آخر موقع · Last</span>
+    <span>الصفوف المتقابلة تمثل الراكات المتقابلة فعلياً · Facing cells are physically opposite</span>
+  </div>
+</section>
+
+<section class="card" id="cfgcard">
+  <details>
+    <summary>إعدادات الأقسام · Area settings (عدد الراكات والمستويات)</summary>
+    <div class="cfg" id="cfg"></div>
+    <div class="hint">يسار = A·B·C، يمين = D·E·F · المناطق المتقابلة: A⇄D، B⇄E، C⇄F · C = الكرتون (٤ مستويات). تُحفظ التعديلات في هذا المتصفح.</div>
+    <div class="btns" style="margin-top:10px"><button class="sec" id="reset">استرجاع الافتراضي · Reset defaults</button></div>
+  </details>
+</section>
+
+</div>
+
+<script>
+(function(){
+'use strict';
+var LVL='ABCDE'.split('');
+var AREAS=['A','B','C','D','E','F'];
+var SIDE={A:'L',B:'L',C:'L',D:'R',E:'R',F:'R'};
+var ZONES={1:['A','D'],2:['B','E'],3:['C','F']};
+var AR_SIDE={L:'يسار · Left',R:'يمين · Right'};
+var DEF={per:5,areas:{A:{racks:19,lv:5},B:{racks:20,lv:5},C:{racks:15,lv:4},D:{racks:19,lv:5},E:{racks:19,lv:5},F:{racks:18,lv:5}}};
+var KEY='almunajem_recv_loc_cfg_v1';
+var CFG=clone(DEF);
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function $(id){return document.getElementById(id);}
+function loadCfg(){
+  try{
+    var s=localStorage.getItem(KEY); if(!s) return;
+    var o=JSON.parse(s);
+    if(o && o.areas){
+      AREAS.forEach(function(a){
+        if(o.areas[a]){
+          var r=parseInt(o.areas[a].racks,10), l=parseInt(o.areas[a].lv,10);
+          if(r>0&&r<=99) CFG.areas[a].racks=r;
+          if(l>0&&l<=5) CFG.areas[a].lv=l;
+        }
+      });
+      var p=parseInt(o.per,10); if(p>0&&p<=20) CFG.per=p;
+    }
+  }catch(e){}
+}
+function saveCfg(){ try{ localStorage.setItem(KEY,JSON.stringify(CFG)); }catch(e){} }
+
+/* ---------- generation ---------- */
+function parseOcc(txt){
+  var set={}, bad=[];
+  (txt||'').split(/[\s,;،\n]+/).forEach(function(t){
+    t=t.trim().toUpperCase(); if(!t) return;
+    var m=/^([A-F])([A-E])(\d{1,2})$/.exec(t);
+    if(m) set[m[1]+m[2]+parseInt(m[3],10)]=1; else bad.push(t);
+  });
+  return {set:set,bad:bad};
+}
+function rackLevels(area,rack,occ){
+  var lv=CFG.areas[area].lv, out=[];
+  for(var l=0;l<lv;l++){
+    var code=area+LVL[l]+rack;
+    if(occ[code]){ out.push([]); continue; }
+    var arr=[];
+    for(var p=1;p<=CFG.per;p++) arr.push({area:area,rack:rack,level:LVL[l],p:p,code:code});
+    out.push(arr);
+  }
+  return out;
+}
+function flat(levels){ var r=[]; levels.forEach(function(a){ r=r.concat(a); }); return r; }
+function mix(a,b,gran){
+  if(!a&&!b) return [];
+  if(!a) return flat(b);
+  if(!b) return flat(a);
+  if(gran==='level'){
+    var r=[], n=Math.max(a.length,b.length);
+    for(var i=0;i<n;i++){ if(a[i]) r=r.concat(a[i]); if(b[i]) r=r.concat(b[i]); }
+    return r;
+  }
+  if(gran==='pallet'){
+    var fa=flat(a), fb=flat(b), r2=[], m=Math.max(fa.length,fb.length);
+    for(var j=0;j<m;j++){ if(fa[j]) r2.push(fa[j]); if(fb[j]) r2.push(fb[j]); }
+    return r2;
+  }
+  return flat(a).concat(flat(b));
+}
+function buildUnits(o){
+  var units=[], i;
+  if(o.mode==='single'){
+    var list = o.scope==='L' ? ['A','B','C'] : o.scope==='R' ? ['D','E','F'] : [o.scope];
+    list.forEach(function(a){
+      for(i=1;i<=CFG.areas[a].racks;i++) units.push({x:{area:a,rack:i},y:null});
+    });
+  }else{
+    var zs = o.scope==='all' ? [1,2,3] : [parseInt(o.scope,10)];
+    zs.forEach(function(z){
+      var Lk=ZONES[z][0], Rk=ZONES[z][1], nL=CFG.areas[Lk].racks, nR=CFG.areas[Rk].racks, n=Math.max(nL,nR);
+      for(i=1;i<=n;i++){
+        var l = i<=nL ? {area:Lk,rack:i} : null;
+        var rr = o.mode==='reversed' ? (nR-i+1) : i;
+        var r = i<=nR ? {area:Rk,rack:rr} : null;
+        units.push({x:l,y:r});
+      }
+    });
+  }
+  if(o.dir==='desc') units.reverse();
+  return units;
+}
+function generate(o){
+  var units=buildUnits(o), occ=parseOcc(o.occ), seq=[];
+  units.forEach(function(u){
+    var first=u.x, second=u.y;
+    if(o.mode!=='single' && o.first==='R'){ first=u.y; second=u.x; }
+    var A=first?rackLevels(first.area,first.rack,occ.set):null;
+    var B=second?rackLevels(second.area,second.rack,occ.set):null;
+    seq=seq.concat(mix(A,B,o.gran));
+  });
+  var start=0, startMiss=false;
+  if(o.sArea){
+    startMiss=true;
+    for(var i=0;i<seq.length;i++){
+      if(seq[i].area===o.sArea && seq[i].rack===o.sRack && seq[i].level===o.sLvl){ start=i; startMiss=false; break; }
+    }
+  }
+  var picked=seq.slice(start,start+o.n);
+  return {all:seq,start:start,picked:picked,startMiss:startMiss,bad:occ.bad,avail:seq.length-start};
+}
+
+/* ---------- UI ---------- */
+function getOpts(){
+  var mode=document.querySelector('input[name=mode]:checked').value;
+  return {
+    mode:mode, n:Math.max(1,parseInt($('n').value,10)||1), scope:$('scope').value,
+    first:$('first').value, gran:$('gran').value, dir:$('dir').value,
+    sArea:$('sArea').value, sRack:parseInt($('sRack').value,10)||1, sLvl:$('sLvl').value, occ:$('occ').value
+  };
+}
+function fillScope(){
+  var mode=document.querySelector('input[name=mode]:checked').value, s=$('scope'), keep=s.value, h='';
+  if(mode==='single'){
+    h+='<option value="L">كل اليسار A→B→C · Left side</option><option value="R">كل اليمين D→E→F · Right side</option>';
+    AREAS.forEach(function(a){ h+='<option value="'+a+'">منطقة '+a+' فقط · Area '+a+' only</option>'; });
+  }else{
+    h+='<option value="all">كل الأقسام 1→2→3 · All zones</option>';
+    h+='<option value="1">A ⇄ D (قسم 1)</option><option value="2">B ⇄ E (قسم 2)</option><option value="3">C ⇄ F (قسم 3 · كرتون ⇄ F)</option>';
+  }
+  s.innerHTML=h;
+  var ok=false; for(var i=0;i<s.options.length;i++) if(s.options[i].value===keep) ok=true;
+  s.value = ok ? keep : s.options[0].value;
+  var multi = mode!=='single';
+  $('first').parentNode.style.display = multi?'':'none';
+  $('gran').parentNode.style.display = multi?'':'none';
+  document.querySelectorAll('.mode').forEach(function(m){ m.classList.toggle('on',m.querySelector('input').checked); });
+}
+function fillStart(){
+  var a=$('sArea'), keep=a.value, h='<option value="">تلقائي · Auto (أول موقع)</option>';
+  AREAS.forEach(function(x){ h+='<option value="'+x+'">'+x+'</option>'; });
+  a.innerHTML=h; a.value=keep;
+  var l=$('sLvl'), kl=l.value; l.innerHTML=LVL.map(function(x){return '<option>'+x+'</option>';}).join(''); l.value=kl||'A';
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+var last=null;
+function render(){
+  var o=getOpts(), r=generate(o); last={o:o,r:r};
+  var rows=r.picked, showP=CFG.per>1;
+  $('thP').style.display = showP?'':'none';
+  var h='';
+  for(var i=0;i<rows.length;i++){
+    var s=rows[i], prev=rows[i-1];
+    var brk = prev && prev.code!==s.code && prev.area!==s.area ? ' rowbreak':'';
+    h+='<tr class="a-'+s.area+brk+'"><td class="num">'+(i+1)+'</td>'+
+       '<td class="code">'+s.code+'</td>'+
+       (showP?'<td>P'+s.p+'</td>':'')+
+       '<td><b>'+s.area+'</b></td><td>'+AR_SIDE[SIDE[s.area]]+'</td><td>'+s.rack+'</td><td>'+s.level+'</td>'+
+       '<td class="chk"><i></i></td><td class="note"></td></tr>';
+  }
+  $('rows').innerHTML=h;
+  var msg='';
+  if(r.startMiss) msg+='<div class="warn">نقطة البداية غير موجودة ضمن النطاق أو مشغولة، بدأت من أول موقع متاح · Start point not in scope/occupied — started from the first free slot.</div>';
+  if(r.bad.length) msg+='<div class="warn">تجاهلت أكواد غير صحيحة · Ignored invalid codes: '+esc(r.bad.join(', '))+'</div>';
+  if(r.picked.length<o.n) msg+='<div class="warn">السعة المتاحة '+r.avail+' بالت فقط، والمطلوب '+o.n+' — الناقص '+(o.n-r.picked.length)+' · Capacity '+r.avail+' pallets, short by '+(o.n-r.picked.length)+'.</div>';
+  $('msg').innerHTML=msg;
+  var sum='';
+  if(rows.length){
+    var a=rows[0], z=rows[rows.length-1], racks={}, locs={};
+    rows.forEach(function(s){ racks[s.area+s.rack]=1; locs[s.code]=1; });
+    var pos=function(s){ return s.code+(showP?' · P'+s.p:''); };
+    sum='<span class="pill">البالتات · Pallets: <b>'+rows.length+'</b></span>'+
+        '<span class="pill">من · From: <b>'+pos(a)+'</b></span>'+
+        '<span class="pill">إلى · To: <b>'+pos(z)+'</b></span>'+
+        '<span class="pill">الراكات · Racks: <b>'+Object.keys(racks).length+'</b></span>'+
+        '<span class="pill">المتبقي بعدها · Free after: <b>'+(r.avail-rows.length)+'</b></span>';
+  }
+  $('sum').innerHTML=sum;
+  renderMap(r);
+  $('pDate').textContent=new Date().toLocaleDateString('en-GB');
+  $('pCont').textContent=$('cCont').value; $('pItem').textContent=$('cItem').value; $('pRecv').textContent=$('cRecv').value;
+}
+function renderMap(r){
+  var used={}, firstS=r.picked[0], lastS=r.picked[r.picked.length-1];
+  r.picked.forEach(function(s){ var k=s.area+s.rack; used[k]=(used[k]||0)+1; });
+  var rev = last.o.mode==='reversed', h='';
+  [1,2,3].forEach(function(z){
+    var Lk=ZONES[z][0], Rk=ZONES[z][1], nL=CFG.areas[Lk].racks, nR=CFG.areas[Rk].racks, n=Math.max(nL,nR);
+    function cell(area,rack){
+      if(!rack) return '<div class="cell empty"></div>';
+      var cap=CFG.areas[area].lv*CFG.per, u=used[area+rack]||0, pct=Math.min(100,Math.round(u*100/cap));
+      var cl='cell'+(firstS&&firstS.area===area&&firstS.rack===rack?' first':'')+(lastS&&lastS.area===area&&lastS.rack===rack?' last':'');
+      return '<div class="'+cl+'" style="--a:var(--a-'+area+')" title="'+area+rack+' · '+u+'/'+cap+'"><div class="fill" style="height:'+pct+'%"></div><span>'+rack+'</span></div>';
+    }
+    var cl='', cr='';
+    for(var i=1;i<=n;i++){
+      cl+=cell(Lk,i<=nL?i:0);
+      var rr=rev?(nR-i+1):i;
+      cr+=cell(Rk,i<=nR?rr:0);
+    }
+    h+='<div class="zone"><h3><b>قسم '+z+' · Zone '+z+'</b><span>'+Lk+' ⇄ '+Rk+(Lk==='C'?' (كرتون)':'')+'</span></h3>'+
+       '<div class="cols"><div class="col"><div class="hd">'+Lk+'</div>'+cl+'</div><div class="col"><div class="hd">'+Rk+'</div>'+cr+'</div></div></div>';
+  });
+  $('zones').innerHTML=h;
+}
+function buildCfg(){
+  var h='';
+  AREAS.forEach(function(a){
+    h+='<div><b>'+a+' · '+AR_SIDE[SIDE[a]]+(a==='C'?' (كرتون)':'')+'</b>'+
+       '<label>الراكات · Racks<input type="number" min="1" max="99" data-a="'+a+'" data-k="racks" value="'+CFG.areas[a].racks+'"></label>'+
+       '<label>المستويات · Levels<input type="number" min="1" max="5" data-a="'+a+'" data-k="lv" value="'+CFG.areas[a].lv+'"></label></div>';
+  });
+  h+='<div><b>عام · General</b><label>بالتات/مستوى · Pallets per level<input type="number" min="1" max="20" id="per" value="'+CFG.per+'"></label></div>';
+  $('cfg').innerHTML=h;
+  $('cfg').querySelectorAll('input').forEach(function(inp){
+    inp.addEventListener('change',function(){
+      var v=parseInt(inp.value,10); if(!(v>0)) return;
+      if(inp.id==='per') CFG.per=Math.min(20,v); else CFG.areas[inp.dataset.a][inp.dataset.k]=Math.min(inp.dataset.k==='lv'?5:99,v);
+      saveCfg(); render();
+    });
+  });
+}
+function copyText(){
+  if(!last) return;
+  var showP=CFG.per>1;
+  var t=last.r.picked.map(function(s){ return s.code+(showP?'\tP'+s.p:''); }).join('\n');
+  function done(){ var b=$('copy'),x=b.textContent; b.textContent='تم النسخ ✓ · Copied'; setTimeout(function(){b.textContent=x;},1400); }
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(done,fallback); } else fallback();
+  function fallback(){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); done();}catch(e){} document.body.removeChild(ta); }
+}
+
+/* ---------- wiring ---------- */
+loadCfg(); fillScope(); fillStart(); buildCfg();
+document.querySelectorAll('input[name=mode]').forEach(function(r){ r.addEventListener('change',function(){ fillScope(); render(); }); });
+['n','scope','first','gran','dir','sArea','sRack','sLvl','occ'].forEach(function(id){ $(id).addEventListener('input',render); $(id).addEventListener('change',render); });
+['cCont','cItem','cRecv'].forEach(function(id){ $(id).addEventListener('input',function(){ $('pCont').textContent=$('cCont').value; $('pItem').textContent=$('cItem').value; $('pRecv').textContent=$('cRecv').value; }); });
+$('go').addEventListener('click',render);
+$('copy').addEventListener('click',copyText);
+$('print').addEventListener('click',function(){ render(); window.print(); });
+$('bw').addEventListener('change',function(){ document.body.classList.toggle('bw',$('bw').checked); });
+$('pmap').addEventListener('change',function(){ document.body.classList.toggle('pmap',$('pmap').checked); });
+$('fx').addEventListener('change',function(){ ['fx-zebra','fx-bold','fx-lines'].forEach(function(c){document.body.classList.remove(c);}); if($('fx').value) document.body.classList.add($('fx').value); });
+$('reset').addEventListener('click',function(){ CFG=clone(DEF); saveCfg(); buildCfg(); render(); });
+window.__gen=generate; window.__cfg=function(){return CFG;};
+render();
+})();
+</script>
+</body>
+</html>
