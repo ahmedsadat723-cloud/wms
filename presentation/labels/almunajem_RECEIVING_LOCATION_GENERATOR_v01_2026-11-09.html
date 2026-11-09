@@ -136,7 +136,7 @@ details summary{cursor:pointer;font-weight:700;color:var(--blue)} body.bw detail
   <div class="modes" id="modes">
     <label class="mode on"><input type="radio" name="mode" value="single" checked>
       <div><b>كل جهة لحالها</b><small>Each side on its own</small>
-      <span class="ex">AA1 → AA2 → AA3 …</span></div></label>
+      <span class="ex">A-1-A → A-1-B → A-1-C …</span></div></label>
     <label class="mode"><input type="radio" name="mode" value="facing">
       <div><b>جهتان متقابلتان</b><small>Two facing sides (same direction)</small>
       <span class="ex">A1 ⇄ D1 · A2 ⇄ D2 …</span></div></label>
@@ -162,7 +162,7 @@ details summary{cursor:pointer;font-weight:700;color:var(--blue)} body.bw detail
     <label class="f"><span>ابدأ من منطقة <em>Start area</em></span><select id="sArea"><option value="">تلقائي · Auto (أول موقع)</option></select></label>
     <label class="f"><span>راك رقم <em>Rack #</em></span><input type="number" id="sRack" min="1" value="1"></label>
     <label class="f"><span>المستوى <em>Level</em></span><select id="sLvl"></select></label>
-    <label class="f" style="grid-column:1/-1"><span>مواقع مشغولة تُتجاوز (مثل AA1, AB1, CD3) <em>Occupied rack-levels to skip: Area+Level+Rack</em></span><textarea id="occ" placeholder="AA1, AB1, DC7"></textarea></label>
+    <label class="f" style="grid-column:1/-1"><span>مواقع مشغولة تُتجاوز (مثل A-1-A, A-1-B, C-3-D) <em>Occupied to skip: Area-Rack-Level</em></span><textarea id="occ" placeholder="A-1-A, A-1-B, D-7-C"></textarea></label>
   </div>
 
   <div class="btns" style="margin-top:14px">
@@ -268,15 +268,15 @@ function parseOcc(txt){
   var set={}, bad=[];
   (txt||'').split(/[\s,;،\n]+/).forEach(function(t){
     t=t.trim().toUpperCase(); if(!t) return;
-    var m=/^([A-F])([A-E])(\d{1,2})$/.exec(t);
-    if(m) set[m[1]+m[2]+parseInt(m[3],10)]=1; else bad.push(t);
+    var m=/^([A-F])-?(\d{1,2})-?([A-E])$/.exec(t);
+    if(m) set[m[1]+'-'+parseInt(m[2],10)+'-'+m[3]]=1; else bad.push(t);
   });
   return {set:set,bad:bad};
 }
 function rackLevels(area,rack,occ){
   var lv=CFG.areas[area].lv, out=[];
   for(var l=0;l<lv;l++){
-    var code=area+LVL[l]+rack;
+    var code=area+'-'+rack+'-'+LVL[l];
     if(occ[code]){ out.push([]); continue; }
     var arr=[];
     for(var p=1;p<=CFG.per;p++) arr.push({area:area,rack:rack,level:LVL[l],p:p,code:code});
@@ -423,7 +423,7 @@ function renderMap(r){
       if(!rack) return '<div class="cell empty"></div>';
       var cap=CFG.areas[area].lv*CFG.per, u=used[area+rack]||0, pct=Math.min(100,Math.round(u*100/cap));
       var cl='cell'+(firstS&&firstS.area===area&&firstS.rack===rack?' first':'')+(lastS&&lastS.area===area&&lastS.rack===rack?' last':'');
-      return '<div class="'+cl+'" style="--a:var(--a-'+area+')" title="'+area+rack+' · '+u+'/'+cap+'"><div class="fill" style="height:'+pct+'%"></div><span>'+rack+'</span></div>';
+      return '<div class="'+cl+'" style="--a:var(--a-'+area+')" title="'+area+'-'+rack+' · '+u+'/'+cap+'"><div class="fill" style="height:'+pct+'%"></div><span>'+rack+'</span></div>';
     }
     var cl='', cr='';
     for(var i=1;i<=n;i++){
