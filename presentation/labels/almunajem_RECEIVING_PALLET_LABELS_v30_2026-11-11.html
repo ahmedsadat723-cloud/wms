@@ -131,7 +131,7 @@ body.bw.lf-bold .lab .stripe{background:#000}
 .abar{height:8px;border-radius:4px;background:#e6ebf0;overflow:hidden;min-width:70px;display:flex}.abar i{display:block;height:100%}.abar .o{background:var(--blue)}.abar .r{background:repeating-linear-gradient(45deg,#d9a400 0 3px,#fff 3px 6px)}
 #areaTabs button{padding:6px 14px}#areaTabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .ag{overflow:auto;margin-top:8px}.ag table{border-collapse:collapse}.ag th,.ag td{border:1px solid var(--line);padding:0;text-align:center;font-size:11px}
-.ag th{background:#f3f6f9;padding:3px 5px}
+.ag th{background:#16324a;color:#fff;padding:3px 5px;font-weight:700}
 .ag td .lc{display:block;min-width:46px;padding:3px 2px;cursor:pointer;line-height:1.15}
 .ag td .lc small{display:block;font-size:10px;opacity:.85}
 .lc.e{background:#fff;color:#557}.lc.p{background:#cfe3f6;color:#0b3a66}.lc.f{background:var(--blue);color:#fff}.lc.rs{background:repeating-linear-gradient(45deg,#fff1cc 0 4px,#fff 4px 8px);color:#7a5200}
@@ -1215,10 +1215,10 @@ function renderAreas(){
   var S=areaStats(), T={racks:0,codes:0,cap:0,occ:0,res:0,free:0,full:0,part:0,empty:0};
   var rows=AREAS.map(function(a){ var s=S[a]; ['racks','codes','cap','occ','res','free','full','part','empty'].forEach(function(k){T[k]+=s[k];});
     var po=Math.round(s.occ*100/s.cap)||0, pr=Math.round(s.res*100/s.cap)||0;
-    return '<tr><td><b>'+a+'</b>'+(a==='C'?' <small>كرتون</small>':'')+'<br><small>'+(SIDE[a]==='L'?'يسار':'يمين')+'</small></td><td>'+s.racks+' × '+s.lv+'</td><td>'+s.cap+'</td><td><b>'+s.occ+'</b></td><td>'+s.res+'</td><td><b>'+s.free+'</b></td><td>'+s.full+'</td><td>'+s.part+'</td><td>'+s.empty+' / '+s.codes+'</td><td><div class="abar"><i class="o" style="width:'+po+'%"></i><i class="r" style="width:'+pr+'%"></i></div><small>'+(po+pr)+'%</small></td></tr>'; }).join('');
+    return '<tr><td><b>'+a+'</b>'+(a==='C'?' <small>كرتون</small>':'')+'<br><small>'+(SIDE[a]==='L'?'يسار':'يمين')+'</small></td><td>'+s.racks+' راك × '+s.lv+' مستوى</td><td>'+s.cap+'</td><td><b>'+s.occ+'</b></td><td>'+s.res+'</td><td><b>'+s.free+'</b></td><td>'+s.full+'</td><td>'+s.part+'</td><td>'+s.empty+' من '+s.codes+'</td><td><div class="abar"><i class="o" style="width:'+po+'%"></i><i class="r" style="width:'+pr+'%"></i></div><small>'+(po+pr)+'%</small></td></tr>'; }).join('');
   var tp=Math.round((T.occ+T.res)*100/T.cap)||0;
   $('areaSum').innerHTML='<div style="overflow:auto"><table><thead><tr><th>القسم<em>Area</em></th><th>راكات × مستويات<em>Racks × levels</em></th><th>السعة (بالت)<em>Capacity</em></th><th>مشغول<em>Occupied</em></th><th>محجوز<em>Reserved</em></th><th>متبقي فاضي<em>Free left</em></th><th>مواقع ممتلئة<em>Full codes</em></th><th>مواقع جزئية<em>Partial codes</em></th><th>مواقع فاضية<em>Empty codes</em></th><th>الإشغال<em>Used</em></th></tr></thead><tbody>'+rows+
-    '<tr class="tot"><td>الإجمالي · Total</td><td>'+T.racks+' راك</td><td>'+T.cap+'</td><td>'+T.occ+'</td><td>'+T.res+'</td><td>'+T.free+'</td><td>'+T.full+'</td><td>'+T.part+'</td><td>'+T.empty+' / '+T.codes+'</td><td>'+tp+'%</td></tr></tbody></table></div>'+
+    '<tr class="tot"><td>الإجمالي · Total</td><td>'+T.racks+' راك</td><td>'+T.cap+'</td><td>'+T.occ+'</td><td>'+T.res+'</td><td>'+T.free+'</td><td>'+T.full+'</td><td>'+T.part+'</td><td>'+T.empty+' من '+T.codes+'</td><td>'+tp+'%</td></tr></tbody></table></div>'+
     '<div class="hint">الأعداد بالبالت (الموضع P1–P'+CFG.per+')، و«المواقع» = كود الراك+المستوى مثل C-1-A · Counts are pallet positions; codes are rack+level.</div>';
   $('areaTabs').innerHTML=AREAS.map(function(a){ return '<button type="button" class="sec'+(a===AREASEL?' on':'')+'" data-ar="'+a+'">قسم '+a+(a==='C'?' (كرتون)':'')+' · '+S[a].free+' فاضي</button>'; }).join('');
   var s=S[AREASEL], cf=CFG.areas[AREASEL], g='<table><thead><tr><th>المستوى \\ الراك</th>';
