@@ -349,6 +349,27 @@
     "oracle": "CRTDC001",
     "nameUr": "کارٹن چکن قیمہ داری 20x400"
   },
+  "PKG-CTN-0019": {
+    "nameEn": "CARTON CHICKEN CUBES JUICY -DOUX 12*700 G",
+    "cat": "( Shipping Carton (كرتون شحن)",
+    "supplier": "إيسترن باك (Eastern Pack) السعودية",
+    "oracle": "",
+    "nameUr": "کارٹن چکن کیوبز جوسی دو 12x700 گرام"
+  },
+  "PKG-CTN-0020": {
+    "nameEn": "CARTON CHICKEN CUBES -DARI 12*700 G",
+    "cat": "( Shipping Carton (كرتون شحن)",
+    "supplier": "إيسترن باك (Eastern Pack) السعودية",
+    "oracle": "",
+    "nameUr": "کارٹن چکن کیوبز داری 12x700 گرام"
+  },
+  "PKG-CTN-0021": {
+    "nameEn": "CARTON TENDERIZED CHICKEN BREAST PROFESSIONAL -DARI 5*2 KG",
+    "cat": "( Shipping Carton (كرتون شحن)",
+    "supplier": "إيسترن باك (Eastern Pack) السعودية",
+    "oracle": "",
+    "nameUr": "کارٹن ٹینڈرائزڈ چکن بریسٹ پروفیشنل داری 5x2 کلو"
+  },
   "PKG-RPC-0001": {
     "nameEn": "ROLL PLASTIC CHICKEN BREAST TENDEZIED DARI 10*1",
     "cat": "رول بلاستيك ملون للتعبئة",
