@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<!-- VERSION: v01 | 2026-11-27 -->
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>خريطة توزيع الراك · Rack Distribution Map — v01</title>
+<style>
+:root{--ink:#14213d;--mut:#5b6475;--line:#c9d1de;--bg:#eef2f7;--acc:#0f4c81;--paper:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Tahoma,"DejaVu Sans",Arial,sans-serif;color:var(--ink);background:var(--bg)}
+button,select,input{font:inherit}
+/* ---------- screen controls ---------- */
+.bar{position:sticky;top:0;z-index:20;background:var(--ink);color:#fff;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 16px}
+.bar h1{font-size:17px;margin:0 0 0 auto;font-weight:700}
+.bar h1 small{opacity:.7;font-weight:400;margin-inline-start:6px}
+.bar label{font-size:13px;opacity:.85}
+.bar select,.bar button{border:0;border-radius:8px;padding:7px 12px;background:#fff;color:var(--ink);cursor:pointer}
+.bar button.pri{background:#ffb703;font-weight:700}
+.wrap{display:grid;grid-template-columns:minmax(330px,420px) 1fr;gap:16px;padding:16px}
+.panel{background:#fff;border-radius:14px;box-shadow:0 2px 10px #0001;padding:14px;align-self:start;position:sticky;top:64px;max-height:calc(100vh - 80px);overflow:auto}
+.panel h2{font-size:15px;margin:4px 0 10px}
+.panel table{width:100%;border-collapse:collapse;font-size:12.5px}
+.panel th{background:#f1f4f9;text-align:center;padding:6px 4px;font-weight:600}
+.panel td{border-top:1px solid #eef1f5;padding:4px 3px;text-align:center}
+.panel td input,.panel td select{width:100%;border:1px solid var(--line);border-radius:6px;padding:4px 5px;background:#fbfcfe}
+.panel td input.n{width:46px;text-align:center}
+.panel td input.r,.panel td input.l{width:52px;text-align:center;text-transform:uppercase}
+.panel .del{background:#fde8e8;color:#b42318;border:0;border-radius:6px;padding:3px 8px;cursor:pointer}
+.panel .add{margin-top:10px;width:100%;border:1px dashed var(--acc);background:#f3f8fd;color:var(--acc);border-radius:8px;padding:8px;cursor:pointer;font-weight:600}
+.hint{font-size:12px;color:var(--mut);line-height:1.6;margin:10px 0 0}
+.pages{display:flex;flex-direction:column;align-items:center;gap:18px}
+/* ---------- A4 landscape page ---------- */
+.page{width:297mm;height:210mm;background:var(--paper);box-shadow:0 4px 18px #0002;padding:9mm 10mm;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.ph{display:flex;align-items:stretch;gap:5mm;border-bottom:1.2mm solid var(--acc);padding-bottom:3mm}
+.code{background:var(--acc);color:#fff;border-radius:3mm;min-width:44mm;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2mm 4mm}
+.code b{font-size:30pt;letter-spacing:1px;line-height:1;direction:ltr}
+.code span{font-size:8.5pt;opacity:.85;margin-top:1mm}
+.ttl{flex:1;display:flex;flex-direction:column;justify-content:center}
+.ttl .t1{font-size:15pt;font-weight:800;white-space:nowrap}
+.ttl .t2{font-size:10pt;color:var(--mut);direction:ltr;text-align:right}
+.meta{display:grid;grid-template-columns:auto auto;gap:1mm 4mm;font-size:8.5pt;align-content:center;color:var(--mut)}
+.meta b{color:var(--ink)}
+.kpi{display:flex;gap:3mm}
+.kpi div{border:0.4mm solid var(--line);border-radius:2.5mm;padding:1.5mm 4mm;text-align:center;min-width:24mm;display:flex;flex-direction:column;justify-content:center}
+.kpi b{font-size:20pt;line-height:1}
+.kpi span{font-size:7.5pt;color:var(--mut)}
+.body{flex:1;display:grid;grid-template-columns:1fr 66mm;gap:6mm;padding-top:4mm;min-height:0}
+/* rack drawing */
+.rack{display:flex;flex-direction:column;min-height:0}
+.frame{flex:1;display:flex;flex-direction:column;border-inline:2.6mm solid #3d4a5c;border-top:1.4mm solid #3d4a5c;position:relative;background:linear-gradient(#f8fafc,#f8fafc)}
+.lvl{flex:1;display:flex;align-items:stretch;border-bottom:1.8mm solid #e07a1f;position:relative;min-height:0}
+.lvl.ground{border-bottom:2.4mm solid #3d4a5c}
+.lv-tag{width:23mm;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#eef2f7;border-inline-end:0.4mm dashed var(--line)}
+.lv-tag b{font-size:15pt;direction:ltr}
+.lv-tag i{font-style:normal;font-size:7pt;color:var(--mut)}
+.lv-tag em{font-style:normal;margin-top:1mm;background:var(--ink);color:#fff;border-radius:5mm;padding:0.4mm 2.6mm;font-size:10pt;font-weight:700}
+.slots{flex:1;display:flex;gap:1.6mm;padding:1.6mm;flex-direction:row}
+.pal{flex:1;border-radius:1.6mm;border:0.5mm solid #0003;display:flex;flex-direction:column;justify-content:space-between;padding:1.2mm 1.4mm;position:relative;overflow:hidden;min-width:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.pal .no{position:absolute;top:1mm;left:1.2mm;font-size:7pt;font-weight:700;opacity:.8;direction:ltr}
+.pal .chk{position:absolute;top:1mm;right:1.2mm;width:3.6mm;height:3.6mm;border:0.45mm solid currentColor;border-radius:0.6mm;background:#fff8}
+.pal .tag{font-size:10.5pt;font-weight:800;line-height:1.05;text-align:center;margin-top:4.5mm;direction:ltr}
+.pal .ar{font-size:7.2pt;text-align:center;line-height:1.2}
+.pal .en{font-size:5.6pt;text-align:center;line-height:1.15;direction:ltr;opacity:.9}
+.pal .nt{font-size:6pt;text-align:center;font-weight:700}
+.pal.empty{background:repeating-linear-gradient(45deg,#fff,#fff 2mm,#f1f3f6 2mm,#f1f3f6 4mm)!important;border:0.5mm dashed #b8c0cc;color:#9aa3b2;justify-content:center;align-items:center}
+.pal.empty .lbl{font-size:8pt;text-align:center}
+.floor{height:5mm;display:flex;justify-content:space-between;font-size:7pt;color:var(--mut);padding:1mm 2mm 0}
+/* side panel */
+.side{display:flex;flex-direction:column;gap:4mm;min-height:0}
+.box{border:0.4mm solid var(--line);border-radius:2.5mm;overflow:hidden}
+.box h3{margin:0;font-size:9pt;background:#eef2f7;padding:1.6mm 2.5mm;display:flex;justify-content:space-between}
+.box h3 small{color:var(--mut);font-weight:400;direction:ltr}
+.sum{width:100%;border-collapse:collapse;font-size:7.6pt}
+.sum td{padding:1.3mm 1.6mm;border-top:0.3mm solid #e6eaf0;vertical-align:middle}
+.sum td.c{text-align:center;font-weight:800;font-size:10pt;width:10mm}
+.sum td.l{text-align:center;direction:ltr;font-size:7pt;color:var(--mut);width:14mm}
+.sw{display:inline-block;width:4mm;height:4mm;border-radius:0.8mm;border:0.3mm solid #0004;vertical-align:middle;margin-inline-end:1.2mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sum .en2{display:block;direction:ltr;text-align:left;font-size:6pt;color:var(--mut)}
+.sum tr.tot td{background:#f4f6fa;font-weight:800}
+.rev{font-size:7.6pt;padding:2mm 2.5mm;display:grid;gap:2mm}
+.rev div{display:flex;align-items:center;gap:2mm}
+.rev .b{width:4mm;height:4mm;border:0.45mm solid var(--ink);border-radius:0.6mm;flex:none}
+.rev .ln{flex:1;border-bottom:0.3mm solid #9aa3b2;height:4mm}
+.pf{display:flex;justify-content:space-between;font-size:7pt;color:var(--mut);border-top:0.3mm solid var(--line);padding-top:1.6mm;margin-top:2mm}
+/* ---------- style variants ---------- */
+.v-bold .frame{border-inline-width:3.6mm}
+.v-bold .pal{border-width:0.8mm;border-color:#0007}
+.v-bold .pal .tag{font-size:12pt}
+.v-bold .ph{border-bottom-width:2mm}
+.v-soft .frame{border-inline:1.2mm solid #9fb0c6;border-top:0.8mm solid #9fb0c6;border-radius:2mm 2mm 0 0}
+.v-soft .lvl{border-bottom:1mm solid #f4b183}
+.v-soft .lvl.ground{border-bottom:1.6mm solid #9fb0c6}
+.v-soft .pal{border-radius:3mm;border:0;box-shadow:inset 0 0 0 0.4mm #0002}
+.v-soft .code{border-radius:6mm}
+/* ---------- B&W ---------- */
+.bw .page *{color:#000!important}
+.bw .code{background:#000!important}
+.bw .code *{color:#fff!important}
+.bw .ph{border-bottom-color:#000}
+.bw .lvl{border-bottom-color:#000}
+.bw .frame{border-color:#000}
+.bw .lv-tag em{background:#000;color:#fff!important}
+.bw .lv-tag em *{color:#fff!important}
+.bw .pal .no{background:#fff;border-radius:0.6mm;padding:0 0.6mm}
+.bw .pal .chk{background:#fff}
+@media print{
+  @page{size:A4 landscape;margin:0}
+  body{background:#fff}
+  .bar,.panel{display:none!important}
+  .wrap{display:block;padding:0}
+  .pages{gap:0}
+  .page{box-shadow:none;page-break-after:always;break-after:page}
+  .page:last-child{page-break-after:auto;break-after:auto}
+}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}.panel{position:static;max-height:none}.pages{overflow-x:auto;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="bar">
+  <h1>خريطة توزيع الراك · Rack Distribution Map <small>v01 · 27/11/2026</small></h1>
+  <label>الطباعة · Print</label>
+  <select id="mode"><option value="color">ملون · Colour</option><option value="bw">أبيض وأسود · B&amp;W</option></select>
+  <label>الشكل · Style</label>
+  <select id="variant"><option value="v-classic">كلاسيك · Classic</option><option value="v-bold">عريض · Bold</option><option value="v-soft">ناعم · Soft</option></select>
+  <label>الراك · Rack</label>
+  <select id="only"></select>
+  <button id="reset">البيانات الأصلية · Reset</button>
+  <button class="pri" onclick="window.print()">🖨 طباعة · Print</button>
+</div>
+<div class="wrap">
+  <div class="panel">
+    <h2>بيانات التوزيع · Distribution data</h2>
+    <table><thead><tr><th>الراك<br>Rack</th><th>المستوى<br>Level</th><th>طبالي<br>Pallets</th><th>الصنف · Item</th><th>ملاحظة<br>Note</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+    <button class="add" id="add">+ إضافة سطر · Add row</button>
+    <p class="hint">• المستوى A = الأرض، وكل حرف بعده مستوى أعلى.<br>• سطرين لنفس المستوى = صنفين جنب بعض بالترتيب.<br>• مستوى بدون طبالي اكتب 0 ويطلع «فاضي».<br>• التعديلات تنحفظ في المتصفح، و«البيانات الأصلية» يرجّع الورقة.</p>
+  </div>
+  <div class="pages" id="pages"></div>
+</div>
+<script>
+const ITEMS={
+ LG400:{tag:'LARGE 400G',ar:'جمبري كبير 400 جم بدون ذيل',en:'DARI LARGE SHRIMP 20 X 400 G (WITHOUT TAIL)',c:'#f6c85f',p:'repeating-linear-gradient(45deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ MD400:{tag:'MEDIUM 400G',ar:'جمبري وسط 400 جم بدون ذيل',en:'DARI MEDIUM SHRIMP 20 X 400 G (WITHOUT TAIL)',c:'#ffe29a',p:'repeating-linear-gradient(-45deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ JB400:{tag:'JUMBO 400G',ar:'جمبري جامبو 400 جم بدون ذيل',en:'DARI JUMBO SHRIMP 20 X 400 G (WITHOUT TAIL)',c:'#f28e5c',p:'repeating-linear-gradient(0deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ MD2P:{tag:'MEDIUM 2KG',ar:'جمبري وسط بروفيشنال بالذيل 2 كجم',en:'MEDIUM SHRIMP TAIL ON PROFESSIONAL 5 X 2 KG',c:'#8ecae6',p:'radial-gradient(#000 0.45mm,#fff 0.5mm) 0 0/2.4mm 2.4mm'},
+ LG2P:{tag:'LARGE 2KG',ar:'جمبري كبير بروفيشنال بالذيل 2 كجم',en:'LARGE SHRIMP TAIL ON PROFESSIONAL 5 X 2 KG',c:'#5fa8d3',p:'repeating-linear-gradient(90deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ JB2P:{tag:'JUMBO 2KG',ar:'جمبري جامبو بروفيشنال بالذيل 2 كجم',en:'JUMBO SHRIMP TAIL ON PROFESSIONAL 5 X 2 KG',c:'#3a86c8',p:'repeating-linear-gradient(45deg,#fff 0 1mm,#000 1mm 1.3mm),repeating-linear-gradient(-45deg,#fff 0 1mm,#000 1mm 1.3mm)'},
+ BR750:{tag:'BREADED 750G',ar:'جمبري بقسماط عادي 750 جم',en:'DARI BREADED SHRIMP-REGULAR 12 X 750G',c:'#9bd08f',p:'#fff'},
+ LG750:{tag:'LARGE 750G',ar:'جمبري كبير 750 جم',en:'LARGE SHRIMP 12 X 750 G',c:'#c3a6e0',p:'repeating-linear-gradient(0deg,#fff 0 0.9mm,#000 0.9mm 1.2mm),repeating-linear-gradient(90deg,#fff 0 0.9mm,#000 0.9mm 1.2mm)'}
+};
+const DEF=[
+ ['C14','A',5,'LG400',''],
+ ['C14','B',3,'MD2P',''],['C14','B',2,'LG400',''],
+ ['C14','C',3,'MD2P',''],['C14','C',2,'MD2P',''],
+ ['C14','D',6,'MD2P',''],
+ ['D14','A',0,'',''],
+ ['D14','B',3,'BR750',''],
+ ['D14','C',3,'LG750',''],
+ ['D14','D',3,'LG400',''],
+ ['D14','E',3,'JB400','']
+];
+const KEY='rackmap_v01';
+let data; try{data=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!Array.isArray(data)) data=JSON.parse(JSON.stringify(DEF));
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}}
+function itemOpts(v){return '<option value="">— فاضي · Empty —</option>'+Object.entries(ITEMS).map(([k,i])=>`<option value="${k}"${k===v?' selected':''}>${i.tag} · ${i.ar}</option>`).join('')}
+function drawRows(){
+ $('#rows').innerHTML=data.map((r,i)=>`<tr>
+  <td><input class="r" data-i="${i}" data-k="0" value="${esc(r[0])}"></td>
+  <td><input class="l" data-i="${i}" data-k="1" value="${esc(r[1])}"></td>
+  <td><input class="n" type="number" min="0" data-i="${i}" data-k="2" value="${r[2]}"></td>
+  <td><select data-i="${i}" data-k="3">${itemOpts(r[3])}</select></td>
+  <td><input data-i="${i}" data-k="4" value="${esc(r[4])}" style="width:62px"></td>
+  <td><button class="del" data-del="${i}">✕</button></td></tr>`).join('');
+}
+function render(){
+ const bw=$('#mode').value==='bw', variant=$('#variant').value, only=$('#only').value;
+ document.body.classList.toggle('bw',bw);
+ const racks={};
+ data.forEach(r=>{const rk=String(r[0]).trim().toUpperCase(),lv=String(r[1]).trim().toUpperCase();if(!rk||!lv)return;(racks[rk]??={})[lv]??=[];racks[rk][lv].push({n:Math.max(0,+r[2]||0),it:r[3],nt:r[4]})});
+ const names=Object.keys(racks).sort();
+ const cur=$('#only').value; $('#only').innerHTML='<option value="">الكل · All</option>'+names.map(n=>`<option${n===cur?' selected':''}>${n}</option>`).join('');
+ const today=new Date().toLocaleDateString('en-GB');
+ $('#pages').innerHTML=names.filter(n=>!only||n===only).map(rk=>{
+  const lvls=racks[rk], keys=Object.keys(lvls).sort();
+  const top=keys[keys.length-1]; const all=[];for(let c='A'.charCodeAt(0);c<=top.charCodeAt(0);c++)all.push(String.fromCharCode(c));
+  const cnt=l=>(lvls[l]||[]).reduce((a,s)=>a+s.n,0);
+  const slots=Math.max(5,...all.map(cnt));
+  const tot=all.reduce((a,l)=>a+cnt(l),0);
+  const sum={};let k=0;
+  const rows=all.slice().reverse().map(l=>{
+   const segs=lvls[l]||[];let html='',used=0;
+   segs.forEach(s=>{for(let j=0;j<s.n;j++){const it=ITEMS[s.it];used++;k++;
+     if(!it){html+=`<div class="pal empty"><div class="lbl">بدون صنف<br>No item</div></div>`;continue}
+     (sum[s.it]??={n:0,l:new Set()}).n++;sum[s.it].l.add(l);
+     const bg=bw?it.p:it.c;
+     html+=`<div class="pal" style="background:${bg}"><span class="no">${rk}-${l}-${used}</span><span class="chk"></span>
+      <div class="tag"${bw?' style="background:#fff;border-radius:1mm;padding:0.4mm 0"':''}>${it.tag}</div>
+      <div${bw?' style="background:#fff;border-radius:1mm;padding:0.6mm"':''}><div class="ar">${it.ar}</div><div class="en">${it.en}</div>${s.nt?`<div class="nt">${esc(s.nt)}</div>`:''}</div></div>`}});
+   for(;used<slots;used++)html+=`<div class="pal empty"><div class="lbl">فاضي<br>Empty</div></div>`;
+   return `<div class="lvl${l==='A'?' ground':''}"><div class="lv-tag"><b>${rk}-${l}</b><i>${l==='A'?'أرضي · Floor':'مستوى · Level'}</i><em>${cnt(l)}</em></div><div class="slots">${html}</div></div>`}).join('');
+  const sumRows=Object.entries(sum).map(([key,v])=>{const it=ITEMS[key];return `<tr><td><span class="sw" style="background:${bw?it.p:it.c}"></span>${it.ar}<span class="en2">${it.en}</span></td><td class="l">${[...v.l].sort().join(' · ')}</td><td class="c">${v.n}</td></tr>`}).join('');
+  return `<section class="page ${variant}">
+   <div class="ph"><div class="code"><b>${rk}</b><span>الراك · Rack</span></div>
+    <div class="ttl"><div class="t1">خريطة توزيع الطبالي على الراك</div><div class="t2">Pallet distribution map — Dry store · Al-Munajem Foods</div></div>
+    <div class="kpi"><div><b>${tot}</b><span>طبالي · Pallets</span></div><div><b>${all.length}</b><span>مستويات · Levels</span></div><div><b>${Object.keys(sum).length}</b><span>أصناف · Items</span></div></div>
+    <div class="meta"><span>التاريخ · Date</span><b>${today}</b><span>الاستلام · Receiving</span><b>Ahmed Sadat</b><span>الرافعة · Forklift</span><b>ARMAN</b></div></div>
+   <div class="body"><div class="rack"><div class="frame">${rows}</div><div class="floor"><span>◀ الواجهة · Front (P1)</span><span>الأرض · Floor</span><span>الخلف · Back ▶</span></div></div>
+    <div class="side"><div class="box"><h3>ملخص الأصناف <small>Item summary</small></h3><table class="sum">${sumRows}<tr class="tot"><td>الإجمالي · Total</td><td></td><td class="c">${tot}</td></tr></table></div>
+     <div class="box"><h3>المراجعة الفيزيائية <small>Physical check</small></h3><div class="rev">
+      <div><span class="b"></span>التوزيع مطابق · Matches</div>
+      <div><span class="b"></span>يحتاج تعديل · Needs change</div>
+      <div>ملاحظات · Notes<span class="ln"></span></div><div><span class="ln"></span></div><div><span class="ln"></span></div>
+      <div>المراجع · By<span class="ln"></span></div></div></div>
+     <div class="box"><h3>طريقة القراءة <small>How to read</small></h3><div class="rev" style="font-size:7pt">
+      <div>• كل مربع = طبلية واحدة · Each box = 1 pallet</div>
+      <div>• الرقم الأسود = عدد طبالي المستوى · Dark pill = pallets per level</div>
+      <div>• المربع ☐ للتأشير بعد التسكين · Tick after put-away</div></div></div>
+    </div></div>
+   <div class="pf"><span>المستودع الجاف – شركة المنجم للأغذية · Dry Store – Al-Munajem Foods</span><span>Rack Map v01 · 2026-11-27</span></div>
+  </section>`}).join('');
+}
+document.addEventListener('input',e=>{const t=e.target;if(t.dataset.i!==undefined){const i=+t.dataset.i,k=+t.dataset.k;data[i][k]=k===2?(+t.value||0):(k<2?t.value.toUpperCase():t.value);save();render()}});
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset.i!==undefined&&t.tagName==='SELECT'){data[+t.dataset.i][3]=t.value;save();render()}else if(['mode','variant','only'].includes(t.id))render()});
+document.addEventListener('click',e=>{const d=e.target.dataset.del;if(d!==undefined){data.splice(+d,1);save();drawRows();render()}});
+$('#add').onclick=()=>{const last=data[data.length-1]||['C1','A',0,'',''];data.push([last[0],last[1],1,'','']);save();drawRows();render()};
+$('#reset').onclick=()=>{data=JSON.parse(JSON.stringify(DEF));save();drawRows();render()};
+drawRows();render();
+</script>
+</body>
+</html>
