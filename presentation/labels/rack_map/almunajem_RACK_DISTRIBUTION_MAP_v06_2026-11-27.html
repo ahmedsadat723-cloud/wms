@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<!-- VERSION: v06 | 2026-11-27 -->
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>خريطة توزيع الراك · Rack Distribution Map — v06</title>
+<style>
+:root{--ink:#14213d;--mut:#5b6475;--line:#c9d1de;--bg:#eef2f7;--acc:#0f4c81;--paper:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Tahoma,"DejaVu Sans",Arial,sans-serif;color:var(--ink);background:var(--bg)}
+button,select,input{font:inherit}
+/* ---------- screen controls ---------- */
+.bar{position:sticky;top:0;z-index:20;background:var(--ink);color:#fff;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 16px}
+.bar h1{font-size:17px;margin:0 0 0 auto;font-weight:700}
+.bar h1 small{opacity:.7;font-weight:400;margin-inline-start:6px}
+.bar label{font-size:13px;opacity:.85}
+.bar select,.bar button{border:0;border-radius:8px;padding:7px 12px;background:#fff;color:var(--ink);cursor:pointer}
+.bar button.pri{background:#ffb703;font-weight:700}
+.wrap{display:grid;grid-template-columns:minmax(330px,420px) 1fr;gap:16px;padding:16px}
+.panel{background:#fff;border-radius:14px;box-shadow:0 2px 10px #0001;padding:14px;align-self:start;position:sticky;top:64px;max-height:calc(100vh - 80px);overflow:auto}
+.panel h2{font-size:15px;margin:4px 0 10px}
+.panel table{width:100%;border-collapse:collapse;font-size:12.5px}
+.panel th{background:#f1f4f9;text-align:center;padding:6px 4px;font-weight:600}
+.panel td{border-top:1px solid #eef1f5;padding:4px 3px;text-align:center}
+.panel td input,.panel td select{width:100%;border:1px solid var(--line);border-radius:6px;padding:4px 5px;background:#fbfcfe}
+.panel td input.n{width:46px;text-align:center}
+.panel td input.r,.panel td input.l{width:52px;text-align:center;text-transform:uppercase}
+.panel .del{background:#fde8e8;color:#b42318;border:0;border-radius:6px;padding:3px 8px;cursor:pointer}
+.panel .add{margin-top:10px;width:100%;border:1px dashed var(--acc);background:#f3f8fd;color:var(--acc);border-radius:8px;padding:8px;cursor:pointer;font-weight:600}
+.hint{font-size:12px;color:var(--mut);line-height:1.6;margin:10px 0 0}
+.pages{display:flex;flex-direction:column;align-items:center;gap:18px}
+/* ---------- A4 landscape page ---------- */
+.page{width:297mm;height:210mm;background:var(--paper);box-shadow:0 4px 18px #0002;padding:9mm 10mm;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.ph{display:flex;align-items:stretch;gap:5mm;border-bottom:1.2mm solid var(--acc);padding-bottom:3mm}
+.code{background:var(--acc);color:#fff;border-radius:3mm;min-width:44mm;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2mm 4mm}
+.code b{font-size:30pt;letter-spacing:1px;line-height:1;direction:ltr}
+.code span{font-size:8.5pt;opacity:.85;margin-top:1mm}
+.ttl{flex:1;display:flex;flex-direction:column;justify-content:center}
+.ttl .t1{font-size:15pt;font-weight:800;white-space:nowrap}
+.ttl .t2{font-size:10pt;color:var(--mut);direction:ltr;text-align:right}
+.meta{display:grid;grid-template-columns:auto auto;gap:1mm 4mm;font-size:8.5pt;align-content:center;color:var(--mut)}
+.meta b{color:var(--ink)}
+.kpi{display:flex;gap:3mm}
+.kpi div{border:0.4mm solid var(--line);border-radius:2.5mm;padding:1.5mm 4mm;text-align:center;min-width:24mm;display:flex;flex-direction:column;justify-content:center}
+.kpi b{font-size:20pt;line-height:1}
+.kpi span{font-size:7.5pt;color:var(--mut)}
+.body{flex:1;display:grid;grid-template-columns:1fr 66mm;gap:6mm;padding-top:4mm;min-height:0}
+/* rack drawing */
+.rack{display:flex;flex-direction:column;min-height:0}
+.frame{flex:1;display:flex;flex-direction:column;border-inline:2.6mm solid #3d4a5c;border-top:1.4mm solid #3d4a5c;position:relative;background:linear-gradient(#f8fafc,#f8fafc)}
+.lvl{flex:1;display:flex;align-items:stretch;border-bottom:1.8mm solid #e07a1f;position:relative;min-height:0}
+.lvl.ground{border-bottom:2.4mm solid #3d4a5c}
+.lv-tag{width:23mm;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#eef2f7;border-inline-end:0.4mm dashed var(--line)}
+.lv-tag b{font-size:15pt;direction:ltr}
+.lv-tag i{font-style:normal;font-size:7pt;color:var(--mut)}
+.lv-tag em{font-style:normal;margin-top:1mm;background:var(--ink);color:#fff;border-radius:5mm;padding:0.4mm 2.6mm;font-size:10pt;font-weight:700}
+.slots{flex:1;display:flex;gap:1.6mm;padding:1.6mm;flex-direction:row}
+.pal{flex:1;border-radius:1.6mm;border:0.5mm solid #0003;display:flex;flex-direction:column;justify-content:space-between;padding:1.2mm 1.4mm;position:relative;overflow:hidden;min-width:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.pal .no{position:absolute;top:1mm;left:1.2mm;font-size:7pt;font-weight:700;opacity:.8;direction:ltr}
+.pal .chk{position:absolute;top:1mm;right:1.2mm;width:3.6mm;height:3.6mm;border:0.45mm solid currentColor;border-radius:0.6mm;background:#fff8}
+.pal .tag{font-size:10.5pt;font-weight:800;line-height:1.05;text-align:center;margin-top:4.5mm;direction:ltr}
+.pal .ar{font-size:7.2pt;text-align:center;line-height:1.2}
+.pal .en{font-size:5.6pt;text-align:center;line-height:1.15;direction:ltr;opacity:.9}
+.pal .nt{font-size:6pt;text-align:center;font-weight:700}
+.pal.empty{background:repeating-linear-gradient(45deg,#fff,#fff 2mm,#f1f3f6 2mm,#f1f3f6 4mm)!important;border:0.5mm dashed #b8c0cc;color:#9aa3b2;justify-content:center;align-items:center}
+.pal.empty .lbl{font-size:8pt;text-align:center}
+.floor{height:5mm;display:flex;justify-content:space-between;font-size:7pt;color:var(--mut);padding:1mm 2mm 0}
+/* side panel */
+.side{display:flex;flex-direction:column;gap:4mm;min-height:0}
+.box{border:0.4mm solid var(--line);border-radius:2.5mm;overflow:hidden}
+.box h3{margin:0;font-size:9pt;background:#eef2f7;padding:1.6mm 2.5mm;display:flex;justify-content:space-between}
+.box h3 small{color:var(--mut);font-weight:400;direction:ltr}
+.sum{width:100%;border-collapse:collapse;font-size:7.6pt}
+.sum td{padding:1.3mm 1.6mm;border-top:0.3mm solid #e6eaf0;vertical-align:middle}
+.sum td.c{text-align:center;font-weight:800;font-size:10pt;width:10mm}
+.sum td.l{text-align:center;direction:ltr;font-size:7pt;color:var(--mut);width:14mm}
+.sw{display:inline-block;width:4mm;height:4mm;border-radius:0.8mm;border:0.3mm solid #0004;vertical-align:middle;margin-inline-end:1.2mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sum .en2{display:block;direction:ltr;text-align:left;font-size:6pt;color:var(--mut)}
+.sum tr.tot td{background:#f4f6fa;font-weight:800}
+.rev{font-size:7.6pt;padding:2mm 2.5mm;display:grid;gap:2mm}
+.rev div{display:flex;align-items:center;gap:2mm}
+.rev .b{width:4mm;height:4mm;border:0.45mm solid var(--ink);border-radius:0.6mm;flex:none}
+.rev .ln{flex:1;border-bottom:0.3mm solid #9aa3b2;height:4mm}
+.pf{display:flex;justify-content:space-between;font-size:7pt;color:var(--mut);border-top:0.3mm solid var(--line);padding-top:1.6mm;margin-top:2mm}
+/* ---------- style variants ---------- */
+.v-bold .frame{border-inline-width:3.6mm}
+.v-bold .pal{border-width:0.8mm;border-color:#0007}
+.v-bold .pal .tag{font-size:12pt}
+.v-bold .ph{border-bottom-width:2mm}
+.v-soft .frame{border-inline:1.2mm solid #9fb0c6;border-top:0.8mm solid #9fb0c6;border-radius:2mm 2mm 0 0}
+.v-soft .lvl{border-bottom:1mm solid #f4b183}
+.v-soft .lvl.ground{border-bottom:1.6mm solid #9fb0c6}
+.v-soft .pal{border-radius:3mm;border:0;box-shadow:inset 0 0 0 0.4mm #0002}
+.v-soft .code{border-radius:6mm}
+/* ---------- B&W ---------- */
+.bw .page *{color:#000!important}
+.bw .code{background:#000!important}
+.bw .code *{color:#fff!important}
+.bw .ph{border-bottom-color:#000}
+.bw .lvl{border-bottom-color:#000}
+.bw .frame{border-color:#000}
+.bw .lv-tag em{background:#000;color:#fff!important}
+.bw .lv-tag em *{color:#fff!important}
+.bw .pal .no{background:#fff;border-radius:0.6mm;padding:0 0.6mm}
+.bw .pal .chk{background:#fff}
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:6px;margin-inline-end:8px}
+.tabs button{background:#ffffff22;color:#fff;border:1px solid #ffffff55}
+.tabs button.on{background:#fff;color:var(--ink);font-weight:700}
+.tab{display:none}.tab.on{display:block}
+/* ---------- verification tab ---------- */
+.vwrap{padding:16px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.vstats{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.vstats div{background:#fff;border-radius:12px;box-shadow:0 2px 8px #0001;padding:10px 18px;text-align:center;min-width:130px}
+.vstats b{display:block;font-size:24px}
+.vstats span{font-size:12px;color:var(--mut)}
+.vstats .ok b{color:#1a7f37}.vstats .bad b{color:#c62828}.vstats .pen b{color:#9a6700}.vstats .fx b{color:#0f4c81}
+.vtools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;font-size:13px}
+.vtools select,.vtools button{border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:#fff;cursor:pointer}
+.vsheet{width:297mm;background:#fff;box-shadow:0 4px 18px #0002;padding:9mm 10mm}
+.vsheet h2{margin:0 0 1mm;font-size:16pt;display:flex;justify-content:space-between;align-items:baseline;border-bottom:1.2mm solid var(--acc);padding-bottom:2mm}
+.vsheet h2 small{font-size:10pt;color:var(--mut);font-weight:400;direction:ltr}
+.vsheet .vsub{font-size:8.5pt;color:var(--mut);margin:1.5mm 0 3mm;display:flex;justify-content:space-between;gap:4mm;flex-wrap:wrap}
+table.vt{width:100%;border-collapse:collapse;font-size:8.6pt}
+table.vt th{background:var(--ink);color:#fff;padding:1.8mm 1.2mm;font-weight:600;line-height:1.25}
+table.vt th small{display:block;font-weight:400;opacity:.8;font-size:7pt}
+table.vt td{border:0.3mm solid #d5dbe5;padding:1.2mm 1.4mm;text-align:center;vertical-align:middle}
+table.vt td.itm{text-align:right}
+table.vt td.itm .en{display:block;direction:ltr;text-align:left;font-size:7pt;color:var(--mut)}
+table.vt tr.rk td{background:#eef2f7;font-weight:800;text-align:right;font-size:9.5pt}
+table.vt tr.s-ok td.st{background:#e6f4ea}table.vt tr.s-bad td.st{background:#fdecea}table.vt tr.s-fx td.st{background:#e7f0fa}
+.cb{width:7mm;height:7mm;border:0.6mm solid var(--ink);border-radius:1.2mm;background:#fff;cursor:pointer;font-size:13pt;line-height:1;display:inline-flex;align-items:center;justify-content:center;padding:0;font-weight:800}
+.cb.ok.on{background:#1a7f37;border-color:#1a7f37;color:#fff}
+.cb.bad.on{background:#c62828;border-color:#c62828;color:#fff}
+.fixbox{display:flex;flex-direction:column;gap:1mm;min-width:62mm}
+.fixbox select,.fixbox input{width:100%;border:0.3mm solid var(--line);border-radius:1.2mm;padding:1mm 1.5mm;font-size:8pt;background:#fbfcfe}
+.fixbox button{border:0;border-radius:1.2mm;background:var(--acc);color:#fff;padding:1.2mm;font-size:8pt;cursor:pointer}
+.fixbox .done{font-size:7.5pt;color:#0f4c81;font-weight:700}
+.prt-only{display:none}
+.pal .chk.ok{background:#1a7f37!important;border-color:#1a7f37}
+.pal .chk.ok::after{content:'✓';color:#fff;font-size:8pt;font-weight:800;position:absolute;top:-1.2mm;left:0.5mm}
+.pal .chk.bad{background:#c62828!important;border-color:#c62828}
+.pal .chk.bad::after{content:'✕';color:#fff;font-size:7.5pt;font-weight:800;position:absolute;top:-1mm;left:0.6mm}
+/* ---------- frozen header rows ---------- */
+table.vt thead th,table.mt thead th{position:sticky;top:var(--th0,0px);z-index:5}
+table.mt thead tr:nth-child(2) th{top:var(--th1,0px)}
+/* ---------- toast ---------- */
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:60;box-shadow:0 6px 20px #0004;display:none;max-width:90vw;text-align:center}
+/* ---------- AI assistant ---------- */
+.bar button.ai{background:#7b5cff;color:#fff;font-weight:700}
+#ai{position:fixed;top:0;bottom:0;left:0;width:min(var(--aiw,380px),100vw);background:#fff;z-index:50;box-shadow:6px 0 24px #0003;display:none;flex-direction:column}
+#ai.on{display:flex}
+@media(min-width:1000px){body.ai-open{padding-left:var(--aiw,380px)}body.ai-open .bar{margin-left:0}}
+#aiPill{position:fixed;left:16px;bottom:16px;z-index:55;background:#3b2a8f;color:#fff;border:0;border-radius:24px;padding:10px 16px;font:inherit;font-weight:700;box-shadow:0 6px 18px #0004;cursor:pointer;display:none}
+#aiPill.on{display:block}
+#aiPill i{font-style:normal;background:#ffb703;color:#14213d;border-radius:10px;padding:0 7px;margin-inline-start:6px;font-size:12px}
+#ai header{background:#3b2a8f;color:#fff;padding:12px 14px;display:flex;align-items:center;gap:8px}
+#ai header b{flex:1;font-size:15px}
+#ai header button{background:#ffffff22;color:#fff;border:1px solid #ffffff55;border-radius:8px;padding:5px 10px;cursor:pointer;font:inherit;font-size:13px}
+#ai .log{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px;background:#f6f5fb}
+#ai .m{padding:9px 12px;border-radius:12px;font-size:14px;line-height:1.6;white-space:pre-wrap;max-width:92%}
+#ai .m.u{background:#3b2a8f;color:#fff;align-self:flex-start}
+#ai .m.a{background:#fff;border:1px solid #e3e0f0;align-self:flex-end}
+#ai .m.t{background:#eef7ee;border:1px dashed #8bc48b;font-size:12px;align-self:flex-end;color:#1a5c1a}
+#ai .m.e{background:#fdecea;color:#b42318;font-size:13px;align-self:center}
+#ai .sug{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid #eee}
+#ai .sug button{border:1px solid #d9d3f5;background:#f3f0ff;color:#3b2a8f;border-radius:16px;padding:5px 10px;font:inherit;font-size:12px;cursor:pointer}
+#ai form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid #eee}
+#ai textarea{flex:1;resize:none;height:62px;border:1px solid var(--line);border-radius:10px;padding:8px;font:inherit;font-size:15px}
+#ai form button{background:#3b2a8f;color:#fff;border:0;border-radius:10px;padding:0 16px;font:inherit;font-weight:700;cursor:pointer}
+#ai .off{padding:16px;font-size:14px;line-height:1.7;color:var(--mut)}
+@media print{#ai,#toast{display:none!important}table.vt thead th,table.mt thead th{position:static}}
+/* ---------- match tab ---------- */
+table.mt{width:100%;border-collapse:collapse;font-size:8.4pt}
+table.mt th{background:var(--ink);color:#fff;padding:1.6mm 1mm;font-weight:600;line-height:1.25}
+table.mt th small{display:block;font-weight:400;opacity:.8;font-size:6.8pt}
+table.mt th.g1{background:#2a6f97}table.mt th.g2{background:#6a4c93}table.mt th.g3{background:#2b9348}
+table.mt td{border:0.3mm solid #d5dbe5;padding:1.2mm 1.3mm;text-align:center;vertical-align:middle}
+table.mt td.itm{text-align:right;max-width:70mm}
+table.mt td.itm .en{display:block;direction:ltr;text-align:left;font-size:6.8pt;color:var(--mut)}
+table.mt td.itm .cd{font-size:6.8pt;background:#eef2f7;border-radius:1mm;padding:0 1.2mm;margin-inline-start:1mm;direction:ltr;display:inline-block}
+table.mt td b.big{font-size:10.5pt}
+table.mt td.loc{direction:ltr;font-size:7.2pt;max-width:38mm}
+table.mt tr.tot td{background:#eef2f7;font-weight:800}
+.stt{display:inline-block;border-radius:5mm;padding:0.6mm 2.2mm;font-weight:700;font-size:7.6pt;white-space:nowrap}
+.stt.ok{background:#e6f4ea;color:#1a7f37}.stt.short{background:#fdecea;color:#c62828}.stt.over{background:#e7f0fa;color:#0f4c81}.stt.none{background:#f1f3f6;color:#5b6475}.stt.norec{background:#f3e8ff;color:#6a1b9a}
+.neg{color:#c62828;font-weight:800}.pos{color:#0f4c81;font-weight:800}
+table.mt details summary{cursor:pointer;color:var(--acc);font-size:7pt;list-style:none}
+table.mt details div{font-size:6.8pt;text-align:right;color:var(--mut);line-height:1.5;direction:ltr}
+.rule{font-size:8pt;background:#fff8e1;border:0.3mm solid #f0d27a;border-radius:2mm;padding:2mm 3mm;margin-bottom:3mm;line-height:1.6}
+.bw .stt{background:#fff!important;border:0.3mm solid #000;color:#000!important}
+.bw table.mt th{background:#000!important}
+@media print{
+  .tab{display:none!important}.tab.on{display:block!important}
+  .vwrap{padding:0}.vstats,.vtools{display:none!important}
+  .vsheet{box-shadow:none;width:auto;padding:8mm}
+  .fixbox select,.fixbox button{display:none}
+  .fixbox input{border:0;border-bottom:0.3mm solid #888;border-radius:0}
+  .vsheet input::placeholder{color:transparent}
+  .prt-only{display:block}
+  table.vt tr{break-inside:avoid}
+  table.vt thead{display:table-header-group}
+
+  @page{size:A4 landscape;margin:0}
+  body{background:#fff}
+  .bar,.panel{display:none!important}
+  .wrap{display:block;padding:0}
+  .pages{gap:0}
+  .page{box-shadow:none;page-break-after:always;break-after:page}
+  .page:last-child{page-break-after:auto;break-after:auto}
+}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}.panel{position:static;max-height:none}.pages{overflow-x:auto;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="bar">
+  <h1>خريطة توزيع الراك · Rack Distribution Map <small>v06 · 27/11/2026</small></h1>
+  <div class="tabs"><button class="on" data-tab="tab-map">🗺 خريطة الراك · Rack Map</button><button data-tab="tab-ver">✅ متابعة وتأكيد التوزيع · Verification</button><button data-tab="tab-match">⚖️ مطابقة الاستلام · Receiving Match</button></div>
+  <label>الطباعة · Print</label>
+  <select id="mode"><option value="color">ملون · Colour</option><option value="bw">أبيض وأسود · B&amp;W</option></select>
+  <label>الشكل · Style</label>
+  <select id="variant"><option value="v-classic">كلاسيك · Classic</option><option value="v-bold">عريض · Bold</option><option value="v-soft">ناعم · Soft</option></select>
+  <label>الراك · Rack</label>
+  <select id="only"></select>
+  <button id="reset">البيانات الأصلية · Reset</button>
+  <button class="pri" id="printBtn">🖨 طباعة · Print</button>
+  <button id="aiBtn" class="ai">🤖 المساعد الذكي · AI Assistant</button>
+</div>
+<div class="tab on" id="tab-map">
+<div class="wrap">
+  <div class="panel">
+    <h2>بيانات التوزيع · Distribution data</h2>
+    <table><thead><tr><th>الراك<br>Rack</th><th>المستوى<br>Level</th><th>طبالي<br>Pallets</th><th>الصنف · Item</th><th>ملاحظة<br>Note</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+    <button class="add" id="add">+ إضافة سطر · Add row</button>
+    <p class="hint">• المستوى A = الأرض، وكل حرف بعده مستوى أعلى.<br><span dir="ltr">Level A = floor; each next letter is one level up.</span><br>• سطرين لنفس المستوى = صنفين جنب بعض بالترتيب.<br><span dir="ltr">Two rows on one level = two items side by side, in order.</span><br>• مستوى بدون طبالي اكتب 0 ويطلع «فاضي».<br><span dir="ltr">Enter 0 for an empty level.</span><br>• التعديلات تنحفظ في المتصفح، و«البيانات الأصلية» يرجّع الورقة.<br><span dir="ltr">Changes are saved in this browser; “Reset” restores the paper plan.</span></p>
+  </div>
+  <div class="pages" id="pages"></div>
+</div>
+</div>
+<div class="tab" id="tab-ver"><div class="vwrap">
+  <div class="vstats" id="vstats"></div>
+  <div class="vtools">
+    <label>الراك · Rack</label><select id="vonly"></select>
+    <label>الحالة · Status</label><select id="vfilter"><option value="">الكل · All</option><option value="pen">لم يُراجع · Pending</option><option value="ok">صحيح · Correct</option><option value="bad">خطأ · Wrong</option><option value="fx">تم التصحيح · Corrected</option></select>
+    <button id="vclear">مسح المراجعة · Clear review</button>
+  </div>
+  <div class="vsheet">
+    <h2><span>متابعة وتأكيد التوزيع</span><small>Distribution verification &amp; correction</small></h2>
+    <div class="vsub"><span>✓ = الصنف والعدد صحيح · Item &amp; count correct</span><span>✕ = خطأ، اختر الصنف الصحيح أو اكتبه · Wrong: pick or type the correct item</span><span>التاريخ · Date: <b id="vdate"></b></span></div>
+    <table class="vt"><thead><tr>
+      <th>الموقع<small>Location</small></th><th>الطبالي<small>Pallets</small></th><th>الصنف المسجّل<small>Recorded item</small></th>
+      <th>صحيح<small>Correct</small></th><th>خطأ<small>Wrong</small></th><th>الصنف الصحيح<small>Correct item</small></th><th>العدد الصحيح<small>Correct pallets</small></th>
+    </tr></thead><tbody id="vbody"></tbody></table>
+    <div class="vsub prt-only" style="margin-top:4mm"><span>المراجع · Checked by: ____________________</span><span>التوقيع · Signature: ____________________</span></div>
+  </div>
+</div></div>
+<div class="tab" id="tab-match"><div class="vwrap">
+  <div class="vstats" id="mstats"></div>
+  <div class="vtools">
+    <label>الحالة · Status</label><select id="mfilter"><option value="">الكل · All</option><option value="ok">مطابق · Match</option><option value="short">ناقص · Short</option><option value="over">زيادة · Over</option><option value="none">غير موزع · Not placed</option><option value="norec">غير مستلم · Not received</option></select>
+    <button id="mimport">📥 تحميل ملف الاستلام · Import receiving file (.xlsx)</button><input type="file" id="mfile" accept=".xlsx" style="display:none">
+    <button id="mrestore">بيانات الاستلام الأصلية · Built-in receiving data</button>
+    <span id="msrc" style="color:var(--mut)"></span>
+  </div>
+  <div class="vsheet">
+    <h2><span>مطابقة الاستلام مع التوزيع</span><small>Receiving vs rack distribution match</small></h2>
+    <div class="rule"><b>المنطقة B · Zone B:</b> طبلية 500 أو أقل → <b>400</b> · Pallet ≤500 → <b>400</b> &nbsp;|&nbsp; طبلية فوق 500 → <b>800</b> (أي رقم فوق 800 = 800) · Pallet &gt;500 → <b>800</b> &nbsp;|&nbsp; كرتون القص يكوّن طبالي جديدة · Cut-off cartons form new pallets.<br><b>المنطقة C · Zone C:</b> المستوى D = <b>800</b> للطبلية (4 طبالي) · Level D = <b>800</b>/pallet (4 pallets) &nbsp;|&nbsp; المستويات A / B / C = <b>1000</b> · Levels A/B/C = <b>1000</b>.<br><b>باقي المناطق · Other zones:</b> 1000 للطبلية حتى التأكيد · 1000/pallet until confirmed.</div>
+    <div class="vsub"><span>المصدر · Source: <b id="msrc2"></b></span><span>التاريخ · Date: <b id="mdate"></b></span></div>
+    <table class="mt"><thead><tr>
+      <th rowspan="2">الصنف<small>Item</small></th>
+      <th class="g1" colspan="3">المستلم · Received</th>
+      <th class="g2">حسب الموقع<small>By location</small></th>
+      <th class="g3" colspan="3">الموزع على الراك · On racks</th>
+      <th colspan="2">الفرق · Difference</th>
+      <th rowspan="2">الحالة<small>Status</small></th></tr><tr>
+      <th class="g1">مستندات<small>Docs</small></th><th class="g1">طبالي<small>Pallets</small></th><th class="g1">كرتون<small>Cartons</small></th>
+      <th class="g2">طبالي مطلوبة<small>Pallets needed</small></th>
+      <th class="g3">طبالي<small>Pallets</small></th><th class="g3">كرتون<small>Cartons</small></th><th class="g3">المواقع<small>Locations</small></th>
+      <th>طبالي<small>Pallets</small></th><th>كرتون غير مسكّن<small>Cartons without space</small></th></tr></thead><tbody id="mbody"></tbody></table>
+  </div>
+</div></div>
+<script>
+const ITEMS={
+ LG400:{tag:'LARGE 400G',ar:'جمبري كبير 400 جم بدون ذيل',en:'DARI LARGE SHRIMP 20 X 400 G (WITHOUT TAIL)',c:'#f6c85f',p:'repeating-linear-gradient(45deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ MD400:{tag:'MEDIUM 400G',ar:'جمبري وسط 400 جم بدون ذيل',en:'DARI MEDIUM SHRIMP 20 X 400 G (WITHOUT TAIL)',c:'#ffe29a',p:'repeating-linear-gradient(-45deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ JB400:{tag:'JUMBO 400G',ar:'جمبري جامبو 400 جم بدون ذيل',en:'DARI JUMBO SHRIMP 20 X 400 G (WITHOUT TAIL)',c:'#f28e5c',p:'repeating-linear-gradient(0deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ MD2P:{tag:'MEDIUM 2KG',ar:'جمبري وسط بروفيشنال بالذيل 2 كجم',en:'MEDIUM SHRIMP TAIL ON PROFESSIONAL 5 X 2 KG',c:'#8ecae6',p:'radial-gradient(#000 0.45mm,#fff 0.5mm) 0 0/2.4mm 2.4mm'},
+ LG2P:{tag:'LARGE 2KG',ar:'جمبري كبير بروفيشنال بالذيل 2 كجم',en:'LARGE SHRIMP TAIL ON PROFESSIONAL 5 X 2 KG',c:'#5fa8d3',p:'repeating-linear-gradient(90deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ JB2P:{tag:'JUMBO 2KG',ar:'جمبري جامبو بروفيشنال بالذيل 2 كجم',en:'JUMBO SHRIMP TAIL ON PROFESSIONAL 5 X 2 KG',c:'#3a86c8',p:'repeating-linear-gradient(45deg,#fff 0 1mm,#000 1mm 1.3mm),repeating-linear-gradient(-45deg,#fff 0 1mm,#000 1mm 1.3mm)'},
+ BR750:{tag:'BREADED 750G',ar:'جمبري بقسماط عادي 750 جم',en:'DARI BREADED SHRIMP-REGULAR 12 X 750G',c:'#9bd08f',p:'#fff'},
+ LG750:{tag:'LARGE 750G',ar:'جمبري كبير 750 جم',en:'LARGE SHRIMP 12 X 750 G',c:'#c3a6e0',p:'repeating-linear-gradient(0deg,#fff 0 0.9mm,#000 0.9mm 1.2mm),repeating-linear-gradient(90deg,#fff 0 0.9mm,#000 0.9mm 1.2mm)'},
+ DNG:{tag:'NUGGETS 700G',ar:'ناجت دجاج دو 700 جم',en:'DOUX CHICKEN NUGGETS 12 X 700 G',c:'#f4a259',p:'repeating-linear-gradient(0deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ NPR:{tag:'PROF NUGGETS 1KG',ar:'ناجت دجاج بروفيشنال داري 1 كجم',en:'DARI CHICKEN NUGGETS-PROFESSIONAL 10 X 1 KG',c:'#bc4b51',p:'radial-gradient(#000 0.45mm,#fff 0.5mm) 0 0/2.4mm 2.4mm'},
+ TDX:{tag:'BREAST 2KG',ar:'صدور دجاج طرية دو 5×2 كجم',en:'DOUX TENDER CHICKEN BREASTS 5 X 2 KG',c:'#e9c46a',p:'repeating-linear-gradient(45deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ TCB:{tag:'BREAST 1KG',ar:'صدور دجاج طرية دو 10×1 كجم',en:'DOUX TENDER CHICKEN BREASTS 10 X 1KG',c:'#2a9d8f',p:'repeating-linear-gradient(90deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ CHZ:{tag:'CHEESY 700G',ar:'ستريبس تشيزي دو 700 جم',en:'DOUX CHEESY CHICKEN STRIPS 12 X 700G',c:'#ffd166',p:'radial-gradient(#000 0.45mm,#fff 0.5mm) 0 0/2.4mm 2.4mm'},
+ XSP:{tag:'EXTRA SPICY 700G',ar:'ستريبس إكسترا سبايسي دو 700 جم',en:'DOUX EXTRA SPICY CHICKEN STRIPS 12 X 700 G',c:'#ef476f',p:'repeating-linear-gradient(45deg,#fff 0 1mm,#000 1mm 1.3mm),repeating-linear-gradient(-45deg,#fff 0 1mm,#000 1mm 1.3mm)'},
+ STR:{tag:'PROF STRIPS 1KG',ar:'ستريبس دجاج بروفيشنال داري 1 كجم',en:'DARI CHICKEN STRIPS-PROFESSIONAL 10 X 1 KG',c:'#06d6a0',p:'repeating-linear-gradient(-45deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ MZS:{tag:'MOZZ 180G',ar:'موزاريلا مبشورة داري 180 جم',en:'DARI SHREDDED MOZZARELLA 20 X 180 G',c:'#cdb4db',p:'repeating-linear-gradient(0deg,#fff 0 0.9mm,#000 0.9mm 1.2mm),repeating-linear-gradient(90deg,#fff 0 0.9mm,#000 0.9mm 1.2mm)'},
+ SC8:{tag:'MOZZ 450G',ar:'موزاريلا مبشورة داري 450 جم',en:'DARI SHREDDED MOZZARELLA 8 X 450 G',c:'#a2d2ff',p:'repeating-linear-gradient(0deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ SC4:{tag:'MOZZ 900G',ar:'موزاريلا مبشورة داري 900 جم',en:'DARI SHREDDED MOZZARELLA 4 X 900 G',c:'#bde0fe',p:'repeating-linear-gradient(45deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'},
+ MOZ:{tag:'MOZZ 2KG',ar:'موزاريلا مبشورة داري 5×2 كجم',en:'DARI SHREDDED MOZZARELLA 5 X 2 KG',c:'#ffafcc',p:'repeating-linear-gradient(90deg,#fff 0 1.4mm,#000 1.4mm 1.8mm)'}
+};
+const DEF=[
+ ['B17','A',0,'',''],
+ ['B17','B',0,'',''],
+ ['B17','C',3,'MZS',''],
+ ['B17','D',5,'MZS',''],
+ ['B17','E',6,'MZS',''],
+ ['B18','A',0,'',''],
+ ['B18','B',2,'MOZ',''],
+ ['B18','C',4,'MOZ',''],
+ ['B18','D',6,'MOZ',''],
+ ['B18','E',6,'MOZ',''],
+ ['B19','A',1,'SC8',''],
+ ['B19','B',5,'SC8',''],
+ ['B19','C',5,'SC8',''],
+ ['B19','D',0,'',''],
+ ['B19','E',0,'',''],
+ ['B20','A',5,'SC4',''],
+ ['B20','B',5,'SC4',''],
+ ['B20','C',6,'SC4',''],
+ ['B20','D',6,'SC4',''],
+ ['B20','E',6,'SC4',''],
+ ['C8','A',2,'TDX',''],
+ ['C8','B',4,'TDX',''],
+ ['C8','C',2,'TCB',''],
+ ['C8','D',4,'TCB',''],
+ ['C9','A',5,'XSP',''],
+ ['C9','B',3,'CHZ',''],
+ ['C9','C',4,'CHZ',''],
+ ['C9','D',4,'CHZ',''],
+ ['C10','A',0,'',''],
+ ['C10','B',0,'',''],
+ ['C10','C',4,'STR',''],
+ ['C10','D',4,'STR',''],
+ ['C11','A',3,'DNG',''],
+ ['C11','B',5,'NPR',''],
+ ['C11','C',4,'NPR',''],
+ ['C11','D',0,'',''],
+ ['C14','A',5,'LG400',''],
+ ['C14','B',3,'MD2P',''],
+ ['C14','B',2,'LG400',''],
+ ['C14','C',3,'MD2P',''],
+ ['C14','C',2,'MD2P',''],
+ ['C14','D',6,'MD2P',''],
+ ['D14','A',0,'',''],
+ ['D14','B',3,'BR750',''],
+ ['D14','C',3,'','للتأكيد · To confirm'],
+ ['D14','D',3,'LG400',''],
+ ['D14','E',3,'JB400','']
+];
+const KEY='rackmap_v03';
+let data; try{data=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem('rackmap_v02'))}catch(e){}
+let CUSTOM={}; try{CUSTOM=JSON.parse(localStorage.getItem(KEY+'_items'))||{}}catch(e){}
+Object.assign(ITEMS,CUSTOM);
+if(!Array.isArray(data)) data=JSON.parse(JSON.stringify(DEF));
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(KEY+'_items',JSON.stringify(CUSTOM))}catch(e){}}
+function itemOpts(v){return '<option value="">— فاضي · Empty —</option>'+Object.entries(ITEMS).map(([k,i])=>`<option value="${k}"${k===v?' selected':''}>${i.tag} · ${i.ar}</option>`).join('')}
+function drawRows(){
+ $('#rows').innerHTML=data.map((r,i)=>`<tr>
+  <td><input class="r" data-i="${i}" data-k="0" value="${esc(r[0])}"></td>
+  <td><input class="l" data-i="${i}" data-k="1" value="${esc(r[1])}"></td>
+  <td><input class="n" type="number" min="0" data-i="${i}" data-k="2" value="${r[2]}"></td>
+  <td><select data-i="${i}" data-k="3">${itemOpts(r[3])}</select></td>
+  <td><input data-i="${i}" data-k="4" value="${esc(r[4])}" style="width:62px"></td>
+  <td><button class="del" data-del="${i}">✕</button></td></tr>`).join('');
+}
+function render(){setTimeout(()=>{try{renderM()}catch(e){}},0);
+ const bw=$('#mode').value==='bw', variant=$('#variant').value, only=$('#only').value;
+ document.body.classList.toggle('bw',bw);
+ const racks={};
+ data.forEach(r=>{const rk=String(r[0]).trim().toUpperCase(),lv=String(r[1]).trim().toUpperCase();if(!rk||!lv)return;(racks[rk]??={})[lv]??=[];racks[rk][lv].push({n:Math.max(0,+r[2]||0),it:r[3],nt:r[4],st:r[5]||''})});
+ const names=Object.keys(racks).sort((a,b)=>a.localeCompare(b,'en',{numeric:true}));
+ const cur=$('#only').value; $('#only').innerHTML='<option value="">الكل · All</option>'+names.map(n=>`<option${n===cur?' selected':''}>${n}</option>`).join('');
+ const today=new Date().toLocaleDateString('en-GB');
+ $('#pages').innerHTML=names.filter(n=>!only||n===only).map(rk=>{
+  const lvls=racks[rk], keys=Object.keys(lvls).sort();
+  const top=keys[keys.length-1]; const all=[];for(let c='A'.charCodeAt(0);c<=top.charCodeAt(0);c++)all.push(String.fromCharCode(c));
+  const cnt=l=>(lvls[l]||[]).reduce((a,s)=>a+s.n,0);
+  const slots=Math.max(5,...all.map(cnt));
+  const tot=all.reduce((a,l)=>a+cnt(l),0);
+  const sum={};let k=0;
+  const rows=all.slice().reverse().map(l=>{
+   const segs=lvls[l]||[];let html='',used=0;
+   segs.forEach(s=>{for(let j=0;j<s.n;j++){const it=ITEMS[s.it];used++;k++;
+     if(!it){html+=`<div class="pal empty" style="border-color:#e07a1f"><div class="lbl"><b>؟</b> ${s.nt?esc(s.nt):'بدون صنف<br>No item'}</div></div>`;continue}
+     (sum[s.it]??={n:0,l:new Set()}).n++;sum[s.it].l.add(l);
+     const bg=bw?it.p:it.c;
+     html+=`<div class="pal" style="background:${bg}"><span class="no">${rk}-${l}-${used}</span><span class="chk ${s.st==='ok'||s.st==='fx'?'ok':s.st==='bad'?'bad':''}"></span>
+      <div class="tag"${bw?' style="background:#fff;border-radius:1mm;padding:0.4mm 0"':''}>${it.tag}</div>
+      <div${bw?' style="background:#fff;border-radius:1mm;padding:0.6mm"':''}><div class="ar">${it.ar}</div><div class="en">${it.en}</div>${s.nt?`<div class="nt">${esc(s.nt)}</div>`:''}</div></div>`}});
+   for(;used<slots;used++)html+=`<div class="pal empty"><div class="lbl">فاضي<br>Empty</div></div>`;
+   return `<div class="lvl${l==='A'?' ground':''}"><div class="lv-tag"><b>${rk}-${l}</b><i>${l==='A'?'أرضي · Floor':'مستوى · Level'}</i><em>${cnt(l)}</em></div><div class="slots">${html}</div></div>`}).join('');
+  const sumRows=Object.entries(sum).map(([key,v])=>{const it=ITEMS[key];return `<tr><td><span class="sw" style="background:${bw?it.p:it.c}"></span>${it.ar}<span class="en2">${it.en}</span></td><td class="l">${[...v.l].sort().join(' · ')}</td><td class="c">${v.n}</td></tr>`}).join('');
+  return `<section class="page ${variant}">
+   <div class="ph"><div class="code"><b>${rk}</b><span>الراك · Rack</span></div>
+    <div class="ttl"><div class="t1">خريطة توزيع الطبالي على الراك</div><div class="t2">Pallet distribution map — Dry store · Al-Munajem Foods</div></div>
+    <div class="kpi"><div><b>${tot}</b><span>طبالي · Pallets</span></div><div><b>${all.length}</b><span>مستويات · Levels</span></div><div><b>${Object.keys(sum).length}</b><span>أصناف · Items</span></div></div>
+    <div class="meta"><span>التاريخ · Date</span><b>${today}</b><span>الاستلام · Receiving</span><b>Ahmed Sadat</b><span>الرافعة · Forklift</span><b>ARMAN</b></div></div>
+   <div class="body"><div class="rack"><div class="frame">${rows}</div><div class="floor"><span>◀ الواجهة · Front (P1)</span><span>الأرض · Floor</span><span>الخلف · Back ▶</span></div></div>
+    <div class="side"><div class="box"><h3>ملخص الأصناف <small>Item summary</small></h3><table class="sum">${sumRows}<tr class="tot"><td>الإجمالي · Total</td><td></td><td class="c">${tot}</td></tr></table></div>
+     <div class="box"><h3>المراجعة الفيزيائية <small>Physical check</small></h3><div class="rev">
+      <div><span class="b"></span>التوزيع مطابق · Matches</div>
+      <div><span class="b"></span>يحتاج تعديل · Needs change</div>
+      <div>ملاحظات · Notes<span class="ln"></span></div><div><span class="ln"></span></div><div><span class="ln"></span></div>
+      <div>المراجع · By<span class="ln"></span></div></div></div>
+     <div class="box"><h3>طريقة القراءة <small>How to read</small></h3><div class="rev" style="font-size:7pt">
+      <div>• كل مربع = طبلية واحدة · Each box = 1 pallet</div>
+      <div>• الرقم الأسود = عدد طبالي المستوى · Dark pill = pallets per level</div>
+      <div>• المربع ☐ للتأشير بعد التسكين · Tick after put-away</div></div></div>
+    </div></div>
+   <div class="pf"><span>المستودع الجاف – شركة المنجم للأغذية · Dry Store – Al-Munajem Foods</span><span>${rk.startsWith('B')?'قص الموزاريلا · Cut: طبلية 500 → 400 (لاين) · طبلية 1000 → 800 (لاينين) — العدد للتأكيد · count to verify':''}</span><span>Rack Map v06 · 2026-11-27</span></div>
+  </section>`}).join('');
+}
+document.addEventListener('input',e=>{const t=e.target;if(t.dataset.i!==undefined){const i=+t.dataset.i,k=+t.dataset.k;data[i][k]=k===2?(+t.value||0):(k<2?t.value.toUpperCase():t.value);save();render()}});
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset.i!==undefined&&t.tagName==='SELECT'){data[+t.dataset.i][3]=t.value;save();render()}else if(['mode','variant','only'].includes(t.id))render()});
+document.addEventListener('click',e=>{const d=e.target.dataset.del;if(d!==undefined){data.splice(+d,1);save();drawRows();render()}});
+$('#add').onclick=()=>{const last=data[data.length-1]||['C1','A',0,'',''];data.push([last[0],last[1],1,'','']);save();drawRows();render()};
+$('#reset').onclick=()=>{data=JSON.parse(JSON.stringify(DEF));save();drawRows();render()};
+const RECV0=[["CRL22615815", "E", "12/11", "BR", "CARTON TENDERIZED CHICKEN BREAST PROFESSIONAL -DARI 5*2 KG", 12475, 13, "—"], ["CRL22615815", "E", "12/11", "DRC", "CARTON CHICKEN CUBES -DARI 12*700 G", 3850, 4, "—"], ["CRL22615815", "E", "12/11", "DXC", "CARTON CHICKEN CUBES JUICY -DOUX 12*700 G", 3500, 4, "—"], ["DN 206200", "F", "12/11", "MOZ", "CARTON SHREDDED MOZZARELLA CHEESE -DARI 5*2 KG", 7030, 7, "—"], ["DN 206200", "F", "12/11", "MSH", "CARTON MEDIUM SHRIMP PROFESSIONAL -DARI", 3000, 3, "—"], ["DN 206200", "F", "12/11", "NUG", "CARTON CHICKEN NUGGETS -DARI 1 KG", 4885, 5, "—"], ["DN 206200", "F", "12/11", "TCB", "CARTON FOR TENDERIZED - DOUX 1 KG", 4980, 5, "—"], ["DN 206201", "F", "12/11", "MSH", "CARTON MEDIUM SHRIMP PROFESSIONAL -DARI", 1957, 2, "—"], ["DN 206201", "F", "12/11", "MWT", "CARTON MEDIUM SHRIMP WITHOUT TAIL -DARI", 4150, 4, "—"], ["DN 206201", "F", "12/11", "NTL", "CARTON LARGE SHRIMP WITHOUT TAIL -DARI", 4000, 4, "—"], ["DN 206204", "F", "12/11", "BRD", "CARTON CHICKEN NUGGETS -DOUX 1 KG", 4822, 5, "—"], ["DN 206204", "F", "12/11", "JMB", "CARTON JUMBO SHRIMP PROFESSIONAL -DARI", 4962, 5, "—"], ["DN 206204", "F", "12/11", "LSH", "CARTON LARGE SHRIMP PROFESSIONAL -DARI", 4936, 5, "—"], ["DN 206204", "F", "12/11", "NTL", "CARTON LARGE SHRIMP WITHOUT TAIL -DARI", 983, 1, "—"], ["DN 206204", "F", "12/11", "SPC", "CARTON FOR SPICY STRIPS -DOUX 700 GM", 4000, 4, "—"], ["CRL22615949", "E", "14/11", "MZS", "CARTON SHREDDED MOZZARELLA -DARI 20*180 G", 3000, 6, "6×500"], ["CRL22615949", "E", "14/11", "NPR", "CARTON CHICKEN NUGGETS PROFESSIONAL -DARI 10*1 KG", 5500, 6, "5×1000 + 500"], ["CRL22615949", "E", "14/11", "STR", "CARTON CHICKEN STRIPS PROFESSIONAL -DARI 10*1 KG", 8500, 9, "8×1000 + 500"], ["CRL22615957", "E", "15/11", "DNG", "DOUX CHICKEN NUGGETS 12 X 700 G", 3125, 4, "—"], ["DN 206280", "F", "16/11", "CHZ", "CARTON CHEESY CHICKEN -DOUX 12*700 G", 5783, 6, "5×1000 + 783"], ["DN 206280", "F", "16/11", "DST", "CARTON CHICKEN STRIPS -DOUX 12*700 G", 5094, 5, "4×1000 + 1094"], ["DN 206280", "F", "16/11", "JWT", "CARTON JUMBO SHRIMP WITHOUT TAIL -DARI", 4866, 5, "4×1000 + 866"], ["DN 206280", "F", "16/11", "MZS", "CARTON SHREDDED MOZZARELLA -DARI 20*180 G", 4000, 4, "4×1000"], ["DN 206277/2", "F", "16/11", "CHZ", "CARTON CHEESY CHICKEN -DOUX 12*700 G", 5040, 5, "4×1000 + 1040"], ["DN 206277/2", "F", "16/11", "SPC", "CARTON FOR SPICY STRIPS -DOUX 700 GM", 1540, 2, "1000 + 540"], ["DN 206277/1", "F", "16/11", "MZS", "CARTON SHREDDED MOZZARELLA -DARI 20*180 G", 553, 1, "553"], ["DN 206277/1", "F", "16/11", "SC4", "DARI SHREDDED CHEESE 900G X 4", 5130, 5, "4×1000 + 1130"], ["DN 206277/1", "F", "16/11", "SC8", "DARI SHREDDED CHEESE 450G X 8", 4950, 5, "4×1000 + 950"], ["DN 206277/1", "F", "16/11", "XSP", "DOUX EXTRA SPICY 12X700", 5043, 5, "4×1000 + 1043"], ["CRL22616042", "E", "17/11", "DTB", "DARI TENDER CHICKEN BREAST 5 X 2 KG", 20000, 20, "20×1000"], ["CRL22616047", "E", "17/11", "BSR", "DARI BREADED SHRIMP-REGULAR 12 X 750G", 3150, 3, "2×1000 + 1150"], ["CRL22616047", "E", "17/11", "JMB", "CARTON JUMBO SHRIMP PROFESSIONAL -DARI", 3275, 7, "275 + 6×500"], ["CRL22616047", "E", "17/11", "LSH", "CARTON LARGE SHRIMP PROFESSIONAL -DARI", 3200, 7, "200 + 6×500"], ["CRL22616047", "E", "17/11", "MOZ", "CARTON SHREDDED MOZZARELLA CHEESE -DARI 5*2 KG", 1000, 2, "2×500"], ["CRL22616047", "E", "17/11", "MSH", "CARTON MEDIUM SHRIMP PROFESSIONAL -DARI", 3075, 7, "75 + 6×500"], ["CRL22616043", "E", "19/11", "MOZ", "CARTON SHREDDED MOZZARELLA CHEESE -DARI 5*2 KG", 3000, 6, "6×500"], ["CRL22616043", "E", "19/11", "SC8", "DARI SHREDDED CHEESE 450G X 8", 4250, 9, "250 + 8×500"], ["CRL22616043", "E", "19/11", "SC4", "DARI SHREDDED CHEESE 900G X 4", 8600, 18, "100 + 17×500"], ["LM 577316", "E", "21/11", "TDX", "DOUX TENDER CHICKEN BREASTS 5 X 2 KG FROZEN 1BY1", 5875, 6, "875 + 5×1000"], ["LM 577316", "E", "21/11", "DST", "DOUX REGULAR CHICKEN STRIPS 12 X 700G", 12890, 13, "890 + 12×1000"], ["DN 206387", "F", "22/11", "DTB", "TENDER CHICKEN 5X2 KG", 20000, 20, "20×1000"], ["DN 206395", "F", "22/11", "DTB", "TENDER CHICKEN 5X2 KG", 4545, 5, "4×1000 + 545"], ["LM 577476", "E", "22/11", "DT1", "DARI TENDER CHICKEN BREAST 10 X 1 KG", 8550, 9, "550 + 8×1000"], ["CRL22616581", "E", "26/11", "DTB", "DARI TENDER CHICKEN BREAST 5 X 2 KG", 20000, 20, "20×1000"]];
+const RAR={BR:'صدور طرية بروفيشنال داري 5×2',DRC:'مكعبات دجاج داري 700 جم',DXC:'مكعبات دجاج جوسي دو 700 جم',MOZ:'موزاريلا مبشورة داري 5×2 كجم',MSH:'جمبري وسط بروفيشنال بالذيل 2 كجم',LSH:'جمبري كبير بروفيشنال بالذيل 2 كجم',JMB:'جمبري جامبو بروفيشنال بالذيل 2 كجم',NUG:'ناجت دجاج داري 1 كجم',TCB:'صدور طرية دو 10×1 كجم',MWT:'جمبري وسط 400 جم بدون ذيل',NTL:'جمبري كبير 400 جم بدون ذيل',JWT:'جمبري جامبو 400 جم بدون ذيل',BRD:'دجاج بقسماط دو 1 كجم',SPC:'ستريبس سبايسي دو 700 جم',MZS:'موزاريلا مبشورة داري 180 جم',NPR:'ناجت بروفيشنال داري 1 كجم',STR:'ستريبس بروفيشنال داري 1 كجم',DNG:'ناجت دجاج دو 700 جم',CHZ:'ستريبس تشيزي دو 700 جم',DST:'ستريبس دجاج دو 700 جم',SC4:'موزاريلا مبشورة داري 900 جم',SC8:'موزاريلا مبشورة داري 450 جم',XSP:'ستريبس إكسترا سبايسي دو 700 جم',DTB:'صدور طرية داري 5×2 كجم',BSR:'جمبري بقسماط عادي 750 جم',TDX:'صدور طرية دو 5×2 كجم',DT1:'صدور طرية داري 10×1 كجم'};
+const MAP2REC={LG400:'NTL',MD400:'MWT',JB400:'JWT',MD2P:'MSH',LG2P:'LSH',JB2P:'JMB',BR750:'BSR',LG750:null};
+const recCode=k=>k in MAP2REC?MAP2REC[k]:k;
+let RECV=RECV0,RSRC='Receiving_Details_AreaC_2026-11-27 · 17 مستند · docs (12/11 → 26/11)';
+try{const x=JSON.parse(localStorage.getItem(KEY+'_recv'));if(x&&Array.isArray(x.rows)){RECV=x.rows;RSRC=x.src}}catch(e){}
+function palList(qty,pal,bd){qty=+qty||0;pal=+pal||0;let out=[];
+ String(bd||'').split('+').forEach(p=>{p=p.trim();const m=p.match(/^(\d+)\s*[×xX*]\s*(\d+)$/);if(m){for(let i=0;i<+m[1];i++)out.push(+m[2])}else if(/^\d+$/.test(p))out.push(+p)});
+ if(out.reduce((a,b)=>a+b,0)!==qty||!out.length){out=[];if(!pal)pal=Math.max(1,Math.round(qty/1000));const size=qty/pal>600?1000:500;let k=Math.min(pal,Math.floor(qty/size)),rem=qty-k*size;
+  for(let i=0;i<k;i++)out.push(size);if(rem>0){if(out.length>=pal&&out.length){out[out.length-1]+=rem}else out.push(rem)}}
+ return out}
+function afterCut(list){let kept=[],left=0,big=false;list.forEach(q=>{const cap=q<=500?400:800;if(cap===800)big=true;kept.push(Math.min(q,cap));left+=Math.max(0,q-cap)});
+ const capL=big?800:400;while(left>0){const t=Math.min(capL,left);kept.push(t);left-=t}
+ return {pals:kept.sort((a,b)=>b-a),capL}}
+function renderM(){
+ const flt=$('#mfilter').value, A={};
+ RECV.forEach(r=>{const c=String(r[3]||'').toUpperCase();if(!c)return;const a=(A[c]??={code:c,en:r[4],docs:new Set(),qty:0,pal:0,list:[],lines:[],dist:0,locs:[],mapKeys:new Set()});
+  a.docs.add(r[0]);a.qty+=+r[5]||0;a.pal+=+r[6]||0;const L=palList(r[5],r[6],r[7]);a.list.push(...L);a.lines.push(`${r[0]} (${r[1]==='E'?'Eastern':'Future'} ${r[2]}): ${(+r[5]).toLocaleString('en')} / ${r[6]} pal${r[7]&&r[7]!=='—'?' · '+r[7]:''}`)});
+ data.forEach(r=>{const k=r[3],n=+r[2]||0;if(!k||!n)return;const c=recCode(k)||('MAP:'+k);const a=(A[c]??={code:c,en:(ITEMS[k]||{}).en||k,docs:new Set(),qty:0,pal:0,list:[],lines:[],dist:0,locs:[],mapKeys:new Set(),norec:true});
+  (a.place??=[]).push({rk:String(r[0]).toUpperCase(),lv:String(r[1]).toUpperCase(),n});a.dist+=n;a.locs.push(`${String(r[0]).toUpperCase()}-${String(r[1]).toUpperCase()}×${n}`);a.mapKeys.add(k)});
+ const nat=(x,y)=>x.code.localeCompare(y.code);
+ let T={qty:0,pal:0,exp:0,dist:0,cov:0},C={ok:0,short:0,over:0,none:0,norec:0},html='';
+ Object.values(A).sort(nat).forEach(a=>{
+  const cut=a.qty?afterCut(a.list):{pals:[],capL:800};
+  // capacity of each placed pallet by location: zone B = cut list (≤500→400, >500→800); zone C level D = 800; zone C A/B/C = 1000; other = 1000
+  const caps=[];let bi=0;const capTxt=new Set();
+  (a.place||[]).forEach(p=>{for(let j=0;j<p.n;j++){let c;
+   if(p.rk.startsWith('B')){c=bi<cut.pals.length?cut.pals[bi]:cut.capL;bi++;capTxt.add('B: '+(cut.capL===800?'800/400':'400'))}
+   else if(p.rk.startsWith('C')&&p.lv==='D'){c=800;capTxt.add('C-D: 800')}
+   else{c=1000;capTxt.add(p.rk[0]+'-A/B/C: 1000')}
+   caps.push(c)}});
+  const capSum=caps.reduce((x,y)=>x+y,0), cov=Math.min(capSum,a.qty), dc=a.qty-cov;
+  let dp=0;
+  if(a.qty&&a.dist){
+   if(dc>0){const last=(a.place[a.place.length-1]||{});const lc=last.rk&&last.rk.startsWith('B')?cut.capL:(last.rk&&last.rk.startsWith('C')&&last.lv==='D'?800:1000);dp=-Math.ceil(dc/lc)}
+   else{let sum=capSum;const sc=[...caps].sort((x,y)=>x-y);for(const c of sc){if(sum-c>=a.qty){sum-=c;dp++}else break}}
+  }
+  const exp=a.qty?(a.dist?a.dist-dp:Math.ceil(a.qty/1000)):0;
+  const st=a.norec&&!a.qty?'norec':!a.dist?'none':dp===0?'ok':dp<0?'short':'over';C[st]++;
+  T.qty+=a.qty;T.pal+=a.pal;T.exp+=exp;T.dist+=a.dist;T.cov+=cov;
+  if(flt&&st!==flt)return;
+  const lab={ok:'🟢 مطابق · Match',short:`🔴 ناقص ${-dp} · Short ${-dp}`,over:`🔵 زيادة ${dp} · Over ${dp}`,none:'⚪ غير موزع · Not placed',norec:'🟣 غير مستلم · Not received'}[st];
+  const it=[...a.mapKeys].map(k=>ITEMS[k]).find(Boolean);
+  const ar=RAR[a.code]||(it&&it.ar)||'';
+  html+=`<tr><td class="itm">${ar}<span class="cd">${a.code.replace('MAP:','')}</span><span class="en">${esc(a.en||'')}</span>${a.lines.length?`<details><summary>المستندات · Documents ▾</summary><div>${a.lines.map(esc).join('<br>')}<br>After cut: ${cut.pals.join(' + ')}</div></details>`:''}</td>
+   <td>${a.docs.size||'—'}</td><td><b>${a.pal||'—'}</b></td><td><b>${a.qty?a.qty.toLocaleString('en'):'—'}</b></td>
+   <td><b class="big">${exp||'—'}</b><br><small style="color:var(--mut);direction:ltr;display:inline-block">${[...capTxt].join(' · ')}</small></td>
+   <td><b class="big">${a.dist||'—'}</b></td><td>${cov?cov.toLocaleString('en'):'—'}</td><td class="loc">${a.locs.join(' · ')||'—'}</td>
+   <td class="${dp<0?'neg':dp>0?'pos':''}">${a.qty?(dp>0?'+':'')+dp:'—'}</td><td class="${dc>0?'neg':''}">${a.qty?dc.toLocaleString('en'):'—'}</td>
+   <td><span class="stt ${st}">${lab}</span></td></tr>`});
+ html+=`<tr class="tot"><td>الإجمالي · Total</td><td></td><td>${T.pal}</td><td>${T.qty.toLocaleString('en')}</td><td>${T.exp}</td><td>${T.dist}</td><td>${T.cov.toLocaleString('en')}</td><td></td><td>${T.dist-T.exp}</td><td>${(T.qty-T.cov).toLocaleString('en')}</td><td></td></tr>`;
+ $('#mbody').innerHTML=html;
+ $('#mstats').innerHTML=`<div class="ok"><b>${C.ok}</b><span>مطابق · Match</span></div><div class="bad"><b>${C.short}</b><span>ناقص · Short</span></div><div class="fx"><b>${C.over}</b><span>زيادة · Over</span></div><div class="pen"><b>${C.none}</b><span>غير موزع · Not placed</span></div><div><b style="color:#6a1b9a">${C.norec}</b><span>غير مستلم · Not received</span></div><div><b>${T.dist} / ${T.exp}</b><span>طبالي موزعة / متوقعة · Placed / expected</span></div>`;
+ $('#msrc').textContent=RSRC;$('#msrc2').textContent=RSRC;$('#mdate').textContent=new Date().toLocaleDateString('en-GB');
+}
+function loadXLSX(cb){if(window.XLSX)return cb();const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';sc.onload=cb;sc.onerror=()=>toast('تعذّر تحميل قارئ الإكسل، تأكد من الإنترنت · Could not load the Excel reader, check internet');document.head.appendChild(sc)}
+$('#mimport').onclick=()=>$('#mfile').click();
+$('#mfile').onchange=e=>{const file=e.target.files[0];if(!file)return;loadXLSX(()=>{const fr=new FileReader();fr.onload=ev=>{try{
+ const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array',cellDates:true});const sn=wb.SheetNames.find(n=>/Log/i.test(n))||wb.SheetNames.find(n=>n.includes('سجل الأصناف'));
+ if(!sn)throw new Error('sheet');const rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true});const out=[];
+ rows.slice(4).forEach(r=>{if(!r[1]||!r[4])return;const d=r[3] instanceof Date?r[3].toLocaleDateString('en-GB').slice(0,5):'';out.push([String(r[1]),/Eastern|إيسترن/i.test(String(r[2]))?'E':'F',d,String(r[4]).trim(),r[6]||'',+r[8]||0,+r[9]||0,String(r[10]||'')])});
+ if(!out.length)throw new Error('empty');const docs=new Set(out.map(r=>r[0])).size;
+ RECV=out;RSRC=`${file.name} · ${docs} مستند · docs`;try{localStorage.setItem(KEY+'_recv',JSON.stringify({rows:out,src:RSRC}))}catch(_){}
+ renderM()}catch(err){toast('الملف غير مطابق لملف تفاصيل الاستلام · File is not a receiving-details workbook')}};fr.readAsArrayBuffer(file)});e.target.value=''};
+$('#mrestore').onclick=()=>{RECV=RECV0;RSRC='Receiving_Details_AreaC_2026-11-27 · 17 مستند · docs (12/11 → 26/11)';try{localStorage.removeItem(KEY+'_recv')}catch(_){}renderM()};
+$('#mfilter').onchange=renderM;
+function vstatus(r){return r[5]||'pen'}
+function itemOptsV(v){return '<option value="">— اختر الصنف الصحيح · Pick correct item —</option>'+Object.entries(ITEMS).map(([k,i])=>`<option value="${k}"${k===v?' selected':''}>${i.tag} · ${i.en}</option>`).join('')}
+function renderV(){
+ const only=$('#vonly').value, flt=$('#vfilter').value;
+ const nat=(a,b)=>String(a).localeCompare(String(b),'en',{numeric:true});
+ const racks=[...new Set(data.map(r=>String(r[0]).toUpperCase()))].sort(nat);
+ $('#vonly').innerHTML='<option value="">الكل · All</option>'+racks.map(n=>`<option${n===only?' selected':''}>${n}</option>`).join('');
+ const idx=data.map((r,i)=>i).filter(i=>+data[i][2]>0||data[i][3]).sort((a,b)=>nat(data[a][0],data[b][0])||String(data[b][1]).localeCompare(String(data[a][1]))||a-b);
+ const cnt={pen:0,ok:0,bad:0,fx:0},pal={pen:0,ok:0,bad:0,fx:0};
+ idx.forEach(i=>{const st=vstatus(data[i]);cnt[st]++;pal[st]+=(+data[i][2]||0)});
+ $('#vstats').innerHTML=`<div class="pen"><b>${cnt.pen}</b><span>لم يُراجع · Pending (${pal.pen} طبلية · pallets)</span></div><div class="ok"><b>${cnt.ok}</b><span>صحيح · Correct (${pal.ok})</span></div><div class="bad"><b>${cnt.bad}</b><span>خطأ · Wrong (${pal.bad})</span></div><div class="fx"><b>${cnt.fx}</b><span>تم التصحيح · Corrected (${pal.fx})</span></div>`;
+ let last='',html='';
+ idx.forEach(i=>{const r=data[i],rk=String(r[0]).toUpperCase(),st=vstatus(r);
+  if(only&&rk!==only)return; if(flt&&st!==flt)return;
+  if(rk!==last){html+=`<tr class="rk"><td colspan="7">الراك · Rack ${rk}</td></tr>`;last=rk}
+  const it=ITEMS[r[3]];
+  const name=it?`${it.ar}<span class="en">${it.en}</span>`:`<b>؟</b> ${esc(r[4]||'بدون صنف · No item')}`;
+  const fixed=st==='fx'?`<div class="done">✔ صُحّح من · Corrected from: ${esc(r[8]||'')}</div>`:'';
+  html+=`<tr class="s-${st}"><td><b dir="ltr">${rk}-${String(r[1]).toUpperCase()}</b></td><td><b>${r[2]}</b></td><td class="itm">${name}</td>
+   <td class="st"><button class="cb ok${st==='ok'||st==='fx'?' on':''}" data-vok="${i}" title="صحيح · Correct">${st==='ok'||st==='fx'?'✓':''}</button></td>
+   <td class="st"><button class="cb bad${st==='bad'?' on':''}" data-vbad="${i}" title="خطأ · Wrong">${st==='bad'?'✕':''}</button></td>
+   <td><div class="fixbox"><select data-vsel="${i}">${itemOptsV(r[6]||'')}</select><input data-vtxt="${i}" placeholder="أو اكتب الاسم الصحيح · or type the correct name" value="${esc(r[7]||'')}"><button data-vapply="${i}">تطبيق التصحيح · Apply correction</button>${fixed}</div></td>
+   <td><input data-vqty="${i}" type="number" min="0" style="width:16mm;text-align:center;border:0.3mm solid var(--line);border-radius:1.2mm;padding:1mm" value="${r[9]??''}" placeholder="${r[2]}"></td></tr>`});
+ $('#vbody').innerHTML=html||'<tr><td colspan="7">لا يوجد · Nothing to show</td></tr>';
+ $('#vdate').textContent=new Date().toLocaleDateString('en-GB');
+}
+function setRow(i,k,v){while(data[i].length<10)data[i].push('');data[i][k]=v}
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+ if(d.tab){document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.id===d.tab));if(d.tab==='tab-ver')renderV();if(d.tab==='tab-match')renderM();return}
+ if(d.vok!==undefined){const i=+d.vok;setRow(i,5,vstatus(data[i])==='ok'?'':'ok');save();renderV();render();return}
+ if(d.vbad!==undefined){const i=+d.vbad;setRow(i,5,vstatus(data[i])==='bad'?'':'bad');save();renderV();render();return}
+ if(d.vapply!==undefined){const i=+d.vapply,r=data[i];let key=r[6]||'';const txt=String(r[7]||'').trim();
+  if(!key&&txt){key='CUS_'+txt.toUpperCase().replace(/[^A-Z0-9]+/g,'_').slice(0,24);if(!ITEMS[key]){CUSTOM[key]={tag:txt.toUpperCase().slice(0,16),ar:txt,en:txt.toUpperCase(),c:'#d9d9d9',p:'#fff'};ITEMS[key]=CUSTOM[key]}}
+  const q=r[9]===''||r[9]===undefined?null:+r[9];
+  if(!key&&q===null){toast('اختر أو اكتب الصنف الصحيح، أو العدد الصحيح · Pick/type the correct item or pallets');return}
+  const old=(ITEMS[r[3]]?ITEMS[r[3]].tag:(r[3]||'—'))+' ×'+r[2];
+  if(key)r[3]=key; if(q!==null)r[2]=q;
+  setRow(i,8,old);setRow(i,5,'fx');setRow(i,6,'');setRow(i,7,'');setRow(i,9,'');
+  save();drawRows();render();renderV();renderM();return}
+});
+document.addEventListener('change',e=>{const t=e.target;
+ if(t.dataset.vsel!==undefined){setRow(+t.dataset.vsel,6,t.value);save()}
+ else if(['vonly','vfilter'].includes(t.id))renderV()});
+document.addEventListener('input',e=>{const t=e.target;
+ if(t.dataset.vtxt!==undefined){setRow(+t.dataset.vtxt,7,t.value);save()}
+ if(t.dataset.vqty!==undefined){setRow(+t.dataset.vqty,9,t.value===''?'':+t.value);save()}});
+let vcl=0;$('#vclear').onclick=()=>{const b=$('#vclear');if(!vcl){vcl=1;b.textContent='اضغط مرة ثانية للتأكيد · Click again to confirm';setTimeout(()=>{vcl=0;b.textContent='مسح المراجعة · Clear review'},3000);return}vcl=0;b.textContent='مسح المراجعة · Clear review';{data.forEach(r=>{if(r.length>5){r[5]='';r[6]='';r[7]='';r[8]='';r[9]=''}});save();render();renderV()}};
+drawRows();render();renderV();
+</script>
+<div id="toast"></div>
+<button id="aiPill">🤖 المساعد · Assistant<i id="aiUnread" hidden>0</i></button>
+<aside id="ai" aria-label="AI assistant">
+  <header><b>🤖 المساعد · AI</b><button id="aiUndo" title="Undo">↩ تراجع · Undo</button><button id="aiWide" title="Width · العرض">⇔</button><button id="aiMin" title="تصغير · Minimise">—</button><button id="aiClose" title="إغلاق · Close">✕</button></header>
+  <div class="log" id="aiLog"><div class="m a">أهلاً يا أحمد 👋 أقدر أعدّل التوزيع، أضيف مواقع وأصناف، أصحّح، وأراجع المطابقة مع الاستلام. اكتب طلبك بالعربي أو الإنجليزي.
+Hi Ahmed — I can edit the distribution, add locations and items, apply corrections and check the receiving match. Ask in Arabic or English.</div></div>
+  <div class="sug" id="aiSug">
+    <button>أيش الأصناف الناقصة في المطابقة؟ · Which items are short?</button>
+    <button>انقل طبالي C10-C إلى C10-B · Move C10-C pallets to C10-B</button>
+    <button>اعرض الأصناف غير الموزعة · List items not placed</button>
+  </div>
+  <form id="aiForm"><textarea id="aiIn" placeholder="اكتب طلبك… · Type your request…"></textarea><button>إرسال<br>Send</button></form>
+</aside>
+<script>
+{
+const toastEl=document.getElementById('toast');let tt;
+window.toast=(m)=>{toastEl.textContent=m;toastEl.style.display='block';clearTimeout(tt);tt=setTimeout(()=>toastEl.style.display='none',3800)};
+/* frozen header rows */
+function stick(){const h=document.querySelector('.bar').offsetHeight;document.documentElement.style.setProperty('--th0',h+'px');
+ const r1=document.querySelector('table.mt thead tr');if(r1&&r1.offsetHeight)document.documentElement.style.setProperty('--th1',(h+r1.offsetHeight)+'px')}
+const ro=new ResizeObserver(stick);ro.observe(document.querySelector('.bar'));
+document.addEventListener('click',e=>{if(e.target.closest('[data-tab]'))setTimeout(stick,30)});
+stick();
+/* print: local file prints; on the Claude link, download a printable copy */
+let dl=null;
+document.getElementById('printBtn').onclick=async()=>{
+ if(!dl){try{window.print()}catch(e){}return}
+ try{const html='<!DOCTYPE html>\n'+document.documentElement.outerHTML
+   .replace(/<section class="page[\s\S]*?<\/section>/g,'')
+   .replace(/const DEF=\[[\s\S]*?\n\];/,'const DEF='+JSON.stringify(data).replace(/</g,'\\u003c')+';')
+   .replace("const KEY='rackmap_v03'","const KEY='rackmap_print_'+Date.now()")
+   .replace("||localStorage.getItem('rackmap_v02')","")
+   .replace("let RECV=RECV0,","let RECV="+JSON.stringify(RECV).replace(/</g,'\\u003c')+",");
+  await dl.save({filename:'Rack_Map_print_'+new Date().toISOString().slice(0,10)+'.html',data:new Blob([html],{type:'text/html'})});
+  toast('نزّل الملف وافتحه واطبع منه · Open the downloaded file and print from it')}catch(e){toast('لم يتم التنزيل · Download not completed')}};
+/* AI assistant */
+const ai=document.getElementById('ai'),log=document.getElementById('aiLog'),inp=document.getElementById('aiIn');
+let sample=null,busy=false,hist=[],undo=[];
+const pill=document.getElementById('aiPill'),unread=document.getElementById('aiUnread');let nUn=0;
+function openAI(o){ai.classList.toggle('on',o);document.body.classList.toggle('ai-open',o);pill.classList.toggle('on',false);if(o){nUn=0;unread.hidden=true}setTimeout(()=>{try{stick()}catch(e){}},50)}
+function minAI(){ai.classList.remove('on');document.body.classList.remove('ai-open');pill.classList.add('on')}
+pill.onclick=()=>openAI(true);
+document.getElementById('aiMin').onclick=minAI;
+let wide=false;try{wide=localStorage.getItem('rackmap_aiw')==='1'}catch(e){}
+function setW(){document.documentElement.style.setProperty('--aiw',wide?'520px':'360px')}setW();
+document.getElementById('aiWide').onclick=()=>{wide=!wide;setW();try{localStorage.setItem('rackmap_aiw',wide?'1':'0')}catch(e){}};
+document.getElementById('aiBtn').onclick=()=>{openAI(!ai.classList.contains('on'));if(!sample&&!ai.dataset.off){ai.dataset.off=1;if(!window.claude){add('e','المساعد يشتغل من رابط Claude فقط. افتح الصفحة من الرابط · The assistant works only on the Claude link.')}}};
+document.getElementById('aiClose').onclick=()=>{openAI(false)};
+function add(cls,txt){const d=document.createElement('div');d.className='m '+cls;d.textContent=txt;log.appendChild(d);log.scrollTop=log.scrollHeight;if(!ai.classList.contains('on')&&pill.classList.contains('on')&&cls!=='u'){nUn++;unread.textContent=nUn;unread.hidden=false}return d}
+function refresh(){save();drawRows();render();renderV();renderM()}
+function snap(){undo.push({d:JSON.stringify(data),c:JSON.stringify(CUSTOM)});if(undo.length>20)undo.shift()}
+document.getElementById('aiUndo').onclick=()=>{const u=undo.pop();if(!u){toast('لا يوجد ما يُتراجع عنه · Nothing to undo');return}
+ data=JSON.parse(u.d);for(const k of Object.keys(CUSTOM))delete ITEMS[k];CUSTOM=JSON.parse(u.c);Object.assign(ITEMS,CUSTOM);refresh();add('t','↩ تم التراجع عن آخر تعديل · Last change undone')};
+const lv=x=>String(x||'').trim().toUpperCase();
+function rowsOut(){return data.map((r,i)=>({i,rack:lv(r[0]),level:lv(r[1]),pallets:+r[2]||0,item:r[3]||'',note:r[4]||'',review:r[5]||''}))}
+function matchOut(){return [...document.querySelectorAll('#mbody tr')].map(tr=>tr.innerText.replace(/\s+/g,' ').trim()).slice(0,80)}
+const TOOLS=[
+ {name:'get_state',description:'Read the current rack distribution rows (index i, rack, level, pallets, item key, note, review status), the item catalog (key -> tag, Arabic, English) and receiving-match rows. Call this before any change.',inputSchema:{type:'object',properties:{}},
+  execute:()=>({rows:rowsOut(),items:Object.fromEntries(Object.entries(ITEMS).map(([k,v])=>[k,{tag:v.tag,ar:v.ar,en:v.en}])),match:matchOut()})},
+ {name:'add_row',description:'Add a distribution row: pallets of one item at rack + level. Level A is the floor. pallets 0 with empty item = empty level.',inputSchema:{type:'object',properties:{rack:{type:'string'},level:{type:'string'},pallets:{type:'number'},item:{type:'string',description:'item key from the catalog, or empty'},note:{type:'string'}},required:['rack','level','pallets']},
+  execute:(a)=>{if(a.item&&!ITEMS[a.item])throw new Error('unknown item key '+a.item);data.push([lv(a.rack),lv(a.level),Math.max(0,+a.pallets||0),a.item||'',a.note||'']);return {ok:true,i:data.length-1}}},
+ {name:'update_row',description:'Change fields of an existing row by index i (rack, level, pallets, item, note).',inputSchema:{type:'object',properties:{i:{type:'number'},rack:{type:'string'},level:{type:'string'},pallets:{type:'number'},item:{type:'string'},note:{type:'string'}},required:['i']},
+  execute:(a)=>{const r=data[a.i];if(!r)throw new Error('no row '+a.i);if(a.item!==undefined&&a.item&&!ITEMS[a.item])throw new Error('unknown item key '+a.item);
+   if(a.rack!==undefined)r[0]=lv(a.rack);if(a.level!==undefined)r[1]=lv(a.level);if(a.pallets!==undefined)r[2]=Math.max(0,+a.pallets||0);if(a.item!==undefined)r[3]=a.item;if(a.note!==undefined)r[4]=a.note;return {ok:true,row:r.slice(0,5)}}},
+ {name:'delete_row',description:'Delete the row with index i. Indexes of later rows shift down by one, so call get_state again before further index-based edits.',inputSchema:{type:'object',properties:{i:{type:'number'}},required:['i']},
+  execute:(a)=>{if(!data[a.i])throw new Error('no row '+a.i);const r=data.splice(a.i,1)[0];return {ok:true,deleted:r.slice(0,5)}}},
+ {name:'set_review',description:'Set the physical-check status of row i: ok (correct), bad (wrong) or empty (pending).',inputSchema:{type:'object',properties:{i:{type:'number'},status:{type:'string',enum:['ok','bad','']}},required:['i','status']},
+  execute:(a)=>{const r=data[a.i];if(!r)throw new Error('no row '+a.i);while(r.length<10)r.push('');r[5]=a.status;return {ok:true}}},
+ {name:'add_item',description:'Add a new item to the catalog when the needed item does not exist. key: short uppercase code; tag: short English label; ar: Arabic name; en: full English name as on the supplier invoice; color: hex.',inputSchema:{type:'object',properties:{key:{type:'string'},tag:{type:'string'},ar:{type:'string'},en:{type:'string'},color:{type:'string'}},required:['key','tag','ar','en']},
+  execute:(a)=>{const k=String(a.key).toUpperCase().replace(/[^A-Z0-9_]/g,'');if(!k)throw new Error('bad key');if(ITEMS[k]&&!CUSTOM[k])throw new Error('key exists');
+   CUSTOM[k]={tag:String(a.tag).slice(0,18),ar:String(a.ar),en:String(a.en),c:/^#[0-9a-f]{6}$/i.test(a.color||'')?a.color:'#d9d9d9',p:'#fff'};ITEMS[k]=CUSTOM[k];return {ok:true,key:k}}},
+ {name:'get_receiving',description:'Read receiving document lines (doc, supplier E=Easternpak F=Future, date, code, English name, qty cartons, pallets, pallet breakdown). Optional code filter.',inputSchema:{type:'object',properties:{code:{type:'string'}}},
+  execute:(a)=>RECV.filter(r=>!a.code||String(r[3]).toUpperCase()===String(a.code).toUpperCase()).map(r=>({doc:r[0],sup:r[1],date:r[2],code:r[3],en:r[4],qty:r[5],pallets:r[6],breakdown:r[7]}))}
+];
+const changing=new Set(['add_row','update_row','delete_row','set_review','add_item']);
+const SYS=`You are the warehouse assistant inside Al-Munajem Foods' dry-store "Rack Distribution Map" page, working for Ahmed Sadat (dry-store manager). Reply in the language the user writes (usually Arabic, Gulf/Egyptian style), short and clear; item names in English exactly as on supplier invoices.
+Rules you must respect:
+- A rack code is zone letter + number (C14, B20, D14). Level A is the floor; each next letter is one level up.
+- Zone B (mozzarella): pallets of 500 or less become 400 cartons, pallets above 500 become 800 (anything above 800 = 800); cut-off cartons form new pallets.
+- Zone C: level D holds 800 cartons per pallet (4 pallets); levels A/B/C hold 1000 per pallet.
+- Keep one item family in the same rack; leftovers go to the rack front. Any "professional" shrimp is the TAIL ON version.
+- If something is unclear, ask a short question instead of guessing; leave unclear items empty.
+How to work: call get_state first. Make changes only with the tools, one row at a time, then report exactly what changed (location, pallets, item). Never invent receiving data; use get_receiving. If the user asks for a plan only, do not change anything.`;
+const W0=document.getElementById('aiForm');
+async function ask(text){if(busy||!text.trim())return;if(!sample){add('e','المساعد غير متاح هنا. افتح الصفحة من رابط Claude · Assistant not available here — open the Claude link.');return}
+ busy=true;add('u',text);hist.push({role:'user',content:text});const out=add('a','…');let changed=false;snap();
+ const tools=TOOLS.map(t=>({...t,execute:async(a)=>{const r=t.execute(a||{});if(changing.has(t.name)){changed=true;refresh();add('t','✔ '+t.name+' '+JSON.stringify(a||{}))}return r}}));
+ try{const msgs=[{role:'user',content:SYS+'\n\n---\n'+hist[0].content},...hist.slice(1)];
+  const res=await sample(msgs.length===1?msgs[0].content:msgs,{tools,cache:false,onText:({text})=>{out.textContent=text}});
+  out.textContent=res.text||'تم · Done';hist.push({role:'assistant',content:res.text||'Done'});if(hist.length>16)hist=hist.slice(-16);if(hist[0].role!=='user')hist.shift();
+  if(!changed)undo.pop()}
+ catch(e){out.remove();undo.pop();hist.pop();add('e',e&&e.code==='not_granted'?'لم يتم السماح للمساعد · Assistant permission not granted':e&&e.code==='rate_limited'?'كثرة طلبات، انتظر قليلاً · Too many requests, wait a moment':'تعذّر الرد · Could not answer'+(e&&e.message?' ('+e.message+')':''))}
+ busy=false}
+W0.onsubmit=e=>{e.preventDefault();const t=inp.value;inp.value='';ask(t)};
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();W0.requestSubmit()}});
+document.getElementById('aiSug').onclick=e=>{const b=e.target.closest('button');if(b)ask(b.textContent)};
+if(window.claude&&window.claude.use){
+ window.claude.use('sample').then(x=>{sample=x;if(!x)add('e','المساعد غير مفعّل لهذه الصفحة · Assistant not enabled for this page')});
+ window.claude.use('downloads').then(x=>{dl=x});
+}
+}
+</script>
+</body>
+</html>
